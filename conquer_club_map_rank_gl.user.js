@@ -164,7 +164,7 @@ function Totals(insignia) {
   this._xmedals = 0;
   this._counter = 0;
   this._types = [];
-  this._defeats = [];
+  this._defeats = {};
   this._defeats['Speed'] = [];
   this._defeats['Standard'] = [];
   this._defeats['Terminator'] = [];
@@ -3180,7 +3180,7 @@ if(leftBar) {
                   mp.push(txt);
                 }
               }
-              var gt = cboxValues('gt[]');
+              var gt = cboxValues('ty[]');
               if(gt.length) opts += "<span class=rankoptions>Game Type: <b>" + gt + "</b></span> ";
               var porder = cboxValues('po[]');
               if(porder.length) opts += "<span class=rankoptions>Play Order: <b>" + porder + "</b></span> ";
@@ -3311,13 +3311,7 @@ if(leftBar) {
 }
 
 function d2h(d) {
-  var hD="0123456789ABCDEF";
-  var h = hD.substr(d&15,1);
-  while (d>15) {
-    d>>=4;
-    h=hD.substr(d&15,1)+h;
-  }
-  return h;
+  return d.toString(16);
 }
 
 function h2d(h) {
