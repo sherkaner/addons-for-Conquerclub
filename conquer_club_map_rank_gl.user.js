@@ -11,9 +11,8 @@ var versiont = "1.5.3";
 var latestVersiont = 0;
 var __eventListeners = [];
 var ranks = [];
-var features=[];
+var features = [];
 var maps = [];
-var counter = 0;
 var unique = [];
 var totals;
 var cid = 0;
@@ -22,7 +21,7 @@ var viewer = null;
 var ghist = [];
 var rateReq = [];
 var xrateReq = [];
-var current=-1;
+var current = -1;
 var suggtot = 0;
 var phist = "";
 var loadedName = "";
@@ -32,285 +31,305 @@ var dark = 0;
 var pcount = 0;
 var myOptions;
 var myStore;
-var sortable = new Array("smap","spts","swin","suni","skil", "srel");
-var graphTypes = {'points' : new GraphType("Points","point gain/loss",pointsalg,1000, "red",null,null) , 'winloss' : new GraphType("Win/Loss %","win/loss",winlossalg,0, "green(win) and red(loss)",100,0)}
-var gm = {'Standard' : 'S', 'Terminator' : 'C', 'Assassin': 'A', 'Doubles': 'D', 'Triples' : 'T', 'Quadruples' : 'Q'};
-var mg = {'S' : 'Standard', 'C' : 'Terminator', 'A' : 'Assassin', 'D' : 'Doubles', 'T' : 'Triples', 'Q' : 'Quadruples'};
-var modulo = {'D' : 2, 'T' : 3, 'Q' : 4};
-var medlev = {'Standard' : new Array(0,20,100,400),  'Crossmap' : new Array(0,20,40,60), 'Rating' : new Array(0,40,200,500)};
-var medname = new Array("0", "Bronze (1)", "Silver (2)", "Gold (3)");
-var medclass = new Array("nomedal", "bmedal", "smedal", "gmedal", "omedal");
-var meddivclass = new Array("nomeddiv", "bmeddiv", "smeddiv", "gmeddiv", "omeddiv");
-var medcombo = new Array("Manual", "Freestyle", "Fog", "Speed", "Crossmap", "Nuclear");
-var medcombourl = new Array("&it=M", "&po=F", "&wf=Y", "&sg=Y", "", "&bc=4");
-var medmatrix = new Array(new Array(0,1,2,3,4,5),
-                          new Array(0,1,2,3,4),new Array(0,1,2,3,5),new Array(0,1,2,4,5),new Array(0,1,3,4,5),new Array(0,2,3,4,5), new Array(1,2,3,4,5),                          
-                          new Array(0,1,2,3),new Array(0,1,2,4),new Array(0,1,3,4),new Array(0,2,3,4),new Array(1,2,3,4),
-                          new Array(0,1,2,5),new Array(0,1,3,5),new Array(0,2,3,5),new Array(1,2,3,5),new Array(0,1,4,5),
-                          new Array(0,2,4,5),new Array(1,2,4,5),new Array(0,3,4,5),new Array(1,3,4,5),new Array(2,3,4,5),                          
-                          new Array(0,1,2),new Array(0,1,3),new Array(0,1,4),new Array(0,2,3),new Array(0,2,4),
-                          new Array(0,3,4),new Array(1,2,3),new Array(1,2,4),new Array(1,3,4),new Array(2,3,4),
-                          new Array(0,1,5),new Array(0,2,5),new Array(0,3,5),new Array(1,2,5),new Array(1,3,5),
-                          new Array(2,3,5),new Array(0,4,5),new Array(1,4,5),new Array(2,4,5),new Array(3,4,5),                          
-                          new Array(0,1), new Array(0,2), new Array(0,3), new Array(0,4), new Array(1,2),
-                          new Array(1,3), new Array(1,4), new Array(2,3), new Array(2,4), new Array(3,4),
-                          new Array(0,5), new Array(1,5), new Array(2,5), new Array(3,5), new Array(4,5),
-                          [0],[1],[2], [3], [4], [5]);
-                          
-var hD="0123456789ABCDEF";
-var g;
-var Font;
-var Stroke;
+var sortable = ["smap","spts","swin","suni","skil", "srel"];
+var graphTypes = {
+  'points' : new GraphType("Points","point gain/loss",pointsalg,1000, "red",null,null) , 
+  'winloss' : new GraphType("Win/Loss %","win/loss",winlossalg,0, "green(win) and red(loss)",100,0)
+};
+var gm = {
+  'Standard' : 'S', 
+  'Terminator' : 'C', 
+  'Assassin': 'A', 
+  'Doubles': 'D', 
+  'Triples' : 'T', 
+  'Quadruples' : 'Q'
+};
+var mg = {
+  'S' : 'Standard', 
+  'C' : 'Terminator', 
+  'A' : 'Assassin', 
+  'D' : 'Doubles', 
+  'T' : 'Triples', 
+  'Q' : 'Quadruples'
+};
+var modulo = {
+  'D' : 2, 
+  'T' : 3, 
+  'Q' : 4
+};
+var medlev = {
+  'Standard' : [0,20,100,400],  
+  'Crossmap' : [0,20,40,60], 
+  'Rating' : [0,40,200,500]
+};
+var medname = ["0", "Bronze (1)", "Silver (2)", "Gold (3)"];
+var medclass = ["nomedal", "bmedal", "smedal", "gmedal", "omedal"];
+var meddivclass = ["nomeddiv", "bmeddiv", "smeddiv", "gmeddiv", "omeddiv"];
+var medcombo = ["Manual", "Freestyle", "Fog", "Speed", "Crossmap", "Nuclear"];
+var medcombourl = ["&it=M", "&po=F", "&wf=Y", "&sg=Y", "", "&bc=4"];
+var medmatrix = [[0,1,2,3,4,5],
+                [0,1,2,3,4],[0,1,2,3,5],[0,1,2,4,5],[0,1,3,4,5],[0,2,3,4,5],[1,2,3,4,5],                          
+                [0,1,2,3],[0,1,2,4],[0,1,3,4],[0,2,3,4],[1,2,3,4],
+                [0,1,2,5],[0,1,3,5],[0,2,3,5],[1,2,3,5],[0,1,4,5],
+                [0,2,4,5],[1,2,4,5],[0,3,4,5],[1,3,4,5],[2,3,4,5],                          
+                [0,1,2],[0,1,3],[0,1,4],[0,2,3],[0,2,4],
+                [0,3,4],[1,2,3],[1,2,4],[1,3,4],[2,3,4],
+                [0,1,5],[0,2,5],[0,3,5],[1,2,5],[1,3,5],
+                [2,3,5],[0,4,5],[1,4,5],[2,4,5],[3,4,5],                          
+                [0,1],[0,2],[0,3],[0,4],[0,5],
+                [1,2],[1,3],[1,4],[1,5],
+                [2,3],[2,4],[2,5],[3,4],[3,5],[4,5],
+                [0],[1],[2],[3],[4],[5]];
 var slider;
 var sarray;
 var proto;
 var surl = "";
-var lastLog=new Date();
+var lastLog = new Date();
 lastLog.setFullYear(2008,1,13);
-var lastTime = lastLog.getTime();    
+var lastTime = lastLog.getTime();
 
 function Point(time, points) {
-this._time = time;
-this._points = points;
+  this._time = time;
+  this._points = points;
 }
 
 function Rank() {
-this._wins = 0;
-this._rank = 0;
-this._counter = 0;
-this._firsts = 0;
-this._wonfirsts = 0;
-this._missing = 0;
-this._games = new Array();
-this._parray = new Array();
-this._warray = new Array();
-this._kills = 0;
-this._meanwin = 0;
-this._beaten = 0;
-this._defeats = new Object();
-this._defeats["Speed"] = new Array();
-this._defeats["Standard"] = new Array();
-this._defeats["Terminator"] = new Array();
-this._defeats["Assassin"] = new Array();
-this._defeats["Doubles"] = new Array();
-this._defeats["Triples"] = new Array();
-this._defeats["Quadruples"] = new Array();
-this._defeats["Manual"] = new Array();
-this._defeats["Fog"] = new Array();
-this._defeats["Freestyle"] = new Array();
-this._defeats["XSpeed"] = new Array();
-this._defeats["XStandard"] = new Array();
-this._defeats["XTerminator"] = new Array();
-this._defeats["XAssassin"] = new Array();
-this._defeats["XDoubles"] = new Array();
-this._defeats["XTriples"] = new Array();
-this._defeats["XQuadruples"] = new Array();
-this._defeats["XManual"] = new Array();
-this._defeats["XFog"] = new Array();
-this._defeats["XFreestyle"] = new Array();
-this._defeats["Nuclear"] = new Array();
-this._defeats["XNuclear"] = new Array();
+  this._wins = 0;
+  this._rank = 0;
+  this._counter = 0;
+  this._firsts = 0;
+  this._wonfirsts = 0;
+  this._missing = 0;
+  this._games = [];
+  this._parray = [];
+  this._warray = [];
+  this._kills = 0;
+  this._meanwin = 0;
+  this._beaten = 0;
+  this._defeats = {};
+  this._defeats["Speed"] = [];
+  this._defeats["Standard"] = [];
+  this._defeats["Terminator"] = [];
+  this._defeats["Assassin"] = [];
+  this._defeats["Doubles"] = [];
+  this._defeats["Triples"] = [];
+  this._defeats["Quadruples"] = [];
+  this._defeats["Manual"] = [];
+  this._defeats["Fog"] = [];
+  this._defeats["Freestyle"] = [];
+  this._defeats["XSpeed"] = [];
+  this._defeats["XStandard"] = [];
+  this._defeats["XTerminator"] = [];
+  this._defeats["XAssassin"] = [];
+  this._defeats["XDoubles"] = [];
+  this._defeats["XTriples"] = [];
+  this._defeats["XQuadruples"] = [];
+  this._defeats["XManual"] = [];
+  this._defeats["XFog"] = [];
+  this._defeats["XFreestyle"] = [];
+  this._defeats["Nuclear"] = [];
+  this._defeats["XNuclear"] = [];
 }
 
 function Store() {
-this._ranks = new Object();
-this._unique = new Object();
-this._date = new Date();
-this._total = 0;
+  this._ranks = {};
+  this._unique = {};
+  this._date = new Date();
+  this._total = 0;
 }
 
 function Totals(insignia) {
-this._insignia = insignia;
-this._points = 0;
-this._maps = 0;
-this._unique = new Array();
-this._crossmap = new Array();
-this._crossmaps = 0;
-this._wins = 0;
-this._pages = 0;
-this._expected = 0;
-this._games = 0;
-this._kills = 0;
-this._meanwin = 0;
-this._beaten = 0;
-this._firsts = 0;
-this._wonfirsts = 0;
-this._missing = 0;
-this._realscore = null;
-this._parray = new Array();
-this._warray = new Array();
-this._sorted = new Array();
-this._contribute = new Array();
-this._medals = 0;
-this._xmedals = 0;
-this._counter = 0;
-this._types = new Array();
-this._defeats = new Array();
-this._defeats['Speed'] = new Array();
-this._defeats['Standard'] = new Array();
-this._defeats['Terminator'] = new Array();
-this._defeats['Assassin'] = new Array();
-this._defeats['Doubles'] = new Array();
-this._defeats['Triples'] = new Array();
-this._defeats['Quadruples'] = new Array();
-this._defeats["Manual"] = new Array();
-this._defeats["Fog"] = new Array();
-this._defeats["Freestyle"] = new Array();
-this._defeats['Rating'] = new Array();
-this._defeats['XSpeed'] = new Array();
-this._defeats['XStandard'] = new Array();
-this._defeats['XTerminator'] = new Array();
-this._defeats['XAssassin'] = new Array();
-this._defeats['XDoubles'] = new Array();
-this._defeats['XTriples'] = new Array();
-this._defeats['XQuadruples'] = new Array();
-this._defeats["XManual"] = new Array();
-this._defeats["XFog"] = new Array();
-this._defeats["XFreestyle"] = new Array();
-this._defeats['XRating'] = new Array();
-this._defeats["Nuclear"] = new Array();
-this._defeats["XNuclear"] = new Array();
+  this._insignia = insignia;
+  this._points = 0;
+  this._maps = 0;
+  this._unique = [];
+  this._crossmap = [];
+  this._crossmaps = 0;
+  this._wins = 0;
+  this._pages = 0;
+  this._expected = 0;
+  this._games = 0;
+  this._kills = 0;
+  this._meanwin = 0;
+  this._beaten = 0;
+  this._firsts = 0;
+  this._wonfirsts = 0;
+  this._missing = 0;
+  this._realscore = null;
+  this._parray = [];
+  this._warray = [];
+  this._sorted = [];
+  this._contribute = [];
+  this._medals = 0;
+  this._xmedals = 0;
+  this._counter = 0;
+  this._types = [];
+  this._defeats = [];
+  this._defeats['Speed'] = [];
+  this._defeats['Standard'] = [];
+  this._defeats['Terminator'] = [];
+  this._defeats['Assassin'] = [];
+  this._defeats['Doubles'] = [];
+  this._defeats['Triples'] = [];
+  this._defeats['Quadruples'] = [];
+  this._defeats["Manual"] = [];
+  this._defeats["Fog"] = [];
+  this._defeats["Freestyle"] = [];
+  this._defeats['Rating'] = [];
+  this._defeats['XSpeed'] = [];
+  this._defeats['XStandard'] = [];
+  this._defeats['XTerminator'] = [];
+  this._defeats['XAssassin'] = [];
+  this._defeats['XDoubles'] = [];
+  this._defeats['XTriples'] = [];
+  this._defeats['XQuadruples'] = [];
+  this._defeats["XManual"] = [];
+  this._defeats["XFog"] = [];
+  this._defeats["XFreestyle"] = [];
+  this._defeats['XRating'] = [];
+  this._defeats["Nuclear"] = [];
+  this._defeats["XNuclear"] = [];
 }
 
 function Defeats() {
-this._defeats = new Object();
-this._defeats["Speed"] = new Array();
-this._defeats["Standard"] = new Array();
-this._defeats["Terminator"] = new Array();
-this._defeats["Assassin"] = new Array();
-this._defeats["Doubles"] = new Array();
-this._defeats["Triples"] = new Array();
-this._defeats["Quadruples"] = new Array();
-this._defeats['Rating'] = new Array();
-this._defeats["XSpeed"] = new Array();
-this._defeats["Manual"] = new Array();
-this._defeats["Fog"] = new Array();
-this._defeats["Freestyle"] = new Array();
-this._defeats["XStandard"] = new Array();
-this._defeats["XTerminator"] = new Array();
-this._defeats["XAssassin"] = new Array();
-this._defeats["XDoubles"] = new Array();
-this._defeats["XTriples"] = new Array();
-this._defeats["XQuadruples"] = new Array();
-this._defeats["XManual"] = new Array();
-this._defeats["XFog"] = new Array();
-this._defeats["XFreestyle"] = new Array();
-this._defeats['XRating'] = new Array();
-this._defeats["Nuclear"] = new Array();
-this._defeats["XNuclear"] = new Array();
+  this._defeats = {};
+  this._defeats["Speed"] = [];
+  this._defeats["Standard"] = [];
+  this._defeats["Terminator"] = [];
+  this._defeats["Assassin"] = [];
+  this._defeats["Doubles"] = [];
+  this._defeats["Triples"] = [];
+  this._defeats["Quadruples"] = [];
+  this._defeats['Rating'] = [];
+  this._defeats["XSpeed"] = [];
+  this._defeats["Manual"] = [];
+  this._defeats["Fog"] = [];
+  this._defeats["Freestyle"] = [];
+  this._defeats["XStandard"] = [];
+  this._defeats["XTerminator"] = [];
+  this._defeats["XAssassin"] = [];
+  this._defeats["XDoubles"] = [];
+  this._defeats["XTriples"] = [];
+  this._defeats["XQuadruples"] = [];
+  this._defeats["XManual"] = [];
+  this._defeats["XFog"] = [];
+  this._defeats["XFreestyle"] = [];
+  this._defeats['XRating'] = [];
+  this._defeats["Nuclear"] = [];
+  this._defeats["XNuclear"] = [];
 }
 
 function Summary(name) {
-this._medal = name;
-this._current = 0;
-this._next = 0;
-this._medals = 0;
-this._best = new Array();
+  this._medal = name;
+  this._current = 0;
+  this._next = 0;
+  this._medals = 0;
+  this._best = [];
 }
 
 function Pinfo() {
-this._defeats = new Array();
+  this._defeats = [];
 }
 
 function GraphType(type,info,alg,initial,markers,maxbound,minbound) {
-this._type = type;
-this._info = info;
-this._markers = markers;
-this._running = function(array) {
-return(alg(array))
-}
-this._initial = initial;
-this._maxbound = maxbound;
-this._minbound = minbound;
+  this._type = type;
+  this._info = info;
+  this._markers = markers;
+  this._running = function(array) {
+    return(alg(array));
+  };
+  this._initial = initial;
+  this._maxbound = maxbound;
+  this._minbound = minbound;
 }
 
 function Streak() {
-this._start = 0;
-this._num = 0;
+  this._start = 0;
+  this._num = 0;
 }
 
 function PointInfo(data, colour) {
-this._data = new Array();
-this._colour = new Array();
-this._winstreak = new Streak();
-this._losstreak = new Streak();
+  this._data = [];
+  this._colour = [];
+  this._winstreak = new Streak();
+  this._losstreak = new Streak();
 }
 
 function Slide(length,to,parray) {
-this._pxLen = length;
-this._scale = to / length;
-this._toVal = to;
-this._parray = parray;
+  this._pxLen = length;
+  this._scale = to / length;
+  this._toVal = to;
+  this._parray = parray;
 }
 
 function MapOpts(player2, num, type, bonus, order, fort, fog, joinable, speed, tname, versus, versus2, ex1, ex2, player3,player4,versus3,versus4,ex3,ex4,troops) {
- this._pcount = 0;
- this._players = new Array();
- this._players['p2'] = player2;
- if(player2) this._pcount++;
- this._players['p3'] = player3;
- if(player3) this._pcount++;
- this._players['p4'] = player4;
- if(player4) this._pcount++;
- this._players['v1'] = versus;
- if(versus) this._pcount++;
- this._players['v2'] = versus2;
- if(versus2) this._pcount++;
- this._players['v3'] = versus3;
- if(versus3) this._pcount++;
- this._players['v4'] = versus4;
- if(versus4) this._pcount++;
- this._players['x1'] = ex1;
- if(ex1) this._pcount++;
- this._players['x2'] = ex2;
- if(ex2) this._pcount++;
- this._players['x3'] = ex3;
- if(ex3) this._pcount++;
- this._players['x4'] = ex4;
- if(ex4) this._pcount++;
- this._num = num;
- this._type = type;
- this._bonus = bonus;
- this._order = order;
- this._troops = troops;
- this._fort = fort;
- this._fog = fog;
- this._joinable = joinable;
- this._speed = speed;
- this._tname = tname;
+  this._pcount = 0;
+  this._players = [];
+  this._players['p2'] = player2;
+  if (player2) this._pcount++;
+  this._players['p3'] = player3;
+  if (player3) this._pcount++;
+  this._players['p4'] = player4;
+  if (player4) this._pcount++;
+  this._players['v1'] = versus;
+  if (versus) this._pcount++;
+  this._players['v2'] = versus2;
+  if (versus2) this._pcount++;
+  this._players['v3'] = versus3;
+  if (versus3) this._pcount++;
+  this._players['v4'] = versus4;
+  if (versus4) this._pcount++;
+  this._players['x1'] = ex1;
+  if (ex1) this._pcount++;
+  this._players['x2'] = ex2;
+  if (ex2) this._pcount++;
+  this._players['x3'] = ex3;
+  if (ex3) this._pcount++;
+  this._players['x4'] = ex4;
+  if (ex4) this._pcount++;
+  this._num = num;
+  this._type = type;
+  this._bonus = bonus;
+  this._order = order;
+  this._troops = troops;
+  this._fort = fort;
+  this._fog = fog;
+  this._joinable = joinable;
+  this._speed = speed;
+  this._tname = tname;
 }
 
 function addListener(instance, eventName, listener) {
-    var listenerFn = listener;
-    instance.addEventListener(eventName, listenerFn, false);
-    var event = {
-        instance: instance,
-        name: eventName,
-        listener: listenerFn
-    };
-    __eventListeners.push(event);
-    return event;
+  var listenerFn = listener;
+  instance.addEventListener(eventName, listenerFn, false);
+  var event = {
+    instance: instance,
+    name: eventName,
+    listener: listenerFn
+  };
+  __eventListeners.push(event);
+  return event;
 }
 
 function removeListener(event) {
-    var instance = event.instance;
-    instance.removeEventListener(event.name, event.listener, false);
-    for (var i = 0; i < __eventListeners.length; i++) {
-        if (__eventListeners[i] == event) {
-            __eventListeners.splice(i, 1);
-            break;
-        }
+  var instance = event.instance;
+  instance.removeEventListener(event.name, event.listener, false);
+  for (var i = 0; i < __eventListeners.length; i++) {
+    if (__eventListeners[i] == event) {
+      __eventListeners.splice(i, 1);
+      break;
     }
+  }
 }
 
 function setThumbnails(opts) {	
-var thumbs = '';
-	for (var i = 0; i < opts.length; i++) {
-		if (opts[i].selected) {
-			var map_status = (unsafeWindow.mapStatuses[i] == 'B') ? 'http://static.conquerclub.com/map_beta.png' : 'http://static.conquerclub.com/map_normal.png';
-			thumbs += ' <a href="http://maps.conquerclub.com/' + unsafeWindow.mapFiles[i] + '" rel="lightbox" title="' + unsafeWindow.mapTitles[i] + ',' + unsafeWindow.mapTopics[i] + '"><img style="background-image:url(http://maps.conquerclub.com/'+ unsafeWindow.mapThumbs[i] + ')" src="' + map_status + '" width="50" height="34" alt="' + unsafeWindow.mapTitles[i] + '" title="' + unsafeWindow.mapTitles[i] + '" /></a>';
-		}
-	}		
+  var thumbs = '';
+  for (var i = 0; i < opts.length; i++) {
+    if (opts[i].selected) {
+      var map_status = (unsafeWindow.mapStatuses[i] == 'B') ? 'http://static.conquerclub.com/map_beta.png' : 'http://static.conquerclub.com/map_normal.png';
+      thumbs += ' <a href="http://maps.conquerclub.com/' + unsafeWindow.mapFiles[i] + '" rel="lightbox" title="' + unsafeWindow.mapTitles[i] + ',' + unsafeWindow.mapTopics[i] + '"><img style="background-image:url(http://maps.conquerclub.com/'+ unsafeWindow.mapThumbs[i] + ')" src="' + map_status + '" width="50" height="34" alt="' + unsafeWindow.mapTitles[i] + '" title="' + unsafeWindow.mapTitles[i] + '" /></a>';
+    }
+  }		
   unsafeWindow.map_thumbs.innerHTML = thumbs;
   unsafeWindow.initLightbox();
 }
@@ -332,76 +351,75 @@ function winlossalg(array) {
   var winstreak = new Streak();
   var losstreak = new Streak();
   var running = new PointInfo();
-  if(array[0]._points == 1) {
-   counter += array[0]._points;
-   running._colour.push("green");
-   winstreak._num++;
-  }
-  else{
-   running._colour.push("red");
-   losstreak._num++;
+  if (array[0]._points == 1) {
+    counter += array[0]._points;
+    running._colour.push("green");
+    winstreak._num++;
+  } else {
+    running._colour.push("red");
+    losstreak._num++;
   }
   running._data.push(100 * counter);
   for(var f=1; f< array.length; f++) {
     if(array[f]._points == 1) {
-     counter += array[f]._points;
-     if(array[f - 1]._points == -1) {
-      if(losstreak._num > running._losstreak._num) {
-        running._losstreak._start = losstreak._start;
-        running._losstreak._num = losstreak._num;
+      counter += array[f]._points;
+      if(array[f - 1]._points == -1) {
+        if(losstreak._num > running._losstreak._num) {
+          running._losstreak._start = losstreak._start;
+          running._losstreak._num = losstreak._num;
+        }
+        winstreak._start = f;
+        winstreak._num = 0;
       }
-      winstreak._start = f;
-      winstreak._num = 0;
-     }
-     winstreak._num++;
-     running._colour.push("green");
+      winstreak._num++;
+      running._colour.push("green");
     }
     else{
-     if(array[f - 1]._points == 1) {
-      if(winstreak._num > running._winstreak._num) {
-        running._winstreak._start = winstreak._start;
-        running._winstreak._num = winstreak._num;
+      if(array[f - 1]._points == 1) {
+        if(winstreak._num > running._winstreak._num) {
+          running._winstreak._start = winstreak._start;
+          running._winstreak._num = winstreak._num;
+        }
+        losstreak._start = f;
+        losstreak._num = 0;
       }
-      losstreak._start = f;
-      losstreak._num = 0;
-     }
-     losstreak._num++;
-     running._colour.push("red");
+      losstreak._num++;
+      running._colour.push("red");
     }
     running._data.push((100 * counter / (f+1)).toFixed(0));
   }
   if(array[f - 1]._points == -1) {
-   if(losstreak._num > running._losstreak._num) {
-     running._losstreak._start = losstreak._start;
-     running._losstreak._num = losstreak._num;
-   }
+    if(losstreak._num > running._losstreak._num) {
+      running._losstreak._start = losstreak._start;
+      running._losstreak._num = losstreak._num;
+    }
   }
   else if(array[f - 1]._points == 1) {
-   if(winstreak._num > running._winstreak._num) {
-     running._winstreak._start = winstreak._start;
-     running._winstreak._num = winstreak._num;
-   }
+    if(winstreak._num > running._winstreak._num) {
+      running._winstreak._start = winstreak._start;
+      running._winstreak._num = winstreak._num;
+    }
   }
 
   return running;
 }
 
 function cascadewin(pinfoarray, name) {
-if(!pinfoarray[name]) return 0;
-var retVal = 0;
-for(var x in pinfoarray[name]._defeats) {
-  retVal += pinfoarray[name]._defeats[x] + (pinfoarray[name]._defeats[x] * cascadewin(pinfoarray,x));
-}
-return retVal;
+  if(!pinfoarray[name]) return 0;
+  var retVal = 0;
+  for(var x in pinfoarray[name]._defeats) {
+    retVal += pinfoarray[name]._defeats[x] + (pinfoarray[name]._defeats[x] * cascadewin(pinfoarray,x));
+  }
+  return retVal;
 }
 
 function cascadeloss(pinfoarray, name) {
-if(!pinfoarray[name]) return 1;
-var retVal;
-for(var x in pinfoarray[name]._defeats) {
-retVal = pinfoarray[name]._defeats[x] * cascadeloss(pinfoarray,x);
-}
-return retVal;
+  if(!pinfoarray[name]) return 1;
+  var retVal;
+  for(var x in pinfoarray[name]._defeats) {
+    retVal = pinfoarray[name]._defeats[x] * cascadeloss(pinfoarray,x);
+  }
+  return retVal;
 }
 
 function previousSib(node){
@@ -455,13 +473,13 @@ function setTable() {
   });
   for(var v in ranks) {
     if(ranks[v] && ranks[v]._counter) {
-    viewer.document.getElementById('wtot' + maps.indexOf(v)).className = "chart";
-    viewer.document.getElementById('wtot' + maps.indexOf(v)).title = v + " Win/Loss Chart";
-    addListener(viewer.document.getElementById('wtot' + maps.indexOf(v)),'click', function() {
-      var tid = this.id.split('wtot')[1];
-      slider = new Slide(200, ranks[maps[tid]]._warray.length - 1, ranks[maps[tid]]._warray);
-      graph(ranks[maps[tid]] , "_warray", 0,ranks[maps[tid]]._warray.length - 1,maps[tid], graphTypes['winloss']);
-    });
+      viewer.document.getElementById('wtot' + maps.indexOf(v)).className = "chart";
+      viewer.document.getElementById('wtot' + maps.indexOf(v)).title = v + " Win/Loss Chart";
+      addListener(viewer.document.getElementById('wtot' + maps.indexOf(v)),'click', function() {
+        var tid = this.id.split('wtot')[1];
+        slider = new Slide(200, ranks[maps[tid]]._warray.length - 1, ranks[maps[tid]]._warray);
+        graph(ranks[maps[tid]] , "_warray", 0,ranks[maps[tid]]._warray.length - 1,maps[tid], graphTypes['winloss']);
+      });
     }
   }
   viewer.document.getElementById('gtot').className = "chart";
@@ -472,20 +490,20 @@ function setTable() {
   });
   for(var v in ranks) {
     if(ranks[v] && ranks[v]._counter) {
-    viewer.document.getElementById('gtot' + maps.indexOf(v)).className = "chart";
-    viewer.document.getElementById('gtot' + maps.indexOf(v)).title = v + " Points Chart";
-    addListener(viewer.document.getElementById('gtot' + maps.indexOf(v)),'click', function() {
-      var tid = this.id.split('gtot')[1];
-      slider = new Slide(200, ranks[maps[tid]]._parray.length - 1,ranks[maps[tid]]._parray);
-      graph(ranks[maps[tid]], "_parray",0,ranks[maps[tid]]._parray.length - 1,maps[tid], graphTypes['points']);
-    });
+      viewer.document.getElementById('gtot' + maps.indexOf(v)).className = "chart";
+      viewer.document.getElementById('gtot' + maps.indexOf(v)).title = v + " Points Chart";
+      addListener(viewer.document.getElementById('gtot' + maps.indexOf(v)),'click', function() {
+        var tid = this.id.split('gtot')[1];
+        slider = new Slide(200, ranks[maps[tid]]._parray.length - 1,ranks[maps[tid]]._parray);
+        graph(ranks[maps[tid]], "_parray",0,ranks[maps[tid]]._parray.length - 1,maps[tid], graphTypes['points']);
+      });
     }
   }
   addListener(viewer.document.getElementById('smap'),'click', function() {
     sortByCol('smap',alpha, 0, viewer.document.getElementById('smap').className);
   });
   addListener(viewer.document.getElementById('spts'),'click', function() {
-   sortByCol('spts',numerical, 2, viewer.document.getElementById('spts').className);
+    sortByCol('spts',numerical, 2, viewer.document.getElementById('spts').className);
   });
   addListener(viewer.document.getElementById('skil'),'click', function() {
     sortByCol('skil',percent, 5, viewer.document.getElementById('skil').className);
@@ -502,69 +520,69 @@ function setTable() {
 }
 
 function sortCombo(a,b) {
-	return(b._best.length - a._best.length);
+  return(b._best.length - a._best.length);
 }
 
 function endGame(user) {
-  var unplayed = new Array();
-  var played = new Array();
-  var mwon = new Array();
-  var mlost = new Array();
-  var mu = new Array();
-  var mnu = new Array();
-  var pos = new Array();
-  var neg = new Array();
-  var freq = new Array();
-  var nfreq = new Array();
-  var miss = new Array();
-  var summary = new Array();
-  var pm = new Array();
+  var unplayed = [];
+  var played = [];
+  var mwon = [];
+  var mlost = [];
+  var mu = [];
+  var mnu = [];
+  var pos = [];
+  var neg = [];
+  var freq = [];
+  var nfreq = [];
+  var miss = [];
+  var summary = [];
+  var pm = [];
   var nm;
 
   for(var s in totals._defeats) {
     if(s.charAt(0) != 'X') {
-    if(ratings || s!= 'Rating') {
-    var sm = new Summary(s);
-    sm._current = totals._defeats[s].length;
-    if(medlev[s]) {
-      for(var e=0; e< medlev[s].length; e++) {
-        if(sm._current >= medlev[s][e]) sm._medals = e;
-        else{
-          sm._next = medlev[s][e] - sm._current;
-          break;
+      if(ratings || s!= 'Rating') {
+        var sm = new Summary(s);
+        sm._current = totals._defeats[s].length;
+        if(medlev[s]) {
+          for(var e=0; e< medlev[s].length; e++) {
+            if(sm._current >= medlev[s][e]) sm._medals = e;
+            else{
+              sm._next = medlev[s][e] - sm._current;
+              break;
+            }
+          }
         }
-      }
-    }
-    else{
-      for(var e=0; e< medlev['Standard'].length; e++) {
-        if(sm._current >= medlev['Standard'][e]) sm._medals = e;
         else{
-          sm._next = medlev['Standard'][e] - sm._current;
-          break;
+          for(var e=0; e< medlev['Standard'].length; e++) {
+            if(sm._current >= medlev['Standard'][e]) sm._medals = e;
+            else{
+              sm._next = medlev['Standard'][e] - sm._current;
+              break;
+            }
+          }
         }
+        totals._medals += sm._medals;
+        var best = [];
+        if(sm._current) {
+          for(var j in ranks) {
+            if(ranks[j]._defeats[s] && s!= 'Rating') {
+              if(ranks[j]._defeats[s].length > sm._best) {
+                sm._best = ranks[j]._defeats[s].length;
+                best = [];
+                best.push(j);
+              }
+              else if(ranks[j]._defeats[s].length == sm._best) best.push(j);
+            }
+          }
+        }
+        sm._best = best;
+        summary.push(sm);
+        if(s == 'Speed' || s == 'Fog' || s == 'Freestyle' || s == 'Manual' || s == 'Nuclear') pm[s] = sm;
       }
     }
-    totals._medals += sm._medals;
-    var best = new Array();
-    if(sm._current) {
-    for(var j in ranks) {
-      if(ranks[j]._defeats[s] && s!= 'Rating') {
-      if(ranks[j]._defeats[s].length > sm._best) {
-        sm._best = ranks[j]._defeats[s].length;
-        best = new Array();
-        best.push(j);
-      }
-      else if(ranks[j]._defeats[s].length == sm._best) best.push(j);
-      }
-    }
-    }
-    sm._best = best;
-    summary.push(sm);
-    if(s == 'Speed' || s == 'Fog' || s == 'Freestyle' || s == 'Manual' || s == 'Nuclear') pm[s] = sm;
   }
-  }
-  }
-  for(m in ranks) {
+  for(var m in ranks) {
     if(ranks[m]._rank >= 1000) {
       srank = "+" + (ranks[m]._rank - 1000);
       pos.push(m);
@@ -636,18 +654,18 @@ function endGame(user) {
     }
   }
   totals._medals += cm._medals;
-  var best = new Array();
+  var best = [];
   if(totals._crossmaps) {
-  for(var j in ranks) {
-    if(unique[j] && unique[j].length < 5){
-    if(unique[j].length > cm._best) {
-      cm._best = unique[j].length;
-      best = new Array();
-      best.push(j);
+    for(var j in ranks) {
+      if(unique[j] && unique[j].length < 5){
+        if(unique[j].length > cm._best) {
+          cm._best = unique[j].length;
+          best = [];
+          best.push(j);
+        }
+        else if(unique[j].length == cm._best) best.push(j);
+      }
     }
-    else if(unique[j].length == cm._best) best.push(j);
-    }
-  }
   }
   cm._best = best;
   summary.push(cm);
@@ -659,39 +677,40 @@ function endGame(user) {
   }
   else if(medal >= 100) {
     medal = "<span class=smedal>" + medal + "</span>";
-  }
-  else if(medal >= 20) {
+  } else if(medal >= 20) {
     medal = "<span class=bmedal>" + medal + "</span>";
-  }
-  else{
+  } else {
     medal = "<span>" + medal + "</span>";
   }
   var cross = medclass[cm._medals];
 
   var firstLog=new Date();
-	firstLog.setFullYear(2008,1,6);
-	var firstTime = firstLog.getTime();
+  firstLog.setFullYear(2008,1,6);
+  var firstTime = firstLog.getTime();
   var runningscore = 0;
   var dummyscore = 0;
   var hiscore = 0;
   var hitime = 0;
   harray = totals["_parray"];
   harray.sort(psort);
-  for(var t=0; t<harray.length;t++) {
-	  runningscore += harray[t]._points;
-	  if(runningscore > hiscore) {
-		  hiscore = runningscore;
-	  }
-	  if(totals._realscore != null) {
-	    if(harray[t]._time > lastTime) {
-		    if(runningscore + totals._realscore - totals._points - 1000 > dummyscore) {dummyscore = runningscore + totals._realscore - totals._points - 1000;hitime = harray[t]._time;}
-	    }
-	    if(harray[t]._time < firstTime){
-		    if(runningscore > dummyscore) {
-			    dummyscore = runningscore;
-			    hitime = harray[t]._time;
-		    }
-	    }
+  for (var t=0; t<harray.length;t++) {
+    runningscore += harray[t]._points;
+    if (runningscore > hiscore) {
+      hiscore = runningscore;
+    }
+    if (totals._realscore != null) {
+      if (harray[t]._time > lastTime) {
+        if (runningscore + totals._realscore - totals._points - 1000 > dummyscore) {
+          dummyscore = runningscore + totals._realscore - totals._points - 1000;
+          hitime = harray[t]._time;
+        }
+      }
+      if(harray[t]._time < firstTime){
+        if(runningscore > dummyscore) {
+          dummyscore = runningscore;
+          hitime = harray[t]._time;
+        }
+      }
     }
   }
   
@@ -705,9 +724,9 @@ function endGame(user) {
   td.innerHTML = "<b>Totals" + missing + "</b>";
   var td = tds[1].getElementsByTagName('a')[0];
   if(totals._realscore != null) 
-  	td.innerHTML = '' + getRank(totals._games, totals._realscore) + nextRank(totals._realscore);
+    td.innerHTML = '' + getRank(totals._games, totals._realscore) + nextRank(totals._realscore);
   else
-  	td.innerHTML = '' + getRank(totals._games, totals._points + 1000) + nextRank(totals._points + 1000);
+    td.innerHTML = '' + getRank(totals._games, totals._points + 1000) + nextRank(totals._points + 1000);
   var td = tds[2].getElementsByTagName('a')[0];
   td.innerHTML = '' + trank;
   var td = tds[3].getElementsByTagName('a')[0];
@@ -742,7 +761,7 @@ function endGame(user) {
     else if(summary[y]._medal == 'Freestyle')href+= "&po=F";
     else if(summary[y]._medal == 'Manual')href+= "&it=M";
     else if(summary[y]._medal == 'Nuclear')href+= "&bc=4";
-    var mids = new Array();
+    var mids = [];
     for(cnv=0; cnv<summary[y]._best.length; cnv++) {
       mids.push(maps.indexOf(summary[y]._best[cnv]) + 1);
     }
@@ -756,7 +775,7 @@ function endGame(user) {
     if(summary[y]._medal == 'Rating') x+= "<td>-</td></tr>";
     else if(summary[y]._best.length == 0) x+= "<td>None</td></tr>";
     else if(summary[y]._medal == 'Crossmap') {
-     x+= "<td>" + summary[y]._best + " (" + unique[summary[y]._best[0]].length + ")</td></tr>";
+      x+= "<td>" + summary[y]._best + " (" + unique[summary[y]._best[0]].length + ")</td></tr>";
     }
     else x+= "<td>" + summary[y]._best + "</td></tr>";
   }
@@ -768,169 +787,169 @@ function endGame(user) {
   x+= "<tr><td colspan=5 class=summ><b>Total Medals Won: " + totals._medals + "</b></td></tr>";
   var comboleft = 0;
   for(var p in pm) {
-	  if(pm[p]._medals < 3) comboleft++;
+    if(pm[p]._medals < 3) comboleft++;
   }
   if(cm._medals < 3 || comboleft) {
-   x+= "<tr><td colspan=5 class=banner><b>Optimal Medal Combinations</b></td></tr>";
-   x+= "<tr><td>Medals</td><td colspan=4>Maps</td></tr>";
-	 if(nm){
-   var hrefbase = base + "&amp;gt=" + gm[nm._medal];
-   var optimalrows = new Array(medmatrix.length);
-   var optimaltext = new Array(medmatrix.length);
-   for(var mat=0; mat<medmatrix.length;mat++) {
-	   var assoc = new Array();
-	   var optimalkey = medmatrix[mat].join(',');
-	   var exturl = "";
-	   optimaltext[optimalkey] = "";
-	   for(var step=0; step<medmatrix[mat].length; step++){
-		   assoc.push(medcombo[medmatrix[mat][step]]);
-		   exturl += medcombourl[medmatrix[mat][step]];
-		   optimaltext[optimalkey] += medcombo[medmatrix[mat][step]] + ",";
-	   }
-   	 optimalrows[optimalkey] = "<tr><td><a href=\"javascript:void(0)\" title=\"Find " + assoc.join(" ") + " " + nm._medal + " Games\" onclick='var wdw=window.open(\"" + hrefbase + exturl + "&mp=";
-   }
-
-   var mps = new Array();
-   mps[nm._medal] = new Array();
-   mps['Crossmap'] = new Array();
-   for(var md=0; md< medcombo.length; md++) {
-	   mps[medcombo[md]] = new Array();
-   }
-
-   if(nm._best.length) {
-     for(cnv=0; cnv<nm._best.length; cnv++) {
-       mps[nm._medal].push(maps.indexOf(nm._best[cnv]) + 1);
-     }
-   }
-   if(cm._medals < 3) {
-       if(cm._best.length) {
-        for(cnv=0; cnv<cm._best.length; cnv++) {
-         mps['Crossmap'].push(maps.indexOf(cm._best[cnv]) + 1);
+    x+= "<tr><td colspan=5 class=banner><b>Optimal Medal Combinations</b></td></tr>";
+    x+= "<tr><td>Medals</td><td colspan=4>Maps</td></tr>";
+    if(nm){
+      var hrefbase = base + "&amp;gt=" + gm[nm._medal];
+      var optimalrows = new Array(medmatrix.length);
+      var optimaltext = new Array(medmatrix.length);
+      for(var mat=0; mat<medmatrix.length;mat++) {
+        var assoc = [];
+        var optimalkey = medmatrix[mat].join(',');
+        var exturl = "";
+        optimaltext[optimalkey] = "";
+        for(var step=0; step<medmatrix[mat].length; step++){
+          assoc.push(medcombo[medmatrix[mat][step]]);
+          exturl += medcombourl[medmatrix[mat][step]];
+          optimaltext[optimalkey] += medcombo[medmatrix[mat][step]] + ",";
         }
-       }
-   }
-	 for(var p in pm) {
-	  if(pm[p]._medals < 3) {
-      if(pm[p]._best.length) {
-         for(cnv=0; cnv<pm[p]._best.length; cnv++) {
-           mps[pm[p]._medal].push(maps.indexOf(pm[p]._best[cnv]) + 1);
-         }
-       }
-   	 }
-   }
-   for(var mat=0; mat<medmatrix.length;mat++) {
-	   var optimalkey = medmatrix[mat].join(',');
-	   var combos = new Array();
-	   var show = 1;
-	   for(var step=0; step<medmatrix[mat].length; step++){
-		   if(medcombo[medmatrix[mat][step]] != "Crossmap" && pm[medcombo[medmatrix[mat][step]]]._medals > 2) {
-			  show = 0;
-			  break; 
-		  }
-		  combos.push(pm[medcombo[medmatrix[mat][step]]]);
-   	}
-   	if(show) {
-	   	if(medmatrix[mat].indexOf(4) != -1) {
-		   	if(cm._medals < 3) {
-		  		if(cm._best.length) x+= optimalrows[optimalkey] + mps['Crossmap'] + "\", \"mrsugg\");wdw.focus();'>" + optimaltext[optimalkey] + nm._medal + "</a></td><td colspan=4>" + cm._best + "</td></tr>";
-		  		else{
-		  			var noWins = new Array();
-		  			var noWinsText = new Array();
-		  			for(var un in ranks) {
-			  			if(!unique[un]) {
-				  			noWins.push(maps.indexOf(un));
-				  			noWinsText.push(un);
-			  			}
-		  			}
-						if(noWins.length) x+= optimalrows[optimalkey] + noWins + "\", \"mrsugg\");wdw.focus();'>" + optimaltext[optimalkey] + nm._medal + "</a></td><td colspan=4>" + noWins + "</td></tr>";
-					}
-	  		}
-			}
-			else{
-   	 		combos.sort(sortCombo);
-        if(combos[0]._best.length) x+= optimalrows[optimalkey] + mps[combos[0]._medal] + "\", \"mrsugg\");wdw.focus();'>" + optimaltext[optimalkey] + nm._medal + "</a></td><td colspan=4>" + combos[0]._best + "</td></tr>";
-        else if(nm._best.length) x+= optimalrows[optimalkey] + mps[nm._medal] + "\", \"mrsugg\");wdw.focus();'>" + optimaltext[optimalkey] + nm._medal + "</a></td><td colspan=4>" + nm._best + "</td></tr>";
-        else x+= optimalrows[optimalkey] + "\", \"mrsugg\");wdw.focus();'>" + optimaltext[optimalkey] + nm._medal + "</a></td><td colspan=4>-</td></tr>";   	 		
-			}
-    }	   	   
- 	 }     
-  }
-  else{
-   var hrefbase = base;
-   var optimalrows = new Array(medmatrix.length);
-   var optimaltext = new Array(medmatrix.length);
-   for(var mat=0; mat<medmatrix.length;mat++) {
-	   var assoc = new Array();
-	   var optimalkey = medmatrix[mat].join(',');
-	   var exturl = "";
-	   optimaltext[optimalkey] = "";
-	   for(var step=0; step<medmatrix[mat].length; step++){
-		   assoc.push(medcombo[medmatrix[mat][step]]);
-		   exturl += medcombourl[medmatrix[mat][step]];
-		   optimaltext[optimalkey] += medcombo[medmatrix[mat][step]] + ",";
-	   }
-   	 optimalrows[optimalkey] = "<tr><td><a href=\"javascript:void(0)\" title=\"Find " + assoc.join(" ") + " Games\" onclick='var wdw=window.open(\"" + hrefbase + exturl + "&mp=";
-   }
+        optimalrows[optimalkey] = "<tr><td><a href=\"javascript:void(0)\" title=\"Find " + assoc.join(" ") + " " + nm._medal + " Games\" onclick='var wdw=window.open(\"" + hrefbase + exturl + "&mp=";
+      }
 
-   var mps = new Array();
-   mps['Crossmap'] = new Array();
-   for(var md=0; md< medcombo.length; md++) {
-	   mps[medcombo[md]] = new Array();
-   }
+      var mps = [];
+      mps[nm._medal] = [];
+      mps['Crossmap'] = [];
+      for(var md=0; md< medcombo.length; md++) {
+        mps[medcombo[md]] = [];
+      }
 
-   if(cm._medals < 3) {
-       if(cm._best.length) {
-        for(cnv=0; cnv<cm._best.length; cnv++) {
-         mps['Crossmap'].push(maps.indexOf(cm._best[cnv]) + 1);
+      if(nm._best.length) {
+        for(cnv=0; cnv<nm._best.length; cnv++) {
+          mps[nm._medal].push(maps.indexOf(nm._best[cnv]) + 1);
         }
-       }
-   }
-	 for(var p in pm) {
-	  if(pm[p]._medals < 3) {
-      if(pm[p]._best.length) {
-         for(cnv=0; cnv<pm[p]._best.length; cnv++) {
-           mps[pm[p]._medal].push(maps.indexOf(pm[p]._best[cnv]) + 1);
-         }
-       }
-   	 }
-   }
-   for(var mat=0; mat<medmatrix.length;mat++) {
-	   var optimalkey = medmatrix[mat].join(',');
-	   var combos = new Array();
-	   var show = 1;
-	   for(var step=0; step<medmatrix[mat].length; step++){
-		   if(medcombo[medmatrix[mat][step]] != "Crossmap" && pm[medcombo[medmatrix[mat][step]]]._medals > 2) {
-			  show = 0;
-			  break; 
-		  }
-		  combos.push(pm[medcombo[medmatrix[mat][step]]]);
-   	}
-   	if(show) {
-	   	if(medmatrix[mat].indexOf(4) != -1) {
-		   	if(cm._medals < 3) {
-		  		if(cm._best.length) x+= optimalrows[optimalkey] + mps['Crossmap'] + "\", \"mrsugg\");wdw.focus();'>" + optimaltext[optimalkey].substr(0,optimaltext[optimalkey].length-1) + "</a></td><td colspan=4>" + cm._best + "</td></tr>";
-		  		else{
-		  			var noWins = new Array();
-		  			var noWinsText = new Array();
-		  			for(var un in ranks) {
-			  			if(!unique[un]) {
-				  			noWins.push(maps.indexOf(un));
-				  			noWinsText.push(un);
-			  			}
-		  			}
-						if(noWins.length) x+= optimalrows[optimalkey] + noWins + "\", \"mrsugg\");wdw.focus();'>" + optimaltext[optimalkey].substr(0,optimaltext[optimalkey].length-1) + "</a></td><td colspan=4>" + noWins + "</td></tr>";
-					}
-	  		}
-			}
-			else{
-   	 		combos.sort(sortCombo);
-        if(combos[0]._best.length) x+= optimalrows[optimalkey] + mps[combos[0]._medal] + "\", \"mrsugg\");wdw.focus();'>" + optimaltext[optimalkey].substr(0,optimaltext[optimalkey].length-1) + "</a></td><td colspan=4>" + combos[0]._best + "</td></tr>";
-        else x+= optimalrows[optimalkey] + "\", \"mrsugg\");wdw.focus();'>" + optimaltext[optimalkey].substr(0,optimaltext[optimalkey].length-1) + "</a></td><td colspan=4>-</td></tr>";   	 		
-			}
-    }	   	   
- 	 }     
+      }
+      if(cm._medals < 3) {
+        if(cm._best.length) {
+          for(cnv=0; cnv<cm._best.length; cnv++) {
+            mps['Crossmap'].push(maps.indexOf(cm._best[cnv]) + 1);
+          }
+        }
+      }
+      for(var p in pm) {
+        if(pm[p]._medals < 3) {
+          if(pm[p]._best.length) {
+            for(cnv=0; cnv<pm[p]._best.length; cnv++) {
+              mps[pm[p]._medal].push(maps.indexOf(pm[p]._best[cnv]) + 1);
+            }
+          }
+        }
+      }
+      for(var mat=0; mat<medmatrix.length;mat++) {
+        var optimalkey = medmatrix[mat].join(',');
+        var combos = [];
+        var show = 1;
+        for(var step=0; step<medmatrix[mat].length; step++){
+          if(medcombo[medmatrix[mat][step]] != "Crossmap" && pm[medcombo[medmatrix[mat][step]]]._medals > 2) {
+            show = 0;
+            break; 
+          }
+          combos.push(pm[medcombo[medmatrix[mat][step]]]);
+        }
+        if(show) {
+          if(medmatrix[mat].indexOf(4) != -1) {
+            if(cm._medals < 3) {
+              if(cm._best.length) x+= optimalrows[optimalkey] + mps['Crossmap'] + "\", \"mrsugg\");wdw.focus();'>" + optimaltext[optimalkey] + nm._medal + "</a></td><td colspan=4>" + cm._best + "</td></tr>";
+              else{
+                var noWins = [];
+                var noWinsText = [];
+                for(var un in ranks) {
+                  if(!unique[un]) {
+                    noWins.push(maps.indexOf(un));
+                    noWinsText.push(un);
+                  }
+                }
+                if(noWins.length) x+= optimalrows[optimalkey] + noWins + "\", \"mrsugg\");wdw.focus();'>" + optimaltext[optimalkey] + nm._medal + "</a></td><td colspan=4>" + noWins + "</td></tr>";
+              }
+            }
+          }
+          else{
+            combos.sort(sortCombo);
+            if(combos[0]._best.length) x+= optimalrows[optimalkey] + mps[combos[0]._medal] + "\", \"mrsugg\");wdw.focus();'>" + optimaltext[optimalkey] + nm._medal + "</a></td><td colspan=4>" + combos[0]._best + "</td></tr>";
+            else if(nm._best.length) x+= optimalrows[optimalkey] + mps[nm._medal] + "\", \"mrsugg\");wdw.focus();'>" + optimaltext[optimalkey] + nm._medal + "</a></td><td colspan=4>" + nm._best + "</td></tr>";
+            else x+= optimalrows[optimalkey] + "\", \"mrsugg\");wdw.focus();'>" + optimaltext[optimalkey] + nm._medal + "</a></td><td colspan=4>-</td></tr>";   	 		
+          }
+        }	   	   
+      }     
+    }
+    else{
+      var hrefbase = base;
+      var optimalrows = new Array(medmatrix.length);
+      var optimaltext = new Array(medmatrix.length);
+      for(var mat=0; mat<medmatrix.length;mat++) {
+        var assoc = [];
+        var optimalkey = medmatrix[mat].join(',');
+        var exturl = "";
+        optimaltext[optimalkey] = "";
+        for(var step=0; step<medmatrix[mat].length; step++){
+          assoc.push(medcombo[medmatrix[mat][step]]);
+          exturl += medcombourl[medmatrix[mat][step]];
+          optimaltext[optimalkey] += medcombo[medmatrix[mat][step]] + ",";
+        }
+        optimalrows[optimalkey] = "<tr><td><a href=\"javascript:void(0)\" title=\"Find " + assoc.join(" ") + " Games\" onclick='var wdw=window.open(\"" + hrefbase + exturl + "&mp=";
+      }
+
+      var mps = [];
+      mps['Crossmap'] = [];
+      for(var md=0; md< medcombo.length; md++) {
+        mps[medcombo[md]] = [];
+      }
+
+      if(cm._medals < 3) {
+        if(cm._best.length) {
+          for(cnv=0; cnv<cm._best.length; cnv++) {
+            mps['Crossmap'].push(maps.indexOf(cm._best[cnv]) + 1);
+          }
+        }
+      }
+      for(var p in pm) {
+        if(pm[p]._medals < 3) {
+          if(pm[p]._best.length) {
+            for(cnv=0; cnv<pm[p]._best.length; cnv++) {
+              mps[pm[p]._medal].push(maps.indexOf(pm[p]._best[cnv]) + 1);
+            }
+          }
+        }
+      }
+      for(var mat=0; mat<medmatrix.length;mat++) {
+        var optimalkey = medmatrix[mat].join(',');
+        var combos = [];
+        var show = 1;
+        for(var step=0; step<medmatrix[mat].length; step++){
+          if(medcombo[medmatrix[mat][step]] != "Crossmap" && pm[medcombo[medmatrix[mat][step]]]._medals > 2) {
+            show = 0;
+            break; 
+          }
+          combos.push(pm[medcombo[medmatrix[mat][step]]]);
+        }
+        if(show) {
+          if(medmatrix[mat].indexOf(4) != -1) {
+            if(cm._medals < 3) {
+              if(cm._best.length) x+= optimalrows[optimalkey] + mps['Crossmap'] + "\", \"mrsugg\");wdw.focus();'>" + optimaltext[optimalkey].substr(0,optimaltext[optimalkey].length-1) + "</a></td><td colspan=4>" + cm._best + "</td></tr>";
+              else{
+                var noWins = [];
+                var noWinsText = [];
+                for(var un in ranks) {
+                  if(!unique[un]) {
+                    noWins.push(maps.indexOf(un));
+                    noWinsText.push(un);
+                  }
+                }
+                if(noWins.length) x+= optimalrows[optimalkey] + noWins + "\", \"mrsugg\");wdw.focus();'>" + optimaltext[optimalkey].substr(0,optimaltext[optimalkey].length-1) + "</a></td><td colspan=4>" + noWins + "</td></tr>";
+              }
+            }
+          }
+          else{
+            combos.sort(sortCombo);
+            if(combos[0]._best.length) x+= optimalrows[optimalkey] + mps[combos[0]._medal] + "\", \"mrsugg\");wdw.focus();'>" + optimaltext[optimalkey].substr(0,optimaltext[optimalkey].length-1) + "</a></td><td colspan=4>" + combos[0]._best + "</td></tr>";
+            else x+= optimalrows[optimalkey] + "\", \"mrsugg\");wdw.focus();'>" + optimaltext[optimalkey].substr(0,optimaltext[optimalkey].length-1) + "</a></td><td colspan=4>-</td></tr>";   	 		
+          }
+        }	   	   
+      }     
+    }
   }
-	}
   x+= "<tr><td colspan=5><br />Notes: The Maps column show the best maps for that medal (most unique defeats). ";
   if(nm) x+= "E.g. for " + nm._medal + " most defeats have come from " + nm._best + "<br />";
   x+= "For crossmaps, the maps shown are those closest to 5 unique defeats. The number in brackets is the number of defeats for those maps.<br />";
@@ -1061,62 +1080,61 @@ function endGame(user) {
   viewer.document.getElementById('progress').innerHTML = "<b>Scan Complete. Click on light blue column headers to sort. Click again to reverse sort. Click on yellow boxes for chart.</b>";
 
   if(surl != "") {
-	 var sentscore;
-	 var senthi;
+    var sentscore;
+    var senthi;
 	 
-	 if(totals._realscore != null) {
-		 sentscore = totals._realscore;
-		 senthi = (dummyscore + 1000)
-	 }
-	 else{
-		 sentscore = (totals._points + 1000);
-		 senthi = (hiscore + 1000);
-	 } 
-	 GM_xmlhttpRequest({
-     method: 'POST',
-     url: "http://chipv.freehostia.com/scoreboard.php?act=s&player=" + user + "&score=" + sentscore + "&win=" + totals._wins + "&loss=" + (totals._games - totals._wins) + "&rr=" + getRR(totals._meanwin,totals._beaten)  + "&hiscore=" + senthi +  "&unique=" + totals._unique.length + "&medals=" + totals._medals + "&url=" + surl,
-     headers: {
-         'User-agent': 'Mozilla/4.0 (compatible) Greasemonkey',
-         'Accept': 'text/html',
-     },
-     onload: function(responseDetails) {
-      surl = "";
-     }
-   });
+    if(totals._realscore != null) {
+      sentscore = totals._realscore;
+      senthi = (dummyscore + 1000);
+    }
+    else{
+      sentscore = (totals._points + 1000);
+      senthi = (hiscore + 1000);
+    } 
+    GM_xmlhttpRequest({
+      method: 'POST',
+      url: "http://chipv.freehostia.com/scoreboard.php?act=s&player=" + user + "&score=" + sentscore + "&win=" + totals._wins + "&loss=" + (totals._games - totals._wins) + "&rr=" + getRR(totals._meanwin,totals._beaten)  + "&hiscore=" + senthi +  "&unique=" + totals._unique.length + "&medals=" + totals._medals + "&url=" + surl,
+      headers: {
+        'User-agent': 'Mozilla/4.0 (compatible) Greasemonkey',
+        'Accept': 'text/html'
+      },
+      onload: function(responseDetails) {
+        surl = "";
+      }
+    });
   }
 }
 
 function valToPix(val) {
-return (Math.floor(val * slider._toVal / (slider._scale * slider._pxLen)) * (slider._pxLen / slider._toVal));
+  return (Math.floor(val * slider._toVal / (slider._scale * slider._pxLen)) * (slider._pxLen / slider._toVal));
 }
 
 function tinput(id) {
-displayObj = viewer.document.getElementById('display_' + id);
-displayVal = parseInt(displayObj.value);
-if(displayVal <= slider._toVal) {
-var n = valToPix(displayVal);
-slideLeft('slider_' + id,n);
-viewer.document.getElementById('stamp_' + id).innerHTML = '' + new Date(slider._parray[displayVal]._time).toLocaleString();
-displayObj.style.color = "blue";
-}
-else{viewer.document.getElementById('stamp_' + id).innerHTML = "";
-displayObj.style.color = "gray";
-}
+  displayObj = viewer.document.getElementById('display_' + id);
+  displayVal = parseInt(displayObj.value);
+  if(displayVal <= slider._toVal) {
+    var n = valToPix(displayVal);
+    slideLeft('slider_' + id,n);
+    viewer.document.getElementById('stamp_' + id).innerHTML = '' + new Date(slider._parray[displayVal]._time).toLocaleString();
+    displayObj.style.color = "blue";
+  }
+  else{
+    viewer.document.getElementById('stamp_' + id).innerHTML = "";
+    displayObj.style.color = "gray";
+  }
 }
 
-function slideLeft(elmnt, pos)
-{
+function slideLeft(elmnt, pos) {
   if (!(elmnt = viewer.document.getElementById(elmnt))) return 0;
-		if (typeof(pos) == 'number') elmnt.style.left = pos + 'px';
-		else {
-			pos = parseInt(elmnt.style.left);
-			if (isNaN(pos)) pos = 0;
-		}
-	return pos;
+  if (typeof(pos) == 'number') elmnt.style.left = pos + 'px';
+  else {
+    pos = parseInt(elmnt.style.left);
+    if (isNaN(pos)) pos = 0;
+  }
+  return pos;
 }
 
-function moveSlider(evnt)
-{
+function moveSlider(evnt) {
   if (mouseover) {
     x = pxLeft + evnt.screenX - xCoord;
     if (x > slider._pxLen) x = slider._pxLen;
@@ -1127,12 +1145,11 @@ function moveSlider(evnt)
     displayObj.value = v;
     stampObj.innerHTML = '' + new Date(slider._parray[v]._time).toLocaleString();
     return false;
-	}
-  return;
+  }
+  return undefined;
 }
 
-function slide(evnt, id)
-{
+function slide(evnt, id) {
   sliderObj = viewer.document.getElementById('slider_' + id);
   displayObj = viewer.document.getElementById('display_' + id);
   stampObj = viewer.document.getElementById('stamp_' + id);
@@ -1143,8 +1160,7 @@ function slide(evnt, id)
   viewer.document.addEventListener('mouseup', sliderMouseUp, false);
 }
 
-function sliderMouseUp()
-{
+function sliderMouseUp() {
   mouseover = false;
   v = (parseInt(displayObj.value)) ? parseInt(displayObj.value) : 0;
   pos = v /(slider._scale);
@@ -1159,13 +1175,11 @@ function graph(holder, arr, start, end, title, graphtype) {
   var offset = 0;
   var deficit;
   
-	viewer.document.getElementById('lines').innerHTML = '';
+  viewer.document.getElementById('lines').innerHTML = '';
   switchTabs(2);
   parray.sort(psort);
   var running = graphtype._running(parray);
-  g = new line_graph(graphtype._maxbound, graphtype._minbound);
-  Font = new jsgFont();
-  Stroke = new jsgStroke();
+  var g = new line_graph(graphtype._maxbound, graphtype._minbound);
   viewer.document.getElementById('lines').style.display = "block";
   viewer.document.getElementById('cheader').style.display = "block";
   viewer.document.getElementById('cfooter').style.display = "block";
@@ -1175,9 +1189,9 @@ function graph(holder, arr, start, end, title, graphtype) {
   if(start==0 && graphtype == graphTypes['points']) g.add('',graphtype._initial,"red");
   if(title == "Totals" && totals._realscore != null && graphtype == graphTypes['points']) deficit = totals._realscore - totals._points - 1000;  
   for(var f=start; f<=end; f++) {
-  	offset = (typeof(deficit) != "undefined" && parray[f]._time > lastTime)? deficit:0; 
-	  g.add('<span title=\"' +  (parseInt(running._data[f]) + offset) + " on " +  new Date(parray[f]._time).toLocaleString() +'\">' + f + '</span>', parseInt(running._data[f]) + offset, running._colour[f]);
-   }
+    offset = (typeof(deficit) != "undefined" && parray[f]._time > lastTime)? deficit:0; 
+    g.add('<span title=\"' +  (parseInt(running._data[f]) + offset) + " on " +  new Date(parray[f]._time).toLocaleString() +'\">' + f + '</span>', parseInt(running._data[f]) + offset, running._colour[f]);
+  }
   g.render("lines", "Time");
   var buttontxt = "<table cellspacing=0 cellpadding=0 border=1><tr class=mrodd><td colspan=4>Min: " + g.min + "&nbsp;&nbsp;&nbsp;Max: " + g.max + "</td></tr>";
   if(graphtype == graphTypes['winloss']) {
@@ -1204,19 +1218,27 @@ function graph(holder, arr, start, end, title, graphtype) {
   viewer.document.getElementById('display_2').value = end;
   viewer.document.getElementById('stamp_1').innerHTML = '' + new Date(parray[start]._time).toLocaleString();
   viewer.document.getElementById('stamp_2').innerHTML = '' + new Date(parray[end]._time).toLocaleString();
-  addListener(viewer.document.getElementById('display_1'),'keyup', function() {tinput(1);});
-  addListener(viewer.document.getElementById('display_2'),'keyup', function() {tinput(2);});
-  addListener(viewer.document.getElementById('slider_1'),'mousedown', function(event) {slide(event,1)});
-  addListener(viewer.document.getElementById('slider_2'),'mousedown', function(event) {slide(event,2)});
+  addListener(viewer.document.getElementById('display_1'),'keyup', function() {
+    tinput(1);
+  });
+  addListener(viewer.document.getElementById('display_2'),'keyup', function() {
+    tinput(2);
+  });
+  addListener(viewer.document.getElementById('slider_1'),'mousedown', function(event) {
+    slide(event,1);
+  });
+  addListener(viewer.document.getElementById('slider_2'),'mousedown', function(event) {
+    slide(event,2);
+  });
   viewer.document.getElementById('progress').innerHTML = "<b>Hover over Timestamp numbers to see timestamp of " + graphtype._info + ". Hover over " + graphtype._markers + " markers to see values.</b>";
   addListener(viewer.document.getElementById('graph'),'click', function() {
     fromVal = parseInt(viewer.document.getElementById('display_1').value);
     toVal = parseInt(viewer.document.getElementById('display_2').value);
     if(isNaN(fromVal) || isNaN(toVal) || fromVal > toVal || fromVal > slide._toVal || toVal < 0 || fromVal < 0 || toVal > slide._toVal) {
-    alert("Invalid range");
+      alert("Invalid range");
     }
     else{
-     graph(holder, arr, fromVal , toVal, title, graphtype);
+      graph(holder, arr, fromVal , toVal, title, graphtype);
     }
   });
   addListener(viewer.document.getElementById('gall'),'click', function() {
@@ -1224,10 +1246,10 @@ function graph(holder, arr, start, end, title, graphtype) {
   });
   if(graphtype == graphTypes['winloss']) {
     addListener(viewer.document.getElementById('wstreak'),'click', function() {
-     graph(holder, arr, running._winstreak._start,running._winstreak._start + running._winstreak._num - 1, title, graphtype);
+      graph(holder, arr, running._winstreak._start,running._winstreak._start + running._winstreak._num - 1, title, graphtype);
     });
     addListener(viewer.document.getElementById('lstreak'),'click', function() {
-     graph(holder, arr, running._losstreak._start,running._losstreak._start + running._losstreak._num - 1, title, graphtype);
+      graph(holder, arr, running._losstreak._start,running._losstreak._start + running._losstreak._num - 1, title, graphtype);
     });
   }
 }
@@ -1235,34 +1257,53 @@ function graph(holder, arr, start, end, title, graphtype) {
 function handleSearchSuggest(lastval) {
   var next = document.getElementById('player').value;
   var k=0;
-  if(next == '') {clearSuggest();return;}
-  if(next != lastval) {return;}
+  if(next == '') {
+    clearSuggest();
+    return;
+  }
+  if(next != lastval) {
+    return;
+  }
   var ss = document.getElementById('phistory');
   ss.innerHTML = '';
   var str = phist.split("|");
   for(i=0; i < str.length; i++) {
     if(str[i].substring(next.length,0).match(next, "i")) {
-     var suggest = document.createElement('div');
-     suggest.innerHTML = str[i];
-     if(k==0) {suggest.className = "history_link_over";}
-     else{suggest.className = "history_link";}
-     ss.appendChild(suggest);
-     suggest.addEventListener('mouseover', function() {suggestOver(this)}, false);
-     suggest.addEventListener('mouseout', function() {suggestOut(this)}, false);
-     suggest.addEventListener('click', function() {setSearch(this.innerHTML)}, false);
-     ss.style.visibility = 'visible';
-     k++;
+      var suggest = document.createElement('div');
+      suggest.innerHTML = str[i];
+      if(k==0) {
+        suggest.className = "history_link_over";
+      }
+      else{
+        suggest.className = "history_link";
+      }
+      ss.appendChild(suggest);
+      suggest.addEventListener('mouseover', function() {
+        suggestOver(this);
+      }, false);
+      suggest.addEventListener('mouseout', function() {
+        suggestOut(this);
+      }, false);
+      suggest.addEventListener('click', function() {
+        setSearch(this.innerHTML);
+      }, false);
+      ss.style.visibility = 'visible';
+      k++;
     }
   }
   suggtot = k;
-  if(suggtot > 0) {current = 0;}
-  else {current = -1;}
+  if(suggtot > 0) {
+    current = 0;
+  }
+  else {
+    current = -1;
+  }
 }
 
 function suggestOver(div_value) {
   var divs = document.getElementById('phistory').getElementsByTagName('div');
   for(i=0; i< suggtot; i++) {
-      divs[i].className = "history_link";
+    divs[i].className = "history_link";
   }
   div_value.className = 'history_link_over';
 }
@@ -1272,31 +1313,31 @@ function suggestOut(div_value) {
 }
 
 function setSearch(value) {
-    document.getElementById('player').value = value;
-    clearSuggest();
+  document.getElementById('player').value = value;
+  clearSuggest();
 }
 
 function clearSuggest() {
-    div = document.getElementById('phistory');
-    div.innerHTML = '';
-    div.style.visibility = 'hidden';
+  div = document.getElementById('phistory');
+  div.innerHTML = '';
+  div.style.visibility = 'hidden';
 }
 
 function updownArrow(keyCode) {
-	if(keyCode == 40 || keyCode == 38){
-		if(keyCode == 38){ // keyUp
+  if(keyCode == 40 || keyCode == 38){
+    if(keyCode == 38){ // keyUp
       if(current == 0 || current == -1){
         current = suggtot-1;
-			}else{
+      }else{
         current--;
-			}
-		} else { // keyDown
+      }
+    } else { // keyDown
       if(current == suggtot-1){
         current = 0;
-			}else {
+      }else {
         current++;
-			}
-		}
+      }
+    }
     var divs = document.getElementById('phistory').getElementsByTagName('div');
     for(i=0; i< suggtot; i++) {
       if(i == current){
@@ -1305,18 +1346,22 @@ function updownArrow(keyCode) {
         divs[i].className = "history_link";
       }
     }
-		return true;
-	} else {
+    return true;
+  } else {
     current = -1;
-		return false;
-	}
+    return false;
+  }
 }
 
 function key(input,e) {
   var keyCode;
 
-  if(!e) {keyCode = window.event.keyCode;}
-  else{keyCode = e.keyCode;}
+  if(!e) {
+    keyCode = window.event.keyCode;
+  }
+  else{
+    keyCode = e.keyCode;
+  }
   last = input.value;
 
   if(keyCode == 13) {
@@ -1326,57 +1371,53 @@ function key(input,e) {
     }
     return;
   }
-  if(updownArrow(keyCode)){
+  if (updownArrow(keyCode)){
     return;
   }
-  if(keyCode == 27) {
+  if (keyCode == 27) {
     clearSuggest();
     return;
   }
   handleSearchSuggest(last);
 }
 
-function deserialize(name, def)
-{
+function deserialize(name, def) {
   return eval(GM_getValue(name, (def || '({})')));
 }
 
-function serialize(name, val)
-{
+function serialize(name, val) {
   GM_setValue(name, uneval(val));
 }
 
-var saveButtonHandler = function saveButtonHandler()
-{
+var saveButtonHandler = function() {
   var name= prompt("Please Name this map rank (reusing a name will overwrite it)",loadedName);
   if (name!="" && name != null)
   {
-    var searchDetails=new Object();
+    var searchDetails={};
     var allP = document.getElementById('middleColumn').getElementsByTagName("input");
     var mSel = document.getElementById("maps");
     for( i in allP )
     {
       if(allP[i].type=="checkbox")
       {
-              searchDetails[allP[i].id] = allP[i].checked;
+        searchDetails[allP[i].id] = allP[i].checked;
       }
       if(allP[i].type=="text")
       {
-              searchDetails[allP[i].id] = allP[i].value;
+        searchDetails[allP[i].id] = allP[i].value;
       }
     }
     for(j=0; j< mSel.options.length; j++) {
-     var strip = mSel.options[j].innerHTML.replace(/ \(Beta\)$/, '').replace(/\(\d+\) /,'' );
-     searchDetails[strip] = mSel.options[j].selected;
+      var strip = mSel.options[j].innerHTML.replace(/ \(Beta\)$/, '').replace(/\(\d+\) /,'' );
+      searchDetails[strip] = mSel.options[j].selected;
     }
     myOptions[name] = searchDetails;
     serialize("mapbook", myOptions);
     showSearchs();
   }
-}
+};
 
-var loadButtonHandler = function loadButtonHandler(searchDetails,s,bRun)
-{
+var loadButtonHandler = function (searchDetails,s,bRun) {
   loadedName = s;
   var allP =document.getElementById('middleColumn').getElementsByTagName("input");
   var mSel = document.getElementById("maps");
@@ -1386,37 +1427,28 @@ var loadButtonHandler = function loadButtonHandler(searchDetails,s,bRun)
       mSel.options[j].selected = searchDetails[strip];
     }
     else{
-       mSel.options[j].selected = false;
-       searchDetails[strip] = false;
-       myOptions[s] = searchDetails;
-       serialize("SEARCHES", myOptions);
-     }
+      mSel.options[j].selected = false;
+      searchDetails[strip] = false;
+      myOptions[s] = searchDetails;
+      serialize("SEARCHES", myOptions);
+    }
   }
   setThumbnails(mSel.options);
-  for( i in allP )
-  {
-    if(allP[i].type=="checkbox")
-    {
-      if ( typeof(searchDetails[allP[i].id]) != "undefined" )
-      {
+  for( i in allP ) {
+    if(allP[i].type=="checkbox") {
+      if ( typeof(searchDetails[allP[i].id]) != "undefined") {
         allP[i].checked = searchDetails[allP[i].id] ;
-      }
-      else
-      {
+      } else {
         allP[i].checked = false;
         searchDetails[allP[i].id] = false;
         myOptions[s] = searchDetails;
         serialize("mapbook", myOptions);
       }
     }
-    if(allP[i].type=="text")
-    {
-      if( typeof(searchDetails[allP[i].id]) != "undefined" )
-      {
+    if(allP[i].type=="text") {
+      if( typeof(searchDetails[allP[i].id]) != "undefined") {
         allP[i].value = searchDetails[allP[i].id];
-      }
-      else
-      {
+      } else {
         allP[i].value = "";
         searchDetails[allP[i].id] = "";
         myOptions[s] = searchDetails;
@@ -1424,181 +1456,176 @@ var loadButtonHandler = function loadButtonHandler(searchDetails,s,bRun)
       }
     }
   }
-  if (bRun)
-  {
+  if (bRun) {
     document.getElementById('maprank').click();
   }
-}
+};
 
-var delButtonHandler = function delButtonHandler(searchName)
-{
-  if (confirm("Are you sure you want to remove the saved map rank "+ searchName))
-  {
-      var newOptions = new Object();
-      for (var s in myOptions)
-      {
-              if (s!=searchName)
-              {
-                      newOptions[s] = myOptions[s];
-              }
+var delButtonHandler = function(searchName) {
+  if (confirm("Are you sure you want to remove the saved map rank "+ searchName)) {
+    var newOptions = {};
+    for (var s in myOptions) {
+      if (s!=searchName) {
+        newOptions[s] = myOptions[s];
       }
-      myOptions = newOptions;
-      serialize("mapbook", myOptions);
-      showSearchs();
+    }
+    myOptions = newOptions;
+    serialize("mapbook", myOptions);
+    showSearchs();
   }
-}
+};
 
-var makedelButtonHandler = function makedelButtonHandler(searchName)
-{
-  return function () {delButtonHandler (searchName);}
-}
+var makedelButtonHandler = function makedelButtonHandler(searchName) {
+  return function() {
+    delButtonHandler(searchName);
+  };
+};
 
-var makeloadButtonHandler = function makeloadButtonHandler(search,s,run)
-{
-  return function () {loadButtonHandler (search,s,run);}
-}
+var makeloadButtonHandler = function makeloadButtonHandler(search,s,run) {
+  return function () {
+    loadButtonHandler (search,s,run);
+  };
+};
 
-var showSearchs = function showSearchs()
-{
+var showSearchs = function showSearchs() {
   var savedSearches = document.getElementById('mapsaved');
   savedSearches.innerHTML = "<b>Saved Map Ranks</b><br />";
 
   var srchtbl = document.createElement('table');
   savedSearches.appendChild(srchtbl);
 
-  for (var s in myOptions)
-  {
-          var srch = document.createElement('tr');
-          srchtbl.appendChild(srch);
+  for (var s in myOptions) {
+    var srch = document.createElement('tr');
+    srchtbl.appendChild(srch);
 
-          var srch2 = document.createElement('td');
-          srch.appendChild(srch2);
-          srch2.innerHTML = s;
+    var srch2 = document.createElement('td');
+    srch.appendChild(srch2);
+    srch2.innerHTML = s;
 
-          var srch2 = document.createElement('td');
-          srch.appendChild(srch2);
+    var srch2 = document.createElement('td');
+    srch.appendChild(srch2);
 
-          var spm = document.createElement('a');
-          srch2.appendChild(spm);
-          spm.innerHTML = "Run";
-          spm.href="javascript:void(0);";
-          spm.addEventListener("click", makeloadButtonHandler(myOptions[s],s,true), false);
+    var spm = document.createElement('a');
+    srch2.appendChild(spm);
+    spm.innerHTML = "Run";
+    spm.href="javascript:void(0);";
+    spm.addEventListener("click", makeloadButtonHandler(myOptions[s],s,true), false);
 
-          var srch2 = document.createElement('td');
-          srch.appendChild(srch2);
+    var srch2 = document.createElement('td');
+    srch.appendChild(srch2);
 
-          var spm = document.createElement('a');
-          srch2.appendChild(spm);
-          spm.innerHTML = "Load";
-          spm.href="javascript:void(0);";
-          spm.addEventListener("click", makeloadButtonHandler(myOptions[s],s,false), false);
+    var spm = document.createElement('a');
+    srch2.appendChild(spm);
+    spm.innerHTML = "Load";
+    spm.href="javascript:void(0);";
+    spm.addEventListener("click", makeloadButtonHandler(myOptions[s],s,false), false);
 
-          var srch2 = document.createElement('td');
-          srch.appendChild(srch2);
+    var srch2 = document.createElement('td');
+    srch.appendChild(srch2);
 
-          var spm = document.createElement('a');
-          srch2.appendChild(spm);
-          spm.innerHTML = "Delete";
-          spm.href="javascript:void(0);";
-          spm.addEventListener("click", makedelButtonHandler(s), false);
+    var spm = document.createElement('a');
+    srch2.appendChild(spm);
+    spm.innerHTML = "Delete";
+    spm.href="javascript:void(0);";
+    spm.addEventListener("click", makedelButtonHandler(s), false);
   }
-}
+};
 
 function getRank(games,total) {
-if(games >= 250 && total >= 4500) return "Field Marshal";
-if(games >= 200 && total >= 3500) return "General";
-if(games >= 150 && total >= 3000) return "Brigadier";
-if(games >= 100 && total >= 2500) return "Colonel";
-if(games >= 80 && total >= 2000) return "Major";
-if(games >= 60 && total >= 1800) return "Captain";
-if(games >= 40 && total >= 1600) return "Lieutenant";
-if(games >= 20 && total >= 1400) return "Sergeant 1st Class";
-if(games >= 20 && total >= 1300) return "Sergeant";
-if(games >= 10 && total >= 1200) return "Corporal 1st Class";
-if(games >= 10 && total >= 1100) return "Corporal";
-if(games >= 5 && total >= 1000) return "Private 1st Class";
-if(games >= 5 && total >= 900) return "Private";
-if(games >= 5 && total >= 800) return "Cadet";
-if(games >= 5) return "Cook";
-return "New Recruit";
+  if(games >= 250 && total >= 4500) return "Field Marshal";
+  if(games >= 200 && total >= 3500) return "General";
+  if(games >= 150 && total >= 3000) return "Brigadier";
+  if(games >= 100 && total >= 2500) return "Colonel";
+  if(games >= 80 && total >= 2000) return "Major";
+  if(games >= 60 && total >= 1800) return "Captain";
+  if(games >= 40 && total >= 1600) return "Lieutenant";
+  if(games >= 20 && total >= 1400) return "Sergeant 1st Class";
+  if(games >= 20 && total >= 1300) return "Sergeant";
+  if(games >= 10 && total >= 1200) return "Corporal 1st Class";
+  if(games >= 10 && total >= 1100) return "Corporal";
+  if(games >= 5 && total >= 1000) return "Private 1st Class";
+  if(games >= 5 && total >= 900) return "Private";
+  if(games >= 5 && total >= 800) return "Cadet";
+  if(games >= 5) return "Cook";
+  return "New Recruit";
 }
 
 function nextRank(total) {
-if(total >= 4500) return "";
-if(total >= 3500) return "<sup>" + (4500 - total) + "</sup>";
-if(total >= 3000) return "<sup>" + (3500 - total) + "</sup>";
-if(total >= 2500) return "<sup>" + (3000 - total) + "</sup>";
-if(total >= 2000) return "<sup>" + (2500 - total) + "</sup>";
-if(total >= 1800) return "<sup>" + (2000 - total) + "</sup>";
-if(total >= 1600) return "<sup>" + (1800 - total) + "</sup>";
-if(total >= 1400) return "<sup>" + (1600 - total) + "</sup>";
-if(total >= 1300) return "<sup>" + (1400 - total) + "</sup>";
-if(total >= 1200) return "<sup>" + (1300 - total) + "</sup>";
-if(total >= 1100) return "<sup>" + (1200 - total) + "</sup>";
-if(total >= 1000) return "<sup>" + (1100 - total) + "</sup>";
-if(total >= 900) return "<sup>" + (1000 - total) + "</sup>";
-if(total >= 800) return "<sup>" + (900 - total) + "</sup>";
-return "<sup>" + (800 - total) + "</sup>";
+  if(total >= 4500) return "";
+  if(total >= 3500) return "<sup>" + (4500 - total) + "</sup>";
+  if(total >= 3000) return "<sup>" + (3500 - total) + "</sup>";
+  if(total >= 2500) return "<sup>" + (3000 - total) + "</sup>";
+  if(total >= 2000) return "<sup>" + (2500 - total) + "</sup>";
+  if(total >= 1800) return "<sup>" + (2000 - total) + "</sup>";
+  if(total >= 1600) return "<sup>" + (1800 - total) + "</sup>";
+  if(total >= 1400) return "<sup>" + (1600 - total) + "</sup>";
+  if(total >= 1300) return "<sup>" + (1400 - total) + "</sup>";
+  if(total >= 1200) return "<sup>" + (1300 - total) + "</sup>";
+  if(total >= 1100) return "<sup>" + (1200 - total) + "</sup>";
+  if(total >= 1000) return "<sup>" + (1100 - total) + "</sup>";
+  if(total >= 900) return "<sup>" + (1000 - total) + "</sup>";
+  if(total >= 800) return "<sup>" + (900 - total) + "</sup>";
+  return "<sup>" + (800 - total) + "</sup>";
 }
 
 function getKiller(losses, defeats) {
-if(defeats + losses) {
-var ratio = (100 * defeats / (defeats + losses)).toFixed(0);
-var pc = "(" + ratio + "%)";
-if(ratio >= 95) {
-  return "Angel Of Death " + pc;
-}
-if(ratio >= 90) {
-  return "Grim Reaper " + pc + "<sup>" + ((losses * 19) - defeats) + "</sup>";
+  if(defeats + losses) {
+    var ratio = (100 * defeats / (defeats + losses)).toFixed(0);
+    var pc = "(" + ratio + "%)";
+    if(ratio >= 95) {
+      return "Angel Of Death " + pc;
+    }
+    if(ratio >= 90) {
+      return "Grim Reaper " + pc + "<sup>" + ((losses * 19) - defeats) + "</sup>";
+    }
+    if(ratio >= 80) {
+      return "Warmonger " + pc + "<sup>" + ((losses * 9) - defeats) + "</sup>";
+    }
+    if(ratio >= 75) {
+      return "Tyrant " + pc + "<sup>" + ((losses * 4) - defeats) + "</sup>";
+    }
+    if(ratio >= 50) {
+      return "Serial Killer " + pc + "<sup>" + ((losses * 3) - defeats) + "</sup>";
+    }
+    if(ratio >= 25) {
+      return "Murderer " + pc + "<sup>" + (losses - defeats) + "</sup>";
+    }
+    if(ratio >= 10) {
+      return "Petty Thug " + pc + "<sup>" + (Math.ceil(losses / 3) - defeats) + "</sup>";
+    }
+    return "Victim " + pc + "<sup>" + (Math.ceil(losses / 9) - defeats) + "</sup>";
   }
-if(ratio >= 80) {
-  return "Warmonger " + pc + "<sup>" + ((losses * 9) - defeats) + "</sup>";
-}
-if(ratio >= 75) {
-  return "Tyrant " + pc + "<sup>" + ((losses * 4) - defeats) + "</sup>";
-}
-if(ratio >= 50) {
-  return "Serial Killer " + pc + "<sup>" + ((losses * 3) - defeats) + "</sup>";
-}
-if(ratio >= 25) {
-  return "Murderer " + pc + "<sup>" + (losses - defeats) + "</sup>";
-}
-if(ratio >= 10) {
-  return "Petty Thug " + pc + "<sup>" + (Math.ceil(losses / 3) - defeats) + "</sup>";
-}
-return "Victim " + pc + "<sup>" + (Math.ceil(losses / 9) - defeats) + "</sup>";
-}
-return "N/A";
+  return "N/A";
 }
 
 function getRR(rank, defeats) {
-if(defeats + rank) {
-var ratio = (rank / (defeats)).toFixed(3);
-return ratio;
-}
-return 0.000;
+  if(defeats + rank) {
+    var ratio = (rank / (defeats)).toFixed(3);
+    return ratio;
+  }
+  return 0.000;
 }
 
 
 function getRelative(rank, defeats) {
-if(defeats + rank) {
-var ratio = (rank / (defeats)).toFixed(3);
-var pc = "(" + ratio + ")";
-if(ratio >= 1.4) {
-  return "Gladiator " + pc;
-}
-if(ratio >= 1.1) {
-  return "Brawler " + pc;
-}
-if(ratio >= .8) {
-  return "Equalitarian " + pc;
-}
-if(ratio >= .5) {
-  return "Point Hoarder " + pc;
-}
-return "N00b Farmer " + pc;
-}
-return "N/A (0)";
+  if(defeats + rank) {
+    var ratio = (rank / (defeats)).toFixed(3);
+    var pc = "(" + ratio + ")";
+    if(ratio >= 1.4) {
+      return "Gladiator " + pc;
+    }
+    if(ratio >= 1.1) {
+      return "Brawler " + pc;
+    }
+    if(ratio >= .8) {
+      return "Equalitarian " + pc;
+    }
+    if(ratio >= .5) {
+      return "Point Hoarder " + pc;
+    }
+    return "N00b Farmer " + pc;
+  }
+  return "N/A (0)";
 }
 
 function cleanup() {
@@ -1608,31 +1635,31 @@ function cleanup() {
   }
   ghist = [];
   while (__eventListeners.length > 0) {
-      removeListener(__eventListeners[0]);
+    removeListener(__eventListeners[0]);
   }
   if(viewer != null)
     viewer.close();
 }
 
 function sortByCol(id,cellfn, cell, dir) {
-var idc = new Array();
-for(var i=0; i< sortable.length; i++) {
-  idc[sortable[i]] = viewer.document.getElementById(sortable[i]).className;
-}
-sortedTable(cellfn, cell, dir);
-viewer.document.getElementById(id).className = (idc[id] == "sorton" ? "sortoff" : "sorton");
-for(var i=0; i< sortable.length; i++) {
-  if(sortable[i] != id)
-  viewer.document.getElementById(sortable[i]).className = idc[sortable[i]];
-}
+  var idc = [];
+  for(var i=0; i< sortable.length; i++) {
+    idc[sortable[i]] = viewer.document.getElementById(sortable[i]).className;
+  }
+  sortedTable(cellfn, cell, dir);
+  viewer.document.getElementById(id).className = (idc[id] == "sorton" ? "sortoff" : "sorton");
+  for(var i=0; i< sortable.length; i++) {
+    if(sortable[i] != id)
+      viewer.document.getElementById(sortable[i]).className = idc[sortable[i]];
+  }
 }
 
 function ssort(a,b) {
-return(a._next-b._next);
+  return(a._next-b._next);
 }
 
 function psort(a,b) {
-return(a._time-b._time);
+  return(a._time-b._time);
 }
 
 function alpha(cells, sorter) {
@@ -1644,17 +1671,17 @@ function numerical(cells, sorter) {
 }
 
 function percent(cells, sorter) {
-if(cells[sorter].innerHTML.match(/\((\d+)%\)/)) {
-  return parseInt(RegExp.$1);
-}
-return 0;
+  if(cells[sorter].innerHTML.match(/\((\d+)%\)/)) {
+    return parseInt(RegExp.$1);
+  }
+  return 0;
 }
 
 function factor(cells, sorter) {
-if(cells[sorter].innerHTML.match(/\((\d).(\d+)\)/)) {
-  return (parseInt(RegExp.$1) * 1000) + parseInt(RegExp.$2);
-}
-return 0;
+  if(cells[sorter].innerHTML.match(/\((\d).(\d+)\)/)) {
+    return (parseInt(RegExp.$1) * 1000) + parseInt(RegExp.$2);
+  }
+  return 0;
 }
 
 function sortedTable(cellfn, cell, dir) {
@@ -1670,23 +1697,25 @@ function sortedTable(cellfn, cell, dir) {
     var clone = viewer.document.getElementById('scroller').getElementsByTagName('thead')[r].cloneNode(true);
     table.appendChild(clone);
   }
-  var unsorted = new Array();
-  var clone = new Array();
-  var ref = new Array();
+  var unsorted = [];
+  var clone = [];
+  var ref = [];
   tbody = table.appendChild(viewer.document.createElement("tbody"));
   tbody.className = "scrollContent";
   tbody.id = "ranktable";
   for(var r=0; r< res.length; r++) {
-   var ix = res[r].getElementsByTagName('td');
-   ref[r] = cellfn(ix, cell);
-   unsorted.push(ref[r]);
-   if(isNaN(ref[r]))
-   unsorted.sort();
-   else
-   unsorted.sort(function(a,b) {return(b-a);});
-   if(dir == "sortoff") unsorted.reverse();
-   clone[r] = res[r].cloneNode(true);
-   tbody.insertBefore(clone[r], tbody.getElementsByTagName('tr')[unsorted.indexOf(ref[r])]);
+    var ix = res[r].getElementsByTagName('td');
+    ref[r] = cellfn(ix, cell);
+    unsorted.push(ref[r]);
+    if(isNaN(ref[r]))
+      unsorted.sort();
+    else
+      unsorted.sort(function(a,b) {
+        return(b-a);
+      });
+    if(dir == "sortoff") unsorted.reverse();
+    clone[r] = res[r].cloneNode(true);
+    tbody.insertBefore(clone[r], tbody.getElementsByTagName('tr')[unsorted.indexOf(ref[r])]);
   }
   viewer.document.getElementById('tableContainer').removeChild(viewer.document.getElementById('scroller'));
   viewer.document.getElementById('tableContainer').appendChild(table);
@@ -1706,8 +1735,7 @@ function switchTabs(id) {
     viewer.document.getElementById('tab2').style.backgroundColor = "#cdc";
     viewer.document.getElementById('tab3').style.backgroundColor = "#cdc";
     viewer.document.getElementById('tab4').style.backgroundColor = "#cdc";
-  }
-  else if(id==2) {
+  } else if(id==2) {
     viewer.document.getElementById('lines').style.visibility = "visible";
     viewer.document.getElementById('cheader').style.visibility = "visible";
     viewer.document.getElementById('cfooter').style.visibility = "visible";
@@ -1719,8 +1747,7 @@ function switchTabs(id) {
     viewer.document.getElementById('tab2').style.backgroundColor = "#0f0";
     viewer.document.getElementById('tab3').style.backgroundColor = "#cdc";
     viewer.document.getElementById('tab4').style.backgroundColor = "#cdc";
-  }
-  else if(id==3) {
+  } else if(id==3) {
     viewer.document.getElementById('lines').style.visibility = "hidden";
     viewer.document.getElementById('cheader').style.visibility = "hidden";
     viewer.document.getElementById('cfooter').style.visibility = "hidden";
@@ -1732,8 +1759,7 @@ function switchTabs(id) {
     viewer.document.getElementById('tab2').style.backgroundColor = "#cdc";
     viewer.document.getElementById('tab3').style.backgroundColor = "#0f0";
     viewer.document.getElementById('tab4').style.backgroundColor = "#cdc";
-  }
-  else if(id==4) {
+  } else if(id==4) {
     viewer.document.getElementById('lines').style.visibility = "hidden";
     viewer.document.getElementById('cheader').style.visibility = "hidden";
     viewer.document.getElementById('cfooter').style.visibility = "hidden";
@@ -1754,7 +1780,7 @@ function createBox(txt, name, options) {
   viewer.addEventListener('unload', function() {
     viewer=null;
     cleanup();
-    }, false);
+  }, false);
   var style = viewer.document.getElementsByTagName('head')[0].appendChild(viewer.document.createElement("style"));
   style.type = 'text/css';
   style.innerHTML = "#rankDiv {background-color:transparent;position:absolute;width:100%;height:100%;top:0px;left:0px;z-index:10000;} ";
@@ -1817,7 +1843,7 @@ function createBox(txt, name, options) {
   btn.style.opacity = "0.5";
   addListener(btn,'click', function() {
     if(btn.style.backgroundColor == "green")
-    removeBox();
+      removeBox();
   });
   tabs = viewer.document.getElementById('rankBox').appendChild(viewer.document.createElement("div"));
   tabs.id = "tabs";
@@ -1919,132 +1945,125 @@ function removeBox() {
   ghist = [];
 }
 
-function getElementsByClassName(oElm, strTagName, strClassName, exact)
-{
+function getElementsByClassName(oElm, strTagName, strClassName, exact) {
   var arrElements = (strTagName == "*" && document.all)? document.all : oElm.getElementsByTagName(strTagName);
-  var arrReturnElements = new Array();
+  var arrReturnElements = [];
   strClassName = strClassName.replace(/\-/g, "\\-");
   var oRegExp = new RegExp("(^|\\s)" + strClassName + "(\\s)");
   var oElement;
-  for(var i=0; i<arrElements.length; i++){
-   oElement = arrElements[i];
-   if (exact)
-   {
-    if(oElement.className==strClassName){
-    arrReturnElements.push(oElement);
+  for(var i=0; i<arrElements.length; i++) {
+    oElement = arrElements[i];
+    if (exact) {
+      if(oElement.className==strClassName){
+        arrReturnElements.push(oElement);
+      }
+    } else {
+      if(oElement.className.has(strClassName)){
+        arrReturnElements.push(oElement);
+      }
     }
-   }
-   else
-   {
-    if(oElement.className.has(strClassName)){
-     arrReturnElements.push(oElement);
-    }
-   }
   }
-  return (arrReturnElements)
+  return (arrReturnElements);
 }
 
 function cboxValues(name) {
- var cbox = document.getElementsByName(name);
- var out = [];
+  var cbox = document.getElementsByName(name);
+  var out = [];
   for(var n=0;n<cbox.length;n++) {
     if(cbox[n].checked) out.push(cbox[n].value);
   }
   return out;
 }
 
-function getPlayerPage (user, maplist, mopts, opt)
-{
+function getPlayerPage (user, maplist, mopts, opt) {
   var pump = proto + '//www.conquerclub.com/forum/memberlist.php?mode=viewprofile&un=' + escape(mopts._players[opt]);
   var pajax = new XMLHttpRequest();
   pajax.open('GET', pump, true);
   pajax.onreadystatechange = function() {
-   if (pajax.readyState == 4) {
-     var div=document.createElement('div');
-     div.innerHTML = pajax.responseText;
-     var wall = div.getElementsByTagName('form');
-     var uid;
-     for(var w=0; w<wall.length; w++) {
-       if(wall[w].id == "viewwall") {
-         if(wall[w].action.match(/u=(\d+)$/)) {
-           uid = RegExp.$1;
-         }
-         break;
-       }
-     }
-     mopts._players[opt] = uid;
-     pcount++;
-     if(pcount == mopts._pcount) {
-       getPlayerMedals(user);
-       getPlayerId(user, maplist,mopts);
-     }
-   }
-  }
+    if (pajax.readyState == 4) {
+      var div=document.createElement('div');
+      div.innerHTML = pajax.responseText;
+      var wall = div.getElementsByTagName('form');
+      var uid;
+      for(var w=0; w<wall.length; w++) {
+        if(wall[w].id == "viewwall") {
+          if(wall[w].action.match(/u=(\d+)$/)) {
+            uid = RegExp.$1;
+          }
+          break;
+        }
+      }
+      mopts._players[opt] = uid;
+      pcount++;
+      if(pcount == mopts._pcount) {
+        getPlayerMedals(user);
+        getPlayerId(user, maplist,mopts);
+      }
+    }
+  };
   pajax.send(null);
 }
 
-function getPlayerId (user, maplist, mopts)
-{
+function getPlayerId (user, maplist, mopts) {
   var iump = proto + '//www.conquerclub.com/forum/memberlist.php?mode=viewprofile&un=' + escape(user);
   var iajax = new XMLHttpRequest();
   iajax.open('GET', iump, true);
   iajax.onreadystatechange = function() {
-   if (iajax.readyState == 4) {
-     var div=document.createElement('div');
-     div.innerHTML = iajax.responseText;
-     var wall = div.getElementsByTagName('form');
-     for(var w=0; w<wall.length; w++) {
-       if(wall[w].id == "viewwall") {
-         if(wall[w].action.match(/u=(\d+)$/)) {
-           cid = RegExp.$1;
-         }
-         break;
-       }
-     }
-     if(!mopts && maplist.length == maps.length) {
-       var boxes = getElementsByClassName(div,'div','panel bg1 online',true);
-		   if(boxes.length == 0) boxes = getElementsByClassName(div,'div','panel bg1',true);
-		   var dt = boxes[0].getElementsByTagName('dt');
-		   for(var s=0; s< dt.length; s++) {
-			   if(dt[s].innerHTML == "Score:") {
-				   totals._realscore = parseInt(nextSib(dt[s]).innerHTML);
-				   break;
-			   }
-		   }
-	   }
-	   else totals._realscore = null;
+    if (iajax.readyState == 4) {
+      var div=document.createElement('div');
+      div.innerHTML = iajax.responseText;
+      var wall = div.getElementsByTagName('form');
+      for(var w=0; w<wall.length; w++) {
+        if(wall[w].id == "viewwall") {
+          if(wall[w].action.match(/u=(\d+)$/)) {
+            cid = RegExp.$1;
+          }
+          break;
+        }
+      }
+      if(!mopts && maplist.length == maps.length) {
+        var boxes = getElementsByClassName(div,'div','panel bg1 online',true);
+        if(boxes.length == 0) boxes = getElementsByClassName(div,'div','panel bg1',true);
+        var dt = boxes[0].getElementsByTagName('dt');
+        for(var s=0; s< dt.length; s++) {
+          if(dt[s].innerHTML == "Score:") {
+            totals._realscore = parseInt(nextSib(dt[s]).innerHTML);
+            break;
+          }
+        }
+      }
+      else totals._realscore = null;
 
-     getHistPage(user, maplist,1, mopts);
-   }
-  }
+      getHistPage(user, maplist,1, mopts);
+    }
+  };
   iajax.send(null);
 }
 
-function getPlayerMedals(user)
-{
+function getPlayerMedals(user) {
   var pump = proto + '//www.conquerclub.com/forum/memberlist.php?mode=viewprofile&un=' + escape(user);
   var majax = new XMLHttpRequest();
   majax.open('GET', pump, true);
   majax.onreadystatechange = function() {
-   if (majax.readyState == 4) {
-     var div=document.createElement('div');
-     div.innerHTML = majax.responseText;
-     var imgs = div.getElementsByTagName('img');
-     for(var im=0; im<imgs.length; im++) {
-       if(imgs[im].alt == 'Tournament Contribution' || imgs[im].alt == 'Map Contribution' || imgs[im].alt == 'General Contribution' || imgs[im].alt == 'General Achievement' || imgs[im].alt == 'Tournament Achievement') {
-         if(imgs[im].parentNode.align == "center") {
-         if(nextSib(imgs[im].parentNode.parentNode).firstChild.innerHTML.match(/Amount: (\d+)$/)) {
-           var tm = new Summary(imgs[im].alt);
-           tm._medals = parseInt(RegExp.$1);
-           totals._medals += tm._medals;
-           totals._xmedals += tm._medals;
-           totals._contribute.push(tm);
-         }
-         }
-       }
-     }
-   }
-  }
+    if (majax.readyState == 4) {
+      var div=document.createElement('div');
+      div.innerHTML = majax.responseText;
+      var imgs = div.getElementsByTagName('img');
+      for(var im=0; im<imgs.length; im++) {
+        if(imgs[im].alt == 'Tournament Contribution' || imgs[im].alt == 'Map Contribution' || imgs[im].alt == 'General Contribution' || imgs[im].alt == 'General Achievement' || imgs[im].alt == 'Tournament Achievement') {
+          if(imgs[im].parentNode.align == "center") {
+            if(nextSib(imgs[im].parentNode.parentNode).firstChild.innerHTML.match(/Amount: (\d+)$/)) {
+              var tm = new Summary(imgs[im].alt);
+              tm._medals = parseInt(RegExp.$1);
+              totals._medals += tm._medals;
+              totals._xmedals += tm._medals;
+              totals._contribute.push(tm);
+            }
+          }
+        }
+      }
+    }
+  };
   majax.send(null);
 }
 
@@ -2053,8 +2072,8 @@ function getPlayerMedals(user)
 function getHistPage(user,maplist,page,mapopts) {	
   var jump = proto + '//www.conquerclub.com/api.php?mode=gamelist&events=Y&gs=F&p1un=' + escape(user);
   if(maplist.length == 1) jump += "&mp=" + maplist[0];
-	if(mapopts) {
-		if(mapopts._num.length==1) jump += "&np=" + mapopts._num[0];		
+  if(mapopts) {
+    if(mapopts._num.length==1) jump += "&np=" + mapopts._num[0];		
     if(mapopts._type.length==1) jump += "&gt=" + mapopts._type[0];    
     if(mapopts._bonus.length==1) jump += "&bc=" + mapopts._bonus[0];
     if(mapopts._order.length==1) jump += "&po=" + mapopts._order[0];
@@ -2067,1660 +2086,1605 @@ function getHistPage(user,maplist,page,mapopts) {
     if(mapopts._players['p2']) jump += "&p2=" + mapopts._players['p2'];
     if(mapopts._players['p3']) jump += "&p3=" + mapopts._players['p3'];
     if(mapopts._players['p4']) jump += "&p4=" + mapopts._players['p4'];						
-	}		
+  }		
   if(page > 1) jump += "&page=" + page;
   ghist["paging" + page] = new XMLHttpRequest();
   ghist["paging" + page].open('GET', jump, true);
   ghist["paging" + page].onreadystatechange = function() {
-   if (ghist["paging" + page].readyState == 4) {
-    var parser = new DOMParser();
-    var dom = parser.parseFromString(ghist["paging" + page].responseText,"application/xml");
-    var games = dom.getElementsByTagName('game');
-    var pages = dom.getElementsByTagName('page')[0].firstChild.nodeValue;
-    var numGames = parseInt(dom.getElementsByTagName('games')[0].getAttribute('total'));
-    var puid = cid;
-    var numPages = 0;
+    if (ghist["paging" + page].readyState == 4) {
+      var parser = new DOMParser();
+      var dom = parser.parseFromString(ghist["paging" + page].responseText,"application/xml");
+      var games = dom.getElementsByTagName('game');
+      var pages = dom.getElementsByTagName('page')[0].firstChild.nodeValue;
+      var numGames = parseInt(dom.getElementsByTagName('games')[0].getAttribute('total'));
+      var puid = cid;
+      var numPages = 0;
 
-    if(totals._insignia && myStore._total && myStore._total == numGames) {
-      for(var r in myStore._ranks) {
-        totals._maps++;
-        totals._wins += myStore._ranks[r]._wins;
-        for(var p=0; p< myStore._unique[r].length; p++) {
-          if(totals._unique.indexOf(myStore._unique[r][p]) == -1) {
-            totals._unique.push(myStore._unique[r][p]);
-          }
-        }
-        for(d in myStore._ranks[r]._defeats) {
-          for(var p=0; p< myStore._ranks[r]._defeats[d].length; p++) {
-           if(totals._defeats[d].indexOf(myStore._ranks[r]._defeats[d][p]) == -1) {
-             totals._defeats[d].push(myStore._ranks[r]._defeats[d][p]);
-           }
-          }
-        }
-        if(typeof(myStore._ranks[r]._parray) != "undefined") {
-          for(var p=0; p< myStore._ranks[r]._parray.length; p++) {
-            totals._parray.push(myStore._ranks[r]._parray[p]);
-          }
-        }
-        else{
-          myStore._ranks[r]._parray = new Array();
-        }
-        if(typeof(myStore._ranks[r]._warray) != "undefined") {
-          for(var p=0; p< myStore._ranks[r]._warray.length; p++) {
-            totals._warray.push(myStore._ranks[r]._warray[p]);
-          }
-        }
-        else{
-          myStore._ranks[r]._warray = new Array();
-        }
-        if(myStore._ranks[r]._kills)
-          totals._kills += myStore._ranks[r]._kills;
-        if(myStore._ranks[r]._beaten){
-          totals._meanwin += myStore._ranks[r]._meanwin;
-          totals._beaten += myStore._ranks[r]._beaten;
-        }
-        totals._games+=myStore._ranks[r]._counter;
-        ranks[r] = myStore._ranks[r];
-        unique[r] = myStore._unique[r];
-      }
-      totals._counter = myStore._total;
-      endGame(user);
-    }
-    else{
-      if(pages.match(/^(\d+) of (\d+)$/)) {
-        numPages = parseInt(RegExp.$2);
-        if(!totals._expected) totals._expected = numPages;
-      }
-      if(page == 1) {
-       if(numPages > 1) {
-         for(var pg=2;pg<=numPages;pg++) {
-          getHistPage(user,maplist, pg, mapopts);
-         }
-       }
-      }
-
-      for(g=0; g< games.length; g++) {
-        var gvalid = 1;
-        var mapname = games[g].getElementsByTagName('map')[0].firstChild.nodeValue;
-        var players = games[g].getElementsByTagName('player');
-        var gaming = games[g].getElementsByTagName('game_type')[0].firstChild.nodeValue;
-        var touring = "";
-        if(games[g].getElementsByTagName('tournament')[0].firstChild)
-          touring = games[g].getElementsByTagName('tournament')[0].firstChild.nodeValue;
-        var joinable = games[g].getElementsByTagName('private')[0].firstChild.nodeValue;
-        var speeding = games[g].getElementsByTagName('speed_game')[0].firstChild.nodeValue;
-        var ordering = games[g].getElementsByTagName('play_order')[0].firstChild.nodeValue;
-        var troops = games[g].getElementsByTagName('initial_troops')[0].firstChild.nodeValue;
-        var cards = games[g].getElementsByTagName('bonus_cards')[0].firstChild.nodeValue;
-        var fort = games[g].getElementsByTagName('fortifications')[0].firstChild.nodeValue;
-        var fog = games[g].getElementsByTagName('war_fog')[0].firstChild.nodeValue;
-        var pids = new Array();
-        for(s=0; s<players.length; s++) {
-          var pid = (players[s].firstChild.nodeValue);
-          pids.push(pid);
-        }
-        if(maplist.indexOf(mapname) == -1) gvalid = 0;
-        if(mapopts) {
-         if(mapopts._num.length && mapopts._num.indexOf('' + players.length) == -1) gvalid = 0;
-         if(mapopts._type.length && mapopts._type.indexOf(gaming) == -1) gvalid = 0;
-         if(mapopts._bonus.length && mapopts._bonus.indexOf(cards) == -1) gvalid = 0;
-         if(mapopts._order.length && mapopts._order.indexOf(ordering) == -1) gvalid = 0;
-         if(mapopts._troops.length && mapopts._troops.indexOf(troops) == -1) gvalid = 0;
-         if(mapopts._fort.length && mapopts._fort.indexOf(fort) == -1) gvalid = 0;
-         if(mapopts._fog.length && mapopts._fog.indexOf(fog) == -1) gvalid = 0;
-         if(mapopts._joinable.length && (mapopts._joinable.indexOf('T') == -1) && (touring || mapopts._joinable.indexOf(joinable) == -1)) gvalid = 0;
-         if(mapopts._joinable.length && (mapopts._joinable.indexOf('T') != -1) && !touring) gvalid = 0;
-         if(mapopts._speed.length && mapopts._speed.indexOf(speeding) == -1) gvalid = 0;
-         if(mapopts._tname && !touring)  gvalid = 0;
-         if(mapopts._tname && touring && mapopts._tname.toUpperCase() != touring.split(' - ')[0].toUpperCase())  gvalid = 0;
-         if(mapopts._players['v1'] && pids.indexOf(mapopts._players['v1']) == -1) gvalid = 0;
-         if(mapopts._players['v2'] && pids.indexOf(mapopts._players['v2']) == -1) gvalid = 0;
-         if(mapopts._players['v3'] && pids.indexOf(mapopts._players['v3']) == -1) gvalid = 0;
-         if(mapopts._players['v4'] && pids.indexOf(mapopts._players['v4']) == -1) gvalid = 0;
-         if(mapopts._players['p2'] && pids.indexOf(mapopts._players['p2']) == -1) gvalid = 0;
-         if(mapopts._players['p3'] && pids.indexOf(mapopts._players['p3']) == -1) gvalid = 0;
-         if(mapopts._players['p4'] && pids.indexOf(mapopts._players['p4']) == -1) gvalid = 0;
-         if(gaming == 'D' || gaming == 'T' || gaming == 'Q') {
-           if(mapopts._players['v1'] && Math.floor(pids.indexOf(mapopts._players['v1']) / modulo[gaming]) == Math.floor(pids.indexOf(puid) / modulo[gaming])) gvalid = 0;
-           if(mapopts._players['v2'] && Math.floor(pids.indexOf(mapopts._players['v2']) / modulo[gaming]) == Math.floor(pids.indexOf(puid) / modulo[gaming])) gvalid = 0;
-           if(mapopts._players['v3'] && Math.floor(pids.indexOf(mapopts._players['v3']) / modulo[gaming]) == Math.floor(pids.indexOf(puid) / modulo[gaming])) gvalid = 0;
-           if(mapopts._players['v4'] && Math.floor(pids.indexOf(mapopts._players['v4']) / modulo[gaming]) == Math.floor(pids.indexOf(puid) / modulo[gaming])) gvalid = 0;
-           if(mapopts._players['p2'] && Math.floor(pids.indexOf(mapopts._players['p2']) / modulo[gaming]) != Math.floor(pids.indexOf(puid) / modulo[gaming])) gvalid = 0;
-           if(mapopts._players['p3'] && Math.floor(pids.indexOf(mapopts._players['p3']) / modulo[gaming]) != Math.floor(pids.indexOf(puid) / modulo[gaming])) gvalid = 0;
-           if(mapopts._players['p4'] && Math.floor(pids.indexOf(mapopts._players['p4']) / modulo[gaming]) != Math.floor(pids.indexOf(puid) / modulo[gaming])) gvalid = 0;
-         }
-         else{
-           if(mapopts._players['p2'] && pids.indexOf(mapopts._players['p2']) != -1) gvalid = 0;
-         }
-         if(mapopts._players['x1'] && pids.indexOf(mapopts._players['x1']) != -1) gvalid = 0;
-         if(mapopts._players['x2'] && pids.indexOf(mapopts._players['x2']) != -1) gvalid = 0;
-         if(mapopts._players['x3'] && pids.indexOf(mapopts._players['x3']) != -1) gvalid = 0;
-         if(mapopts._players['x4'] && pids.indexOf(mapopts._players['x4']) != -1) gvalid = 0;
-        }
-        if(gvalid) {
-        if(!ranks[mapname]) {
-          ranks[mapname] = new Rank();
-          ranks[mapname]._wins = 0;
-          unique[mapname] = new Array();
-          ranks[mapname]._rank = 1000;
+      if(totals._insignia && myStore._total && myStore._total == numGames) {
+        for(var r in myStore._ranks) {
           totals._maps++;
-        }
-        var winner = 0;
-        var triumph = 0;
-        var numTeams = 0;
-        var holder = 0;
-        var myLoss = 0;
-        var meanwin = 0;
-        var meanloss = 0;
-        var beaten = 0;
-        var pfirst = 0;
-        if(games[g].getElementsByTagName('first').length)
-         pfirst = parseInt(games[g].getElementsByTagName('first')[0].firstChild.nodeValue);
-        var winner = 0;
-        var losers = new Array();
-        var winners = new Array();
-        for(s=0; s<players.length; s++) {
-          var pid = (players[s].firstChild.nodeValue);
-          if(players[s].getAttribute('state') == "Won") {
-            triumph = pid;
-            if(triumph == puid) {
-              ranks[mapname]._wins++;
-              winner = 1;
-            }
-            if(pid != puid) winners.push(pid);
-          }
-          else{
-            if(pid != puid) losers.push(pid);
-          }
-        }
-        var reallosers = winner? losers.length : losers.length + 1;
-        numTeams = players.length / (players.length - reallosers);
-        var maxLosers = players.length - (players.length / numTeams);
-        if(winner) {
-        if(numTeams < players.length) {
-          ranks[mapname]._kills += numTeams - 1;
-          totals._kills += numTeams - 1;
-        }
-        else{
-          ranks[mapname]._kills += players.length - 1;
-          totals._kills += players.length - 1;
-        }
-        for(var p=0; p<losers.length;p++) {
-          if(unique[mapname].indexOf(losers[p]) == -1) {
-              unique[mapname].push(losers[p]);
-          }
-          var gt = mg[games[g].getElementsByTagName('game_type')[0].firstChild.nodeValue];
-          if(totals._defeats[gt].indexOf(losers[p]) == -1) {
-            totals._defeats[gt].push(losers[p]);
-            ranks[mapname]._defeats[gt].push(losers[p]);
-          }
-          if(games[g].getElementsByTagName('speed_game')[0].firstChild.nodeValue == "Y"){
-            if(totals._defeats['Speed'].indexOf(losers[p]) == -1) {
-              totals._defeats['Speed'].push(losers[p]);
-              ranks[mapname]._defeats['Speed'].push(losers[p]);
+          totals._wins += myStore._ranks[r]._wins;
+          for(var p=0; p< myStore._unique[r].length; p++) {
+            if(totals._unique.indexOf(myStore._unique[r][p]) == -1) {
+              totals._unique.push(myStore._unique[r][p]);
             }
           }
-          if(games[g].getElementsByTagName('play_order')[0].firstChild.nodeValue == "F"){
-            if(totals._defeats['Freestyle'].indexOf(losers[p]) == -1) {
-              totals._defeats['Freestyle'].push(losers[p]);
-              ranks[mapname]._defeats['Freestyle'].push(losers[p]);
-            }
-          }
-          if(games[g].getElementsByTagName('war_fog')[0].firstChild.nodeValue == "Y"){
-            if(totals._defeats['Fog'].indexOf(losers[p]) == -1) {
-              totals._defeats['Fog'].push(losers[p]);
-              ranks[mapname]._defeats['Fog'].push(losers[p]);
-            }
-          }
-          if(games[g].getElementsByTagName('initial_troops')[0].firstChild.nodeValue == "M"){
-            if(totals._defeats['Manual'].indexOf(losers[p]) == -1) {
-              totals._defeats['Manual'].push(losers[p]);
-              ranks[mapname]._defeats['Manual'].push(losers[p]);
-            }
-          }
-          if(games[g].getElementsByTagName('bonus_cards')[0].firstChild.nodeValue == "4"){
-            if(totals._defeats['Nuclear'].indexOf(losers[p]) == -1) {
-              totals._defeats['Nuclear'].push(losers[p]);
-              ranks[mapname]._defeats['Nuclear'].push(losers[p]);
-            }
-          }
-          if(totals._unique.indexOf(losers[p]) == -1) {
-              totals._unique.push(losers[p]);
-          }
-        }
-        totals._wins++;
-        }
-        else{
-         for(var p=0; p<winners.length;p++) {
-           var gt = mg[games[g].getElementsByTagName('game_type')[0].firstChild.nodeValue];
-           if(totals._defeats['X' + gt].indexOf(winners[p]) == -1) {
-             totals._defeats['X' + gt].push(winners[p]);
-             ranks[mapname]._defeats['X' + gt].push(winners[p]);
-           }
-           if(games[g].getElementsByTagName('speed_game')[0].firstChild.nodeValue == "Y"){
-             if(totals._defeats['XSpeed'].indexOf(winners[p]) == -1) {
-               totals._defeats['XSpeed'].push(winners[p]);
-               ranks[mapname]._defeats['XSpeed'].push(winners[p]);
-             }
-           }
-           if(games[g].getElementsByTagName('play_order')[0].firstChild.nodeValue == "F"){
-             if(totals._defeats['XFreestyle'].indexOf(winners[p]) == -1) {
-               totals._defeats['XFreestyle'].push(winners[p]);
-               ranks[mapname]._defeats['XFreestyle'].push(winners[p]);
-             }
-           }
-           if(games[g].getElementsByTagName('war_fog')[0].firstChild.nodeValue == "Y"){
-             if(totals._defeats['XFog'].indexOf(winners[p]) == -1) {
-               totals._defeats['XFog'].push(winners[p]);
-               ranks[mapname]._defeats['XFog'].push(winners[p]);
-             }
-           }
-           if(games[g].getElementsByTagName('initial_troops')[0].firstChild.nodeValue == "M"){
-             if(totals._defeats['XManual'].indexOf(winners[p]) == -1) {
-               totals._defeats['XManual'].push(winners[p]);
-               ranks[mapname]._defeats['XManual'].push(winners[p]);
-             }
-           }
-           if(games[g].getElementsByTagName('bonus_cards')[0].firstChild.nodeValue == "4"){
-             if(totals._defeats['XNuclear'].indexOf(winners[p]) == -1) {
-               totals._defeats['XNuclear'].push(winners[p]);
-               ranks[mapname]._defeats['XNuclear'].push(winners[p]);
-             }
-           }
-         }
-        }
-        if(pfirst) {
-          if(pfirst == puid) {
-           ranks[mapname]._firsts++;
-           totals._firsts++;
-           if(winner) {
-           ranks[mapname]._wonfirsts++;
-           totals._wonfirsts++;
-           }
-          }
-        }
-        if(games[g].getElementsByTagName('game_type')[0].firstChild.nodeValue != "C"){
-         if(games[g].getElementsByTagName('events')[0]) {
-          var events = games[g].getElementsByTagName('events')[0].getElementsByTagName('event');
-          if(events.length) {
-           for(e=0; e<events.length; e++) {
-            if(events[e].firstChild.nodeValue.match(/^(\d+) gains (\d+) points$/)) {
-             var tim = parseInt(events[e].getAttribute("timestamp")) * 1000;
-             var gain = parseInt(RegExp.$2);
-             var ply = parseInt(RegExp.$1);
-             if(pids[ply - 1] == puid) {
-              ranks[mapname]._rank += gain;
-              pt = new Point(tim, gain);
-              totals._parray.push(pt);
-              ranks[mapname]._parray.push(pt);
-              meanwin += gain;
-              if(!holder) {
-                wl = new Point(tim, 1);
-                totals._warray.push(wl);
-                ranks[mapname]._warray.push(wl);
-                holder = tim;
-              }
-              beaten++;
-             }
-             else{
-              if(!holder) {
-                if(winner)
-                wl = new Point(tim, 1);
-                else
-                wl = new Point(tim, -1);
-                totals._warray.push(wl);
-                ranks[mapname]._warray.push(wl);
-                holder = tim;
-              }
-             }
-            }
-            else if(events[e].firstChild.nodeValue.match(/^(\d+) loses (\d+) points$/)) {
-              var loss = parseInt(RegExp.$2);
-              var tim = parseInt(events[e].getAttribute("timestamp")) * 1000;
-              var ply = parseInt(RegExp.$1);
-              meanloss += loss;
-              if(pids[ply - 1] == puid) {
-               ranks[mapname]._rank -= loss;
-               pt = new Point(tim, -loss);
-               totals._parray.push(pt);
-               ranks[mapname]._parray.push(pt);
-               myLoss = loss;
+          for(d in myStore._ranks[r]._defeats) {
+            for(var p=0; p< myStore._ranks[r]._defeats[d].length; p++) {
+              if(totals._defeats[d].indexOf(myStore._ranks[r]._defeats[d][p]) == -1) {
+                totals._defeats[d].push(myStore._ranks[r]._defeats[d][p]);
               }
             }
-           }
-           if(winner) {
-             if(numTeams < players.length) {
-              ranks[mapname]._meanwin += (players.length / numTeams) * meanwin / 20;
-              totals._meanwin += (players.length / numTeams) * meanwin / 20;
-              ranks[mapname]._beaten += maxLosers;
-              totals._beaten += maxLosers;
-             }
-             else{
-              ranks[mapname]._meanwin += meanwin / 20;
-              totals._meanwin += meanwin / 20;
-              ranks[mapname]._beaten += (players.length - 1);
-              totals._beaten += (players.length - 1);
-             }
-           }
-           else{
-             if(numTeams < players.length) {
-              if(myLoss) {
-               ranks[mapname]._meanwin += (((meanloss + (20 * (players.length / numTeams) * (players.length / numTeams))) / ((players.length / numTeams) * myLoss)) - 1);
-               totals._meanwin += (((meanloss + (20 * (players.length / numTeams) * (players.length / numTeams))) / ((players.length / numTeams) * myLoss)) - 1);
-               ranks[mapname]._beaten += maxLosers;
-               totals._beaten += maxLosers;
-              }
-              else{
-               ranks[mapname]._missing++;
-               ranks[mapname]._games.push(parseInt(games[g].getElementsByTagName('game_number')[0].firstChild.nodeValue));
-              }
-             }
-             else{
-              if(myLoss) {
-               ranks[mapname]._meanwin += (((meanloss + 20) / myLoss) - 1);
-               totals._meanwin += (((meanloss + 20) / myLoss) - 1);
-               ranks[mapname]._beaten += (players.length - 1);
-               totals._beaten += (players.length - 1);
-              }
-              else{
-               ranks[mapname]._missing++;
-               ranks[mapname]._games.push(parseInt(games[g].getElementsByTagName('game_number')[0].firstChild.nodeValue));
-              }
-             }
-           }
           }
-          else{
-           ranks[mapname]._missing++;
-           ranks[mapname]._games.push(parseInt(games[g].getElementsByTagName('game_number')[0].firstChild.nodeValue));
+          if(typeof(myStore._ranks[r]._parray) != "undefined") {
+            for(var p=0; p< myStore._ranks[r]._parray.length; p++) {
+              totals._parray.push(myStore._ranks[r]._parray[p]);
+            }
+          } else {
+            myStore._ranks[r]._parray = [];
           }
-         }
-         else{
-          ranks[mapname]._missing++;
-          ranks[mapname]._games.push(parseInt(games[g].getElementsByTagName('game_number')[0].firstChild.nodeValue));
-         }
-         if(ranks[mapname]._beaten == 0 && ranks[mapname]._missing == 0) alert(players.length);
+          if(typeof(myStore._ranks[r]._warray) != "undefined") {
+            for(var p=0; p< myStore._ranks[r]._warray.length; p++) {
+              totals._warray.push(myStore._ranks[r]._warray[p]);
+            }
+          } else {
+            myStore._ranks[r]._warray = [];
+          }
+          if(myStore._ranks[r]._kills)
+            totals._kills += myStore._ranks[r]._kills;
+          if(myStore._ranks[r]._beaten){
+            totals._meanwin += myStore._ranks[r]._meanwin;
+            totals._beaten += myStore._ranks[r]._beaten;
+          }
+          totals._games+=myStore._ranks[r]._counter;
+          ranks[r] = myStore._ranks[r];
+          unique[r] = myStore._unique[r];
         }
-        else{
-         var mapwin = new Object();
-         var maploss = new Object();
-         if(games[g].getElementsByTagName('events')[0]) {
-          var events = games[g].getElementsByTagName('events')[0].getElementsByTagName('event');
-          if(events.length) {
-           for(e=0; e<events.length; e++) {
-            if(events[e].firstChild.nodeValue.match(/^(\d+) eliminated (\d+)/)) {
-             fred = pids[parseInt(RegExp.$1) - 1];
-             barn = pids[parseInt(RegExp.$2) - 1];
-             if(!mapwin[fred]) mapwin[fred] = new Pinfo();
-             if(!maploss[barn]) maploss[barn] = new Pinfo();
-             mapwin[fred]._defeats[barn] = 1;
-             maploss[barn]._defeats[fred] = 1;
+        totals._counter = myStore._total;
+        endGame(user);
+      } else {
+        if(pages.match(/^(\d+) of (\d+)$/)) {
+          numPages = parseInt(RegExp.$2);
+          if(!totals._expected) totals._expected = numPages;
+        }
+        if(page == 1) {
+          if(numPages > 1) {
+            for(var pg=2;pg<=numPages;pg++) {
+              getHistPage(user,maplist, pg, mapopts);
             }
-            else if(events[e].firstChild.nodeValue.match(/^(\d+) was kicked out$/)) {
-             fred = pids[parseInt(RegExp.$1) - 1];
-             if(!maploss[fred]) {
-               maploss[fred] = new Pinfo();
-               maploss[fred]._defeats[triumph] = 1;
-               if(!mapwin[triumph])
-                mapwin[triumph] = new Pinfo();
-               mapwin[triumph]._defeats[fred] = 1;
-             }
-            }
-           }
-           for(e=0; e<events.length; e++) {
-            if(events[e].firstChild.nodeValue.match(/^(\d+) gains (\d+) points$/)) {
-            var gain = parseInt(RegExp.$2);
-            var tim = parseInt(events[e].getAttribute("timestamp")) * 1000;
-            var ply = parseInt(RegExp.$1);
-            if(pids[ply - 1] == puid) {
-             ranks[mapname]._rank += gain;
-             pt = new Point(tim, gain);
-             totals._parray.push(pt);
-             ranks[mapname]._parray.push(pt);
-             meanwin += gain;
-             if(!holder) {
-               wl = new Point(tim, 1);
-               totals._warray.push(wl);
-               ranks[mapname]._warray.push(wl);
-               holder = tim;
-             }
-             beaten++;
+          }
+        }
+
+        for(var g=0; g< games.length; g++) {
+          var gvalid = 1;
+          var mapname = games[g].getElementsByTagName('map')[0].firstChild.nodeValue;
+          var players = games[g].getElementsByTagName('player');
+          var gaming = games[g].getElementsByTagName('game_type')[0].firstChild.nodeValue;
+          var touring = "";
+          if(games[g].getElementsByTagName('tournament')[0].firstChild)
+            touring = games[g].getElementsByTagName('tournament')[0].firstChild.nodeValue;
+          var joinable = games[g].getElementsByTagName('private')[0].firstChild.nodeValue;
+          var speeding = games[g].getElementsByTagName('speed_game')[0].firstChild.nodeValue;
+          var ordering = games[g].getElementsByTagName('play_order')[0].firstChild.nodeValue;
+          var troops = games[g].getElementsByTagName('initial_troops')[0].firstChild.nodeValue;
+          var cards = games[g].getElementsByTagName('bonus_cards')[0].firstChild.nodeValue;
+          var fort = games[g].getElementsByTagName('fortifications')[0].firstChild.nodeValue;
+          var fog = games[g].getElementsByTagName('war_fog')[0].firstChild.nodeValue;
+          var pids = [];
+          for(s=0; s<players.length; s++) {
+            var pid = (players[s].firstChild.nodeValue);
+            pids.push(pid);
+          }
+          if(maplist.indexOf(mapname) == -1) gvalid = 0;
+          if(mapopts) {
+            if(mapopts._num.length && mapopts._num.indexOf('' + players.length) == -1) gvalid = 0;
+            if(mapopts._type.length && mapopts._type.indexOf(gaming) == -1) gvalid = 0;
+            if(mapopts._bonus.length && mapopts._bonus.indexOf(cards) == -1) gvalid = 0;
+            if(mapopts._order.length && mapopts._order.indexOf(ordering) == -1) gvalid = 0;
+            if(mapopts._troops.length && mapopts._troops.indexOf(troops) == -1) gvalid = 0;
+            if(mapopts._fort.length && mapopts._fort.indexOf(fort) == -1) gvalid = 0;
+            if(mapopts._fog.length && mapopts._fog.indexOf(fog) == -1) gvalid = 0;
+            if(mapopts._joinable.length && (mapopts._joinable.indexOf('T') == -1) && (touring || mapopts._joinable.indexOf(joinable) == -1)) gvalid = 0;
+            if(mapopts._joinable.length && (mapopts._joinable.indexOf('T') != -1) && !touring) gvalid = 0;
+            if(mapopts._speed.length && mapopts._speed.indexOf(speeding) == -1) gvalid = 0;
+            if(mapopts._tname && !touring)  gvalid = 0;
+            if(mapopts._tname && touring && mapopts._tname.toUpperCase() != touring.split(' - ')[0].toUpperCase())  gvalid = 0;
+            if(mapopts._players['v1'] && pids.indexOf(mapopts._players['v1']) == -1) gvalid = 0;
+            if(mapopts._players['v2'] && pids.indexOf(mapopts._players['v2']) == -1) gvalid = 0;
+            if(mapopts._players['v3'] && pids.indexOf(mapopts._players['v3']) == -1) gvalid = 0;
+            if(mapopts._players['v4'] && pids.indexOf(mapopts._players['v4']) == -1) gvalid = 0;
+            if(mapopts._players['p2'] && pids.indexOf(mapopts._players['p2']) == -1) gvalid = 0;
+            if(mapopts._players['p3'] && pids.indexOf(mapopts._players['p3']) == -1) gvalid = 0;
+            if(mapopts._players['p4'] && pids.indexOf(mapopts._players['p4']) == -1) gvalid = 0;
+            if(gaming == 'D' || gaming == 'T' || gaming == 'Q') {
+              if(mapopts._players['v1'] && Math.floor(pids.indexOf(mapopts._players['v1']) / modulo[gaming]) == Math.floor(pids.indexOf(puid) / modulo[gaming])) gvalid = 0;
+              if(mapopts._players['v2'] && Math.floor(pids.indexOf(mapopts._players['v2']) / modulo[gaming]) == Math.floor(pids.indexOf(puid) / modulo[gaming])) gvalid = 0;
+              if(mapopts._players['v3'] && Math.floor(pids.indexOf(mapopts._players['v3']) / modulo[gaming]) == Math.floor(pids.indexOf(puid) / modulo[gaming])) gvalid = 0;
+              if(mapopts._players['v4'] && Math.floor(pids.indexOf(mapopts._players['v4']) / modulo[gaming]) == Math.floor(pids.indexOf(puid) / modulo[gaming])) gvalid = 0;
+              if(mapopts._players['p2'] && Math.floor(pids.indexOf(mapopts._players['p2']) / modulo[gaming]) != Math.floor(pids.indexOf(puid) / modulo[gaming])) gvalid = 0;
+              if(mapopts._players['p3'] && Math.floor(pids.indexOf(mapopts._players['p3']) / modulo[gaming]) != Math.floor(pids.indexOf(puid) / modulo[gaming])) gvalid = 0;
+              if(mapopts._players['p4'] && Math.floor(pids.indexOf(mapopts._players['p4']) / modulo[gaming]) != Math.floor(pids.indexOf(puid) / modulo[gaming])) gvalid = 0;
             }
             else{
-             if(!holder) {
-               if(winner)
-               wl = new Point(tim, 1);
-               else
-               wl = new Point(tim, -1);
-               totals._warray.push(wl);
-               ranks[mapname]._warray.push(wl);
-               holder = tim;
-             }
+              if(mapopts._players['p2'] && pids.indexOf(mapopts._players['p2']) != -1) gvalid = 0;
             }
-           }
-            else if(events[e].firstChild.nodeValue.match(/^(\d+) loses (\d+) points$/)) {
-             var loss = parseInt(RegExp.$2);
-             var tim = parseInt(events[e].getAttribute("timestamp")) * 1000;
-             barn = pids[parseInt(RegExp.$1) - 1];
-             if(!maploss[barn]) {
-               maploss[barn] = new Pinfo();
-               maploss[barn]._defeats[triumph] = 1;
-               if(!mapwin[triumph])
-                mapwin[triumph] = new Pinfo();
-               mapwin[triumph]._defeats[barn] = 1;
-             }
-             for(var w in maploss[barn]._defeats) {
-               maploss[barn]._defeats[w] = loss/20;
-               mapwin[w]._defeats[barn] = loss/20;
-             }
-             meanloss += loss;
-             if(barn == puid) {
-              ranks[mapname]._rank -= loss;
-              pt = new Point(tim, -loss);
-              totals._parray.push(pt);
-              ranks[mapname]._parray.push(pt);
-              myLoss = loss;
-             }
+            if(mapopts._players['x1'] && pids.indexOf(mapopts._players['x1']) != -1) gvalid = 0;
+            if(mapopts._players['x2'] && pids.indexOf(mapopts._players['x2']) != -1) gvalid = 0;
+            if(mapopts._players['x3'] && pids.indexOf(mapopts._players['x3']) != -1) gvalid = 0;
+            if(mapopts._players['x4'] && pids.indexOf(mapopts._players['x4']) != -1) gvalid = 0;
+          }
+          if(gvalid) {
+            if(!ranks[mapname]) {
+              ranks[mapname] = new Rank();
+              ranks[mapname]._wins = 0;
+              unique[mapname] = [];
+              ranks[mapname]._rank = 1000;
+              totals._maps++;
             }
-           }
-           var target = puid;
-           if(winner) {
-            var overall = cascadewin(mapwin, target);
-            ranks[mapname]._meanwin += overall;
-            totals._meanwin += overall;
-            ranks[mapname]._beaten += (players.length - 1);
-            totals._beaten += (players.length - 1);
-           }
-           else{
-            var overall = 20 * cascadewin(mapwin, triumph);
-            myLoss = 20 * cascadeloss(maploss, target);
-            if(myLoss) {
-             var collect = (((overall + 20) / myLoss) - 1);
-             ranks[mapname]._meanwin += collect;
-             totals._meanwin += collect;
-             ranks[mapname]._beaten += (players.length - 1);
-             totals._beaten += (players.length - 1);
+            var winner = 0;
+            var triumph = 0;
+            var numTeams = 0;
+            var holder = 0;
+            var myLoss = 0;
+            var meanwin = 0;
+            var meanloss = 0;
+            var beaten = 0;
+            var pfirst = 0;
+            if(games[g].getElementsByTagName('first').length)
+              pfirst = parseInt(games[g].getElementsByTagName('first')[0].firstChild.nodeValue);
+            var winner = 0;
+            var losers = [];
+            var winners = [];
+            for(s=0; s<players.length; s++) {
+              var pid = (players[s].firstChild.nodeValue);
+              if(players[s].getAttribute('state') == "Won") {
+                triumph = pid;
+                if(triumph == puid) {
+                  ranks[mapname]._wins++;
+                  winner = 1;
+                }
+                if(pid != puid) winners.push(pid);
+              }
+              else{
+                if(pid != puid) losers.push(pid);
+              }
+            }
+            var reallosers = winner? losers.length : losers.length + 1;
+            numTeams = players.length / (players.length - reallosers);
+            var maxLosers = players.length - (players.length / numTeams);
+            if(winner) {
+              if(numTeams < players.length) {
+                ranks[mapname]._kills += numTeams - 1;
+                totals._kills += numTeams - 1;
+              }
+              else{
+                ranks[mapname]._kills += players.length - 1;
+                totals._kills += players.length - 1;
+              }
+              for(var p=0; p<losers.length;p++) {
+                if(unique[mapname].indexOf(losers[p]) == -1) {
+                  unique[mapname].push(losers[p]);
+                }
+                var gt = mg[games[g].getElementsByTagName('game_type')[0].firstChild.nodeValue];
+                if(totals._defeats[gt].indexOf(losers[p]) == -1) {
+                  totals._defeats[gt].push(losers[p]);
+                  ranks[mapname]._defeats[gt].push(losers[p]);
+                }
+                if(games[g].getElementsByTagName('speed_game')[0].firstChild.nodeValue == "Y"){
+                  if(totals._defeats['Speed'].indexOf(losers[p]) == -1) {
+                    totals._defeats['Speed'].push(losers[p]);
+                    ranks[mapname]._defeats['Speed'].push(losers[p]);
+                  }
+                }
+                if(games[g].getElementsByTagName('play_order')[0].firstChild.nodeValue == "F"){
+                  if(totals._defeats['Freestyle'].indexOf(losers[p]) == -1) {
+                    totals._defeats['Freestyle'].push(losers[p]);
+                    ranks[mapname]._defeats['Freestyle'].push(losers[p]);
+                  }
+                }
+                if(games[g].getElementsByTagName('war_fog')[0].firstChild.nodeValue == "Y"){
+                  if(totals._defeats['Fog'].indexOf(losers[p]) == -1) {
+                    totals._defeats['Fog'].push(losers[p]);
+                    ranks[mapname]._defeats['Fog'].push(losers[p]);
+                  }
+                }
+                if(games[g].getElementsByTagName('initial_troops')[0].firstChild.nodeValue == "M"){
+                  if(totals._defeats['Manual'].indexOf(losers[p]) == -1) {
+                    totals._defeats['Manual'].push(losers[p]);
+                    ranks[mapname]._defeats['Manual'].push(losers[p]);
+                  }
+                }
+                if(games[g].getElementsByTagName('bonus_cards')[0].firstChild.nodeValue == "4"){
+                  if(totals._defeats['Nuclear'].indexOf(losers[p]) == -1) {
+                    totals._defeats['Nuclear'].push(losers[p]);
+                    ranks[mapname]._defeats['Nuclear'].push(losers[p]);
+                  }
+                }
+                if(totals._unique.indexOf(losers[p]) == -1) {
+                  totals._unique.push(losers[p]);
+                }
+              }
+              totals._wins++;
             }
             else{
-             ranks[mapname]._missing++;
-             ranks[mapname]._games.push(parseInt(games[g].getElementsByTagName('game_number')[0].firstChild.nodeValue));
+              for(var p=0; p<winners.length;p++) {
+                var gt = mg[games[g].getElementsByTagName('game_type')[0].firstChild.nodeValue];
+                if(totals._defeats['X' + gt].indexOf(winners[p]) == -1) {
+                  totals._defeats['X' + gt].push(winners[p]);
+                  ranks[mapname]._defeats['X' + gt].push(winners[p]);
+                }
+                if(games[g].getElementsByTagName('speed_game')[0].firstChild.nodeValue == "Y"){
+                  if(totals._defeats['XSpeed'].indexOf(winners[p]) == -1) {
+                    totals._defeats['XSpeed'].push(winners[p]);
+                    ranks[mapname]._defeats['XSpeed'].push(winners[p]);
+                  }
+                }
+                if(games[g].getElementsByTagName('play_order')[0].firstChild.nodeValue == "F"){
+                  if(totals._defeats['XFreestyle'].indexOf(winners[p]) == -1) {
+                    totals._defeats['XFreestyle'].push(winners[p]);
+                    ranks[mapname]._defeats['XFreestyle'].push(winners[p]);
+                  }
+                }
+                if(games[g].getElementsByTagName('war_fog')[0].firstChild.nodeValue == "Y"){
+                  if(totals._defeats['XFog'].indexOf(winners[p]) == -1) {
+                    totals._defeats['XFog'].push(winners[p]);
+                    ranks[mapname]._defeats['XFog'].push(winners[p]);
+                  }
+                }
+                if(games[g].getElementsByTagName('initial_troops')[0].firstChild.nodeValue == "M"){
+                  if(totals._defeats['XManual'].indexOf(winners[p]) == -1) {
+                    totals._defeats['XManual'].push(winners[p]);
+                    ranks[mapname]._defeats['XManual'].push(winners[p]);
+                  }
+                }
+                if(games[g].getElementsByTagName('bonus_cards')[0].firstChild.nodeValue == "4"){
+                  if(totals._defeats['XNuclear'].indexOf(winners[p]) == -1) {
+                    totals._defeats['XNuclear'].push(winners[p]);
+                    ranks[mapname]._defeats['XNuclear'].push(winners[p]);
+                  }
+                }
+              }
+            }
+            if(pfirst) {
+              if(pfirst == puid) {
+                ranks[mapname]._firsts++;
+                totals._firsts++;
+                if(winner) {
+                  ranks[mapname]._wonfirsts++;
+                  totals._wonfirsts++;
+                }
+              }
+            }
+            if(games[g].getElementsByTagName('game_type')[0].firstChild.nodeValue != "C"){
+              if(games[g].getElementsByTagName('events')[0]) {
+                var events = games[g].getElementsByTagName('events')[0].getElementsByTagName('event');
+                if(events.length) {
+                  for(e=0; e<events.length; e++) {
+                    if(events[e].firstChild.nodeValue.match(/^(\d+) gains (\d+) points$/)) {
+                      var tim = parseInt(events[e].getAttribute("timestamp")) * 1000;
+                      var gain = parseInt(RegExp.$2);
+                      var ply = parseInt(RegExp.$1);
+                      if(pids[ply - 1] == puid) {
+                        ranks[mapname]._rank += gain;
+                        pt = new Point(tim, gain);
+                        totals._parray.push(pt);
+                        ranks[mapname]._parray.push(pt);
+                        meanwin += gain;
+                        if(!holder) {
+                          wl = new Point(tim, 1);
+                          totals._warray.push(wl);
+                          ranks[mapname]._warray.push(wl);
+                          holder = tim;
+                        }
+                        beaten++;
+                      }
+                      else{
+                        if(!holder) {
+                          if(winner)
+                            wl = new Point(tim, 1);
+                          else
+                            wl = new Point(tim, -1);
+                          totals._warray.push(wl);
+                          ranks[mapname]._warray.push(wl);
+                          holder = tim;
+                        }
+                      }
+                    }
+                    else if(events[e].firstChild.nodeValue.match(/^(\d+) loses (\d+) points$/)) {
+                      var loss = parseInt(RegExp.$2);
+                      var tim = parseInt(events[e].getAttribute("timestamp")) * 1000;
+                      var ply = parseInt(RegExp.$1);
+                      meanloss += loss;
+                      if(pids[ply - 1] == puid) {
+                        ranks[mapname]._rank -= loss;
+                        pt = new Point(tim, -loss);
+                        totals._parray.push(pt);
+                        ranks[mapname]._parray.push(pt);
+                        myLoss = loss;
+                      }
+                    }
+                  }
+                  if(winner) {
+                    if(numTeams < players.length) {
+                      ranks[mapname]._meanwin += (players.length / numTeams) * meanwin / 20;
+                      totals._meanwin += (players.length / numTeams) * meanwin / 20;
+                      ranks[mapname]._beaten += maxLosers;
+                      totals._beaten += maxLosers;
+                    }
+                    else{
+                      ranks[mapname]._meanwin += meanwin / 20;
+                      totals._meanwin += meanwin / 20;
+                      ranks[mapname]._beaten += (players.length - 1);
+                      totals._beaten += (players.length - 1);
+                    }
+                  }
+                  else{
+                    if(numTeams < players.length) {
+                      if(myLoss) {
+                        ranks[mapname]._meanwin += (((meanloss + (20 * (players.length / numTeams) * (players.length / numTeams))) / ((players.length / numTeams) * myLoss)) - 1);
+                        totals._meanwin += (((meanloss + (20 * (players.length / numTeams) * (players.length / numTeams))) / ((players.length / numTeams) * myLoss)) - 1);
+                        ranks[mapname]._beaten += maxLosers;
+                        totals._beaten += maxLosers;
+                      }
+                      else{
+                        ranks[mapname]._missing++;
+                        ranks[mapname]._games.push(parseInt(games[g].getElementsByTagName('game_number')[0].firstChild.nodeValue));
+                      }
+                    }
+                    else{
+                      if(myLoss) {
+                        ranks[mapname]._meanwin += (((meanloss + 20) / myLoss) - 1);
+                        totals._meanwin += (((meanloss + 20) / myLoss) - 1);
+                        ranks[mapname]._beaten += (players.length - 1);
+                        totals._beaten += (players.length - 1);
+                      }
+                      else{
+                        ranks[mapname]._missing++;
+                        ranks[mapname]._games.push(parseInt(games[g].getElementsByTagName('game_number')[0].firstChild.nodeValue));
+                      }
+                    }
+                  }
+                }
+                else{
+                  ranks[mapname]._missing++;
+                  ranks[mapname]._games.push(parseInt(games[g].getElementsByTagName('game_number')[0].firstChild.nodeValue));
+                }
+              }
+              else{
+                ranks[mapname]._missing++;
+                ranks[mapname]._games.push(parseInt(games[g].getElementsByTagName('game_number')[0].firstChild.nodeValue));
+              }
+              if(ranks[mapname]._beaten == 0 && ranks[mapname]._missing == 0) alert(players.length);
+            }
+            else{
+              var mapwin = {};
+              var maploss = {};
+              if(games[g].getElementsByTagName('events')[0]) {
+                var events = games[g].getElementsByTagName('events')[0].getElementsByTagName('event');
+                if(events.length) {
+                  for(e=0; e<events.length; e++) {
+                    if(events[e].firstChild.nodeValue.match(/^(\d+) eliminated (\d+)/)) {
+                      fred = pids[parseInt(RegExp.$1) - 1];
+                      barn = pids[parseInt(RegExp.$2) - 1];
+                      if(!mapwin[fred]) mapwin[fred] = new Pinfo();
+                      if(!maploss[barn]) maploss[barn] = new Pinfo();
+                      mapwin[fred]._defeats[barn] = 1;
+                      maploss[barn]._defeats[fred] = 1;
+                    }
+                    else if(events[e].firstChild.nodeValue.match(/^(\d+) was kicked out$/)) {
+                      fred = pids[parseInt(RegExp.$1) - 1];
+                      if(!maploss[fred]) {
+                        maploss[fred] = new Pinfo();
+                        maploss[fred]._defeats[triumph] = 1;
+                        if(!mapwin[triumph])
+                          mapwin[triumph] = new Pinfo();
+                        mapwin[triumph]._defeats[fred] = 1;
+                      }
+                    }
+                  }
+                  for(e=0; e<events.length; e++) {
+                    if(events[e].firstChild.nodeValue.match(/^(\d+) gains (\d+) points$/)) {
+                      var gain = parseInt(RegExp.$2);
+                      var tim = parseInt(events[e].getAttribute("timestamp")) * 1000;
+                      var ply = parseInt(RegExp.$1);
+                      if(pids[ply - 1] == puid) {
+                        ranks[mapname]._rank += gain;
+                        pt = new Point(tim, gain);
+                        totals._parray.push(pt);
+                        ranks[mapname]._parray.push(pt);
+                        meanwin += gain;
+                        if(!holder) {
+                          wl = new Point(tim, 1);
+                          totals._warray.push(wl);
+                          ranks[mapname]._warray.push(wl);
+                          holder = tim;
+                        }
+                        beaten++;
+                      }
+                      else{
+                        if(!holder) {
+                          if(winner)
+                            wl = new Point(tim, 1);
+                          else
+                            wl = new Point(tim, -1);
+                          totals._warray.push(wl);
+                          ranks[mapname]._warray.push(wl);
+                          holder = tim;
+                        }
+                      }
+                    }
+                    else if(events[e].firstChild.nodeValue.match(/^(\d+) loses (\d+) points$/)) {
+                      var loss = parseInt(RegExp.$2);
+                      var tim = parseInt(events[e].getAttribute("timestamp")) * 1000;
+                      barn = pids[parseInt(RegExp.$1) - 1];
+                      if(!maploss[barn]) {
+                        maploss[barn] = new Pinfo();
+                        maploss[barn]._defeats[triumph] = 1;
+                        if(!mapwin[triumph])
+                          mapwin[triumph] = new Pinfo();
+                        mapwin[triumph]._defeats[barn] = 1;
+                      }
+                      for(var w in maploss[barn]._defeats) {
+                        maploss[barn]._defeats[w] = loss/20;
+                        mapwin[w]._defeats[barn] = loss/20;
+                      }
+                      meanloss += loss;
+                      if(barn == puid) {
+                        ranks[mapname]._rank -= loss;
+                        pt = new Point(tim, -loss);
+                        totals._parray.push(pt);
+                        ranks[mapname]._parray.push(pt);
+                        myLoss = loss;
+                      }
+                    }
+                  }
+                  var target = puid;
+                  if(winner) {
+                    var overall = cascadewin(mapwin, target);
+                    ranks[mapname]._meanwin += overall;
+                    totals._meanwin += overall;
+                    ranks[mapname]._beaten += (players.length - 1);
+                    totals._beaten += (players.length - 1);
+                  }
+                  else{
+                    var overall = 20 * cascadewin(mapwin, triumph);
+                    myLoss = 20 * cascadeloss(maploss, target);
+                    if(myLoss) {
+                      var collect = (((overall + 20) / myLoss) - 1);
+                      ranks[mapname]._meanwin += collect;
+                      totals._meanwin += collect;
+                      ranks[mapname]._beaten += (players.length - 1);
+                      totals._beaten += (players.length - 1);
+                    }
+                    else{
+                      ranks[mapname]._missing++;
+                      ranks[mapname]._games.push(parseInt(games[g].getElementsByTagName('game_number')[0].firstChild.nodeValue));
+                    }
+                  }
+                }
+                else{
+                  ranks[mapname]._missing++;
+                  ranks[mapname]._games.push(parseInt(games[g].getElementsByTagName('game_number')[0].firstChild.nodeValue));
+                }
+              }
+            }
+            totals._games++;
+            ranks[mapname]._counter++;
+          } 
+        }
+        totals._pages++;
+        totals._counter += games.length;
+        viewer.document.getElementById('progress').innerHTML = "Scanning..." + (100 * (totals._pages)/(numPages)).toFixed(0) + "%";
+        if(totals._pages == numPages && totals._counter == numGames) {
+          if(totals._insignia) {
+            for(var m in ranks) {
+              myStore._ranks[m] = ranks[m];
+              myStore._unique[m] = unique[m];
             }
           }
-         }
-         else{
-          ranks[mapname]._missing++;
-          ranks[mapname]._games.push(parseInt(games[g].getElementsByTagName('game_number')[0].firstChild.nodeValue));
-         }
+          endGame(user);
         }
-        }
-        totals._games++;
-        ranks[mapname]._counter++;
-       } 
-      }
-      totals._pages++;
-      totals._counter += games.length;
-      viewer.document.getElementById('progress').innerHTML = "Scanning..." + (100 * (totals._pages)/(numPages)).toFixed(0) + "%";
-      if(totals._pages == numPages && totals._counter == numGames) {
-       if(totals._insignia) {
-        for(var m in ranks) {
-         myStore._ranks[m] = ranks[m];
-         myStore._unique[m] = unique[m];
-        }
-       }
-       endGame(user);
       }
     }
-   }
-   else if (ghist["paging" + page].readyState == 1 && totals._pages == 0) {
-    viewer.document.getElementById('progress').innerHTML = "Scanning...0%";
-   }
-  }
+    else if (ghist["paging" + page].readyState == 1 && totals._pages == 0) {
+      viewer.document.getElementById('progress').innerHTML = "Scanning...0%";
+    }
+  };
   ghist["paging" + page].send(null);
 }
 
 function getRatings(user,url,page) {
-    var jump = url;
-    if(page > 1) jump += "&page=" + page;
-    rateReq[page] = new XMLHttpRequest();
-    rateReq[page].open('GET', jump, true);
-    rateReq[page].onreadystatechange = function() {
-      if (rateReq[page].readyState == 4) {
-        var div=document.createElement('div');
-        div.innerHTML = rateReq[page].responseText;
-        var results = getElementsByClassName(div,'span','search_results',true);
-        if(results.length && results[0].innerHTML.match(/(\d+) results on (\d+) pages/)) {
-          var numGames = parseInt(RegExp.$1);
-          var thisPage = parseInt(RegExp.$2);
-          var rates = getElementsByClassName(div,'a','rating',true);
-          for(var r=0; r<rates.length;r++) {
-            var aind = rates[r].parentNode.getElementsByTagName('a')[0];
-            if(aind.href.match(/u=(.+?)$/)) {
-             var names = RegExp.$1;
-             if(totals._defeats['Rating'].indexOf(names) == -1) {
-               totals._defeats['Rating'].push(names);
-             }
+  var jump = url;
+  if(page > 1) jump += "&page=" + page;
+  rateReq[page] = new XMLHttpRequest();
+  rateReq[page].open('GET', jump, true);
+  rateReq[page].onreadystatechange = function() {
+    if (rateReq[page].readyState == 4) {
+      var div=document.createElement('div');
+      div.innerHTML = rateReq[page].responseText;
+      var results = getElementsByClassName(div,'span','search_results',true);
+      if(results.length && results[0].innerHTML.match(/(\d+) results on (\d+) pages/)) {
+        var numGames = parseInt(RegExp.$1);
+        var thisPage = parseInt(RegExp.$2);
+        var rates = getElementsByClassName(div,'a','rating',true);
+        for(var r=0; r<rates.length;r++) {
+          var aind = rates[r].parentNode.getElementsByTagName('a')[0];
+          if(aind.href.match(/u=(.+?)$/)) {
+            var names = RegExp.$1;
+            if(totals._defeats['Rating'].indexOf(names) == -1) {
+              totals._defeats['Rating'].push(names);
             }
           }
-          if(page == 1) {
-           if(thisPage > 1) {
-             for(var pg=2;pg<=thisPage;pg++) {
-             getRatings(user,url,pg);
-             }
-           }
+        }
+        if(page == 1) {
+          if(thisPage > 1) {
+            for(var pg=2;pg<=thisPage;pg++) {
+              getRatings(user,url,pg);
+            }
           }
-          if(page == thisPage && viewer.document.getElementById('rated')) {
-            viewer.document.getElementById('rated').innerHTML = '' + totals._defeats['Rating'].length + " Rated Players";
-          }
+        }
+        if(page == thisPage && viewer.document.getElementById('rated')) {
+          viewer.document.getElementById('rated').innerHTML = '' + totals._defeats['Rating'].length + " Rated Players";
         }
       }
     }
-    rateReq[page].send(null);
+  };
+  rateReq[page].send(null);
 }
 
 function getXRatings(user,url,page) {
-    var jump = url;
-    if(page > 1) jump += "&page=" + page;
-    xrateReq[page] = new XMLHttpRequest();
-    xrateReq[page].open('GET', jump, true);
-    xrateReq[page].onreadystatechange = function() {
-      if (xrateReq[page].readyState == 4) {
-        var div=document.createElement('div');
-        div.innerHTML = xrateReq[page].responseText;
-        var results = getElementsByClassName(div,'span','search_results',true);
-        if(results.length && results[0].innerHTML.match(/(\d+) results on (\d+) pages/)) {
-          var numGames = parseInt(RegExp.$1);
-          var thisPage = parseInt(RegExp.$2);
-          var rates = getElementsByClassName(div,'a','rating',true);
-          for(var r=0; r<rates.length;r++) {
-            var aind = rates[r].parentNode.getElementsByTagName('a')[0];
-            if(aind.href.match(/u=(.+?)$/)) {
-             var names = RegExp.$1;
-             if(totals._defeats['XRating'].indexOf(names) == -1) {
-               totals._defeats['XRating'].push(names);
-             }
+  var jump = url;
+  if(page > 1) jump += "&page=" + page;
+  xrateReq[page] = new XMLHttpRequest();
+  xrateReq[page].open('GET', jump, true);
+  xrateReq[page].onreadystatechange = function() {
+    if (xrateReq[page].readyState == 4) {
+      var div=document.createElement('div');
+      div.innerHTML = xrateReq[page].responseText;
+      var results = getElementsByClassName(div,'span','search_results',true);
+      if(results.length && results[0].innerHTML.match(/(\d+) results on (\d+) pages/)) {
+        var numGames = parseInt(RegExp.$1);
+        var thisPage = parseInt(RegExp.$2);
+        var rates = getElementsByClassName(div,'a','rating',true);
+        for(var r=0; r<rates.length;r++) {
+          var aind = rates[r].parentNode.getElementsByTagName('a')[0];
+          if(aind.href.match(/u=(.+?)$/)) {
+            var names = RegExp.$1;
+            if(totals._defeats['XRating'].indexOf(names) == -1) {
+              totals._defeats['XRating'].push(names);
             }
           }
-          if(page == 1) {
-           if(thisPage > 1) {
-             for(var pg=2;pg<=thisPage;pg++) {
-             getXRatings(user,url,pg);
-             }
-           }
+        }
+        if(page == 1) {
+          if(thisPage > 1) {
+            for(var pg=2;pg<=thisPage;pg++) {
+              getXRatings(user,url,pg);
+            }
           }
         }
       }
     }
-    xrateReq[page].send(null);
+  };
+  xrateReq[page].send(null);
 }
 
 var leftBar = document.getElementById("leftColumn");
 if(leftBar) {
-var ul = leftBar.getElementsByTagName("ul");
-if (ul[0]) {
-proto = window.location.protocol;
-GM_xmlhttpRequest({
-  method: 'GET',
-  url: 'http://www.fileden.com/files/2008/5/8/1902058/turbo.txt?nocache=' + Math.random(),
-  headers: {
-      'User-agent': 'Mozilla/4.0 (compatible) Greasemonkey',
-      'Accept': 'text/html',
-  },
-  onload: function(responseDetails) {
-      features = responseDetails.responseText.split('\n');
-      var latest = features[0].split('.');
-      var ver = versiont.split('.');
-      latestVersiont = (((parseInt(latest[0]) * 100) + (parseInt(latest[1]) * 10) + parseInt(latest[2])) > ((parseInt(ver[0]) * 100) + (parseInt(ver[1]) * 10) + parseInt(ver[2])));
-  }
-});
-GM_addStyle("#phistory {z-index:2000;color:#000;width:151px;position:absolute;background-color:#FFF;text-align:left;border:1px solid #000;visibility:hidden;}");
-GM_addStyle(".history_link {background-color: #FFFFFF;padding: 2px 6px 2px 6px;} .history_link_over {background-color: #3366CC; padding: 2px 6px 2px 6px;}");
-GM_addStyle("#player {width:143px;border:1px solid #000;} #map{width:153px;border-width:1px} .fieldx {width:10em;border: 1px solid #565}");
-var rt = GM_getValue('ratings');
-if(typeof(rt) == "undefined") {
-GM_setValue('ratings',ratings);
-}
-else{
-ratings = rt;
-}
-var hist = GM_getValue('phist');
-if(typeof(hist) == "undefined") {
-GM_setValue('phist',phist);
-}
-else{
-phist = hist;
-}
-var ic = GM_getValue('icons');
-if(typeof(ic) == "undefined") {
-GM_setValue('icons',icons);
-}
-else{
-icons = ic;
-}
-var dk = GM_getValue('dark');
-if(typeof(dk) == "undefined") {
-GM_setValue('dark',dark);
-}
-else{
-dark = dk;
-}
-myDefeats = eval(GM_getValue('defeats'));
-if(typeof(myDefeats) != "undefined" && myDefeats != null && (icons || dark)) {
-if(/player.php\?mode=find/.test(window.location.href) || /player.php\?mode=mygames/.test(window.location.href) ||
-   /player.php\?submit=Search/.test(window.location.href) || /player.php\?mode=join/.test(window.location.href) ||
-   /player.php\?mode=next/.test(window.location.href)) {
-   var uls = getElementsByClassName(document,'ul','players',true);
-   for(var u=0; u<uls.length; u++) {
-     var lis = uls[u].getElementsByTagName('li');
-     for(var l=0; l< lis.length;l++){
-       if(!lis[l].innerHTML.match(/<b>Team (\d):/) && !lis[l].innerHTML.match(/-empty-/) && !lis[l].innerHTML.match(/-reserved-/)) {
-        var anc = lis[l].getElementsByTagName('a');
-         if(anc.length && anc[0].href.match(/u=(\d+)$/)) {
-          var names = RegExp.$1;
-          for(def in myDefeats._defeats) {
-	          var imgtitle = "";
-            if(myDefeats._defeats[def].indexOf(names) != -1) {
-              if(def == "Rating" && icons)
-              imgtitle = "Already Rated for " + def + " medal (from Map Rank)";
-              else if(def == "XRating" && dark) {
-              imgtitle = "Received Rating (from Map Rank)";
-              }
-              else if(def.charAt(0) == 'X' && dark) {
-               var defx = def.replace(/X/, '');
-               imgtitle = defx + " Loss (from Map Rank)";
-              }
-              else if(def.charAt(0) != 'X' && icons) {
-              imgtitle = "Already Defeated for " + def + " medal (from Map Rank)";
-            	}
-							if(imgtitle != "") {
-              	var img = lis[l].appendChild(document.createElement('img'));
-              	img.src = "http://i811.photobucket.com/albums/zz39/chipv_bucket/" + def + ".png";
-              	img.style.verticalAlign = "middle";
-              	img.title = imgtitle;
-							}	            	 
-            }
-          }
-       }
-     }
-   }
-}
-}
-
-if(/www.conquerclub.com\/player.php\?mode=find/.test(window.location.href) && !(/\&private=Y/.test(window.location.href)) && !(/\&submit=Join/.test(window.location.href)) && icons) {
- if(document.getElementsByTagName('fieldset').length){
-   var speedDiv = document.getElementsByName('sg[]');
-   if(myDefeats._defeats['Speed'] && myDefeats._defeats['Speed'].length)
-   (nextSib(speedDiv[1])).innerHTML += "<span class=player3 title=\"Defeated Opponents For Speed Medal (from Map Rank)\">(" + myDefeats._defeats['Speed'].length + ")</span>";
-   var freeDiv = document.getElementsByName('po[]');
-   if(myDefeats._defeats['Freestyle'] && myDefeats._defeats['Freestyle'].length)
-   (nextSib(freeDiv[1])).innerHTML += "<span class=player3 title=\"Defeated Opponents For Freestyle Medal (from Map Rank)\">(" + myDefeats._defeats['Freestyle'].length + ")</span>";
-   var fogDiv = document.getElementsByName('wf[]');
-   if(myDefeats._defeats['Fog'] && myDefeats._defeats['Fog'].length)
-   (nextSib(fogDiv[1])).innerHTML += "<span class=player3 title=\"Defeated Opponents For Fog Medal (from Map Rank)\">(" + myDefeats._defeats['Fog'].length + ")</span>";
-   var manDiv = document.getElementsByName('it[]');
-   if(myDefeats._defeats['Manual'] && myDefeats._defeats['Manual'].length)
-   (nextSib(manDiv[1])).innerHTML += "<span class=player3 title=\"Defeated Opponents For Manual Troops Medal (from Map Rank)\">(" + myDefeats._defeats['Manual'].length + ")</span>";
-   var nuclearDiv = document.getElementsByName('bc[]');
-   if(myDefeats._defeats['Nuclear'] && myDefeats._defeats['Nuclear'].length)
-   (nextSib(nuclearDiv[2])).innerHTML += "<span class=player3 title=\"Defeated Opponents For Nuclear Medal (from Map Rank)\">(" + myDefeats._defeats['Nuclear'].length + ")</span>";
-   var gtDiv = document.getElementsByName('gt[]');
-   for(gt=0; gt< gtDiv.length;gt++) {
-     var name = (nextSib(gtDiv[gt])).innerHTML;
-     if(myDefeats._defeats[name] && myDefeats._defeats[name].length)
-     (nextSib(gtDiv[gt])).innerHTML += "<span class=player3 title=\"Defeated Opponents For " + name + " Medal (from Map Rank)\">(" + myDefeats._defeats[name].length + ")</span>";
-   }
- }
-}
-if(/www.conquerclub.com\/player.php\?mode=start/.test(window.location.href) && icons) {
- if(document.getElementsByTagName('fieldset').length){
-   var speedDiv = document.getElementsByName('sg');
-   if(myDefeats._defeats['Speed'] && myDefeats._defeats['Speed'].length)
-   (nextSib(speedDiv[1])).innerHTML += "<span class=player3 title=\"Defeated Opponents For Speed Medal (from Map Rank)\">(" + myDefeats._defeats['Speed'].length + ")</span>";
-   var freeDiv = document.getElementsByName('po');
-   if(myDefeats._defeats['Freestyle'] && myDefeats._defeats['Freestyle'].length)
-   (nextSib(freeDiv[1])).innerHTML += "<span class=player3 title=\"Defeated Opponents For Freestyle Medal (from Map Rank)\">(" + myDefeats._defeats['Freestyle'].length + ")</span>";
-   var fogDiv = document.getElementsByName('wf');
-   if(myDefeats._defeats['Fog'] && myDefeats._defeats['Fog'].length)
-   (nextSib(fogDiv[1])).innerHTML += "<span class=player3 title=\"Defeated Opponents For Fog Medal (from Map Rank)\">(" + myDefeats._defeats['Fog'].length + ")</span>";
-   var manDiv = document.getElementsByName('it');
-   if(myDefeats._defeats['Manual'] && myDefeats._defeats['Manual'].length)
-   (nextSib(manDiv[1])).innerHTML += "<span class=player3 title=\"Defeated Opponents For Manual Troops Medal (from Map Rank)\">(" + myDefeats._defeats['Manual'].length + ")</span>";
-   var nuclearDiv = document.getElementsByName('bc');
-   if(myDefeats._defeats['Nuclear'] && myDefeats._defeats['Nuclear'].length)
-   (nextSib(nuclearDiv[2])).innerHTML += "<span class=player3 title=\"Defeated Opponents For Nuclear Medal (from Map Rank)\">(" + myDefeats._defeats['Nuclear'].length + ")</span>";
-   var gtDiv = document.getElementsByName('gt');
-   for(gt=0; gt< gtDiv.length;gt++) {
-     var name = (nextSib(gtDiv[gt])).innerHTML;
-     if(myDefeats._defeats[name] && myDefeats._defeats[name].length)
-     (nextSib(gtDiv[gt])).innerHTML += "<span class=player3 title=\"Defeated Opponents For " + name + " Medal (from Map Rank)\">(" + myDefeats._defeats[name].length + ")</span>";
-   }
- }
-}
-}
-if(/www.conquerclub.com\/forum\/memberlist.php\?mode=viewprofile/.test(window.location.href)) {
-var boxes = getElementsByClassName(document,'div','panel bg1 online',true);
-if(boxes.length == 0) boxes = getElementsByClassName(document,'div','panel bg1',true);
-var h2 = document.getElementsByTagName('h2')[0];
-var profname = h2.innerHTML.match(/Viewing profile - (.+?)$/);
-var prof = RegExp.$1;
-var an = document.createElement ('input');
-an.id = "profrank";
-an.type = "button";
-an.value = "Map Rank " + prof;
-boxes[0].appendChild(an);
-an.addEventListener("click" , function() {
- var link = proto + "//www.conquerclub.com/player.php?submit=Search&game_status=F&player1=" + escape(prof);
- createBox("Collecting Games", prof, '');
- total = maps.length;
- var insignia = 0;
- var logout = getElementsByClassName(document,'div','vnav',true);
- var para = logout[0].getElementsByTagName('a');
- if(para[0].innerHTML.match(/logout <b>(.+?)<\/b>/)) {
-   var mine = RegExp.$1;
-   if(prof.match(mine, "i")) {
-    insignia = 1;
-    myStore = eval(GM_getValue('store'));
-    if(typeof(myStore) == "undefined" || myStore == null) {
-      myStore = new Store();
-      myDefeats = new Defeats();
-    }
-   }
- }
- totals = new Totals(insignia);
- if(ratings) getRatings(prof,proto + '//www.conquerclub.com/player.php?mode=ratings2&username=' + escape(prof),1);
- if(ratings) getXRatings(prof,proto + '//www.conquerclub.com/player.php?mode=ratings1&username=' + escape(prof),1);
- ranks = [];
- unique = [];
- surl = "||||||";
- getPlayerMedals(prof);
- getPlayerId(prof, maps);
-}
-, true);
-var logout = getElementsByClassName(document,'div','vnav',true);
-var para = logout[0].getElementsByTagName('a');
-if(para[0].innerHTML.match(/logout <b>(.+?)<\/b>/)) {
- var mine = RegExp.$1;
- if(!prof.match(mine, "i")) {
-  var van = document.createElement ('input');
-	van.type = "button";
-  van.id = "profvs";
-  van.value = "Map Rank vs.";
-  boxes[0].appendChild(van);
-  van.addEventListener("click" , function() {
-   var link = proto + "//www.conquerclub.com/player.php?submit=Search&game_status=F&player1=" + escape(prof);
-   var mopts = new MapOpts('','','','','','','','','','', prof, '', '', '', '', '', '', '', '', '', '');
-   createBox("Collecting Games", mine, "<span class=rankoptions>vs. <b>" + prof + "</b></span> ");
-   total = maps.length;
-   totals = new Totals(0);
-   ranks = [];
-   unique = [];
-   pcount = 0;
-   surl = "";
-   getPlayerPage (mine, maps, mopts, 'v1');
-  }
-  , true);
-
- }
-}
-}
-
-if(/www.conquerclub.com\/player.php\?mode=find/.test(window.location.href) && !(/\&private=Y/.test(window.location.href)) && !(/\&submit=Join/.test(window.location.href))) {
- if(document.getElementsByTagName('fieldset').length){
-   var v1 = document.getElementById('player1');
-   var x1 = document.createElement('span');
-   v1.parentNode.appendChild(x1);
-   x1.innerHTML = '&nbsp;<b>Map Rank</b> vs.&nbsp;';
-   y1 = document.createElement('input');
-   y1.type = "text";
-   y1.id = "versus1";
-   y1.className = "fieldx";
-   v1.className = "fieldx";
-   v1.parentNode.appendChild(y1);
-   var ex1 = document.createElement('span');
-   v1.parentNode.appendChild(ex1);
-   ex1.innerHTML = '&nbsp;Exclude&nbsp;';
-   ey1 = document.createElement('input');
-   ey1.type = "text";
-   ey1.id = "exclude1";
-   ey1.className = "fieldx";
-   v1.parentNode.appendChild(ey1);
-   var v2 = document.getElementById('player2');
-   var x2 = document.createElement('span');
-   v2.parentNode.appendChild(x2);
-   x2.innerHTML = '&nbsp;<b>Map Rank</b> vs.&nbsp;';
-   y2 = document.createElement('input');
-   y2.type = "text";
-   y2.id = "versus2";
-   y2.className = "fieldx";
-   v2.className = "fieldx";
-   v2.parentNode.appendChild(y2);
-   var ex2 = document.createElement('span');
-   v2.parentNode.appendChild(ex2);
-   ex2.innerHTML = '&nbsp;Exclude&nbsp;';
-   ey2 = document.createElement('input');
-   ey2.type = "text";
-   ey2.id = "exclude2";
-   ey2.className = "fieldx";
-   v2.parentNode.appendChild(ey2);
-   var v3 = document.getElementById('player3');
-   var x3 = document.createElement('span');
-   v3.parentNode.appendChild(x3);
-   x3.innerHTML = '&nbsp;<b>Map Rank</b> vs.&nbsp;';
-   y3 = document.createElement('input');
-   y3.type = "text";
-   y3.id = "versus3";
-   y3.className = "fieldx";
-   v3.className = "fieldx";
-   v3.parentNode.appendChild(y3);
-   var ex3 = document.createElement('span');
-   v3.parentNode.appendChild(ex3);
-   ex3.innerHTML = '&nbsp;Exclude&nbsp;';
-   ey3 = document.createElement('input');
-   ey3.type = "text";
-   ey3.id = "exclude3";
-   ey3.className = "fieldx";
-   v3.parentNode.appendChild(ey3);
-   var v4 = document.getElementById('player4');
-   var x4 = document.createElement('span');
-   v4.parentNode.appendChild(x4);
-   x4.innerHTML = '&nbsp;<b>Map Rank</b> vs.&nbsp;';
-   y4 = document.createElement('input');
-   y4.type = "text";
-   y4.id = "versus4";
-   y4.className = "fieldx";
-   v4.parentNode.appendChild(y4);
-   var ex4 = document.createElement('span');
-   v4.parentNode.appendChild(ex4);
-   ex4.innerHTML = '&nbsp;Exclude&nbsp;';
-   ey4 = document.createElement('input');
-   ey4.type = "text";
-   ey4.id = "exclude4";
-   ey4.className = "fieldx";
-   v4.className = "fieldx";
-   v4.parentNode.appendChild(ey4);
-   var buttonDiv = document.getElementsByTagName('fieldset')[0].appendChild(document.createElement('div'));
-	 buttonDiv.className = "field-row";
-   buttonDiv.id = "maprankbox";
-   buttonDiv.innerHTML = "<span class=field-label>Map Rank Loading...</span>";
- }
-}
-window.addEventListener("unload" , cleanup, false);
-GM_xmlhttpRequest({
-  method: 'GET',
-  url: proto + '//www.conquerclub.com/api.php?mode=maplist&nocache=' + Math.random(),
-  headers: {
-      'User-agent': 'Mozilla/4.0 (compatible) Greasemonkey',
-      'Accept': 'text/html',
-  },
-  onload: function(responseDetails) {
-    var parser = new DOMParser();
-    var dom = parser.parseFromString(responseDetails.responseText,"application/xml");
-    var mapxml = dom.getElementsByTagName('title');
-    var gmMenu = document.createElement('div');
-    gmMenu.id="missed";
-    var html = "<h3><b>Map Rank GL <span style='font-size:7pt;' ><a href='" + proto + "//www.conquerclub.com/forum/viewtopic.php?f=59&t=100479'>" + versiont + "</a></span></b></h3><span>Player</span><input type=text id=player /><div id=phistory></div><span>Map</span><select name=map id=map>";
-    html += "<option selected>All</option>";
-    for(var i=0; i< mapxml.length; i++) {
-      maps[i] = mapxml[i].firstChild.nodeValue;
-      html += "<option>" + maps[i] + "</option>";
-    }
-    html += "</select>";
-    gmMenu.innerHTML = html;
-    ul[0].parentNode.appendChild(gmMenu);
-    document.getElementById('player').addEventListener('keypress', function(event) {
-      event.stopPropagation();
-    }, false);
-    document.getElementById('player').addEventListener('keyup', function(event) {
-      event.stopPropagation();
-      key(this,event);
-    }, false);
-    document.getElementById('player').addEventListener('blur', function(event) {
-      event.stopPropagation();
-      setTimeout(function() {clearSuggest();},200);
-    }, false);
-    ul = document.createElement ('ul');
-    ul.style.borderWidth = "0px 1px 0px 1px";
-    ul.style.width = "151px";
-    ul.innerHTML += "<li><a href=\"javascript:void(0);\" id=rank >Map Rank</a></li>";
-    gmMenu.appendChild(ul);
-    ul = document.createElement ('ul');
-    ul.style.borderWidth = "0px 1px 0px 1px";
-    ul.style.width = "151px";
-    var inner = "<li><a href=\"javascript:void(0);\" onclick=\"document.getElementById('speed').style.display=(document.getElementById('speed').style.display == ''? 'none':'');\"><span>Options</span></a></li>";
-    inner += "<div id=\"speed\" style=\"display:none\">";
-    inner += "<input id=\"ratings\" type=\"checkbox\" name=\"ratings\"" + ((ratings)? " checked":"") + ">Ratings<br />";
-    inner += "<input id=\"icons\" type=\"checkbox\" name=\"icons\"" + ((icons)? " checked":"") + ">Display Icons<br />";
-    inner += "<input id=\"dark\" type=\"checkbox\" name=\"dark\"" + ((dark)? " checked":"") + ">Display Dark Icons";
-    inner += "<li></li></div>";
-    ul.innerHTML = inner;
-    gmMenu.appendChild(ul);
-    document.getElementById('ratings').addEventListener("click" , function () {
-    ratings = (this.checked == true)? 1:0;
-    GM_setValue('ratings',ratings);
-    }, true);
-    document.getElementById('icons').addEventListener("click" , function () {
-    icons = (this.checked == true)? 1:0;
-    GM_setValue('icons',icons);
-    }, true);
-    document.getElementById('dark').addEventListener("click" , function () {
-    dark = (this.checked == true)? 1:0;
-    GM_setValue('dark',dark);
-    }, true);
-    ul = document.createElement ('ul');
-    ul.style.borderWidth = "0px 1px 0px 1px";
-    ul.style.width = "151px";
-    ul.innerHTML += "<li><a href=\"javascript:void(0);\" id=reset >Reset</a></li>";
-    gmMenu.appendChild(ul);
-    document.getElementById('reset').addEventListener("click" , function () {
-    	myDefeats = null;
-    	myStore = null;
-	    GM_setValue("defeats", uneval(myDefeats));
-    	GM_setValue("store", uneval(myStore));
-	    alert("Map Rank Cache Reset");
-    },true);
-    ul = document.createElement('ul');
-    ul.style.borderWidth = "0px 1px 0px 1px";
-    ul.style.width = "151px";
-    if(latestVersiont) {
-    ul.innerHTML = "<li><a id=\"tlatest\" href=http://userscripts.org/scripts/source/33912.user.js><span class=\"attention\">New Update Available</span></a></li>";
-    gmMenu.appendChild(ul);
+  var ul = leftBar.getElementsByTagName("ul");
+  if (ul[0]) {
+    proto = window.location.protocol;
+    GM_xmlhttpRequest({
+      method: 'GET',
+      url: 'http://www.fileden.com/files/2008/5/8/1902058/turbo.txt?nocache=' + Math.random(),
+      headers: {
+        'User-agent': 'Mozilla/4.0 (compatible) Greasemonkey',
+        'Accept': 'text/html'
+      },
+      onload: function(responseDetails) {
+        features = responseDetails.responseText.split('\n');
+        var latest = features[0].split('.');
+        var ver = versiont.split('.');
+        latestVersiont = (((parseInt(latest[0]) * 100) + (parseInt(latest[1]) * 10) + parseInt(latest[2])) > ((parseInt(ver[0]) * 100) + (parseInt(ver[1]) * 10) + parseInt(ver[2])));
+      }
+    });
+    GM_addStyle("#phistory {z-index:2000;color:#000;width:151px;position:absolute;background-color:#FFF;text-align:left;border:1px solid #000;visibility:hidden;}");
+    GM_addStyle(".history_link {background-color: #FFFFFF;padding: 2px 6px 2px 6px;} .history_link_over {background-color: #3366CC; padding: 2px 6px 2px 6px;}");
+    GM_addStyle("#player {width:143px;border:1px solid #000;} #map{width:153px;border-width:1px} .fieldx {width:10em;border: 1px solid #565}");
+    var rt = GM_getValue('ratings');
+    if(typeof(rt) == "undefined") {
+      GM_setValue('ratings',ratings);
     }
     else{
-      ul.innerHTML = "<li><a id=\"tlatest\" href=http://userscripts.org/scripts/source/33912.user.js><span>Latest Version Installed</span></a></li>";
-      gmMenu.appendChild(ul);
+      ratings = rt;
     }
-    var ftext = features.join("\n");
-    document.getElementById('tlatest').addEventListener("click" , function () {
-      alert('New version features\n' + ftext);
-    },true);
-    document.getElementById('rank').addEventListener('click', function() {
-    var text = document.getElementById('map').options[document.getElementById('map').selectedIndex].text;
-    var player = document.getElementById('player').value;
-    if(player == "") {
-      alert("Must give a player name");
-      return false;
+    var hist = GM_getValue('phist');
+    if(typeof(hist) == "undefined") {
+      GM_setValue('phist',phist);
     }
     else{
-      if(phist == "") {
-        phist = player;
-        GM_setValue('phist',phist);
-      }
-      else{
-       var hists = phist.split('|');
-       if(hists.indexOf(player) == -1) {
-        hists.push(player);
-        if(hists.length > 10) hists.shift();
-        phist = hists.join('|');
-        GM_setValue('phist',phist);
-       }
-      }
-      var link = proto + "//www.conquerclub.com/player.php?submit=Search&game_status=F&player1=" + escape(player);
-      surl = "";
-      if(text == "All"){
-       createBox("Collecting Games", player, '');
-       total = maps.length;
-       surl = "||||||";
-       var insignia = 0;
-       var logout = getElementsByClassName(document,'div','vnav',true);
-       var para = logout[0].getElementsByTagName('a');
-       if(para[0].innerHTML.match(/logout <b>(.+?)<\/b>/)) {
-         var mine = RegExp.$1;
-         if(player.match(mine, "i")) {
-          insignia = 1;
-          myStore = eval(GM_getValue('store'));
-          if(typeof(myStore) == "undefined" || myStore == null) {
-            myStore = new Store();
-            myDefeats = new Defeats();
-          }
-          else {
-            for(var ms in myStore._ranks) {
-              if(!isNaN(ms)) {
-               myStore = new Store();
-               break;
+      phist = hist;
+    }
+    var ic = GM_getValue('icons');
+    if(typeof(ic) == "undefined") {
+      GM_setValue('icons',icons);
+    }
+    else{
+      icons = ic;
+    }
+    var dk = GM_getValue('dark');
+    if(typeof(dk) == "undefined") {
+      GM_setValue('dark',dark);
+    }
+    else{
+      dark = dk;
+    }
+    myDefeats = eval(GM_getValue('defeats'));
+    if(typeof(myDefeats) != "undefined" && myDefeats != null && (icons || dark)) {
+      if(/player.php\?mode=find/.test(window.location.href) || /player.php\?mode=mygames/.test(window.location.href) ||
+        /player.php\?submit=Search/.test(window.location.href) || /player.php\?mode=join/.test(window.location.href) ||
+        /player.php\?mode=next/.test(window.location.href)) {
+        var uls = getElementsByClassName(document,'ul','players',true);
+        for(var u=0; u<uls.length; u++) {
+          var lis = uls[u].getElementsByTagName('li');
+          for(var l=0; l< lis.length;l++){
+            if(!lis[l].innerHTML.match(/<b>Team (\d):/) && !lis[l].innerHTML.match(/-empty-/) && !lis[l].innerHTML.match(/-reserved-/)) {
+              var anc = lis[l].getElementsByTagName('a');
+              if(anc.length && anc[0].href.match(/u=(\d+)$/)) {
+                var names = RegExp.$1;
+                for(def in myDefeats._defeats) {
+                  var imgtitle = "";
+                  if(myDefeats._defeats[def].indexOf(names) != -1) {
+                    if(def == "Rating" && icons)
+                      imgtitle = "Already Rated for " + def + " medal (from Map Rank)";
+                    else if(def == "XRating" && dark) {
+                      imgtitle = "Received Rating (from Map Rank)";
+                    }
+                    else if(def.charAt(0) == 'X' && dark) {
+                      var defx = def.replace(/X/, '');
+                      imgtitle = defx + " Loss (from Map Rank)";
+                    }
+                    else if(def.charAt(0) != 'X' && icons) {
+                      imgtitle = "Already Defeated for " + def + " medal (from Map Rank)";
+                    }
+                    if(imgtitle != "") {
+                      var img = lis[l].appendChild(document.createElement('img'));
+                      img.src = "http://i811.photobucket.com/albums/zz39/chipv_bucket/" + def + ".png";
+                      img.style.verticalAlign = "middle";
+                      img.title = imgtitle;
+                    }	            	 
+                  }
+                }
               }
             }
-          }
-         }
-       }
-       totals = new Totals(insignia);
-       if(ratings) getRatings(player,proto + '//www.conquerclub.com/player.php?mode=ratings2&username=' + escape(player),1);
-       if(ratings) getXRatings(player,proto + '//www.conquerclub.com/player.php?mode=ratings1&username=' + escape(player),1);
-       ranks = [];
-       unique = [];
-       getPlayerMedals(player);
-       getPlayerId(player, maps);
-      }
-      else {
-      var ind = document.getElementById('map').selectedIndex - 1;
-      surl = "||||||" + maps[ind];
-      ranks = [];
-      unique = [];
-      createBox("Collecting Games", player, '');
-      total = 1;
-      totals = new Totals(0);
-      getPlayerMedals(player);
-      getPlayerId(player, new Array(maps[ind]));
-      }
-    }
-    }
-    , true);
-    if(/www.conquerclub.com\/player.php\?mode=find/.test(window.location.href) && !(/\&private=Y/.test(window.location.href)) && !(/\&submit=Join/.test(window.location.href))) {
-     if(document.getElementsByTagName('fieldset').length){
-      if(icons) {
-        var mapdivs = document.getElementById("maps").getElementsByTagName('option');
-          var tempStore = eval(GM_getValue('store'));
-          if(typeof(tempStore) != "undefined" && tempStore !=null) {
-            for(md=0;md<mapdivs.length;md++) {
-              var name = mapdivs[md].text.replace(/ \(Beta\)$/, '');
-              if(tempStore._unique[maps[maps.indexOf(name)]] && tempStore._unique[maps[maps.indexOf(name)]].length) {
-              if(name == mapdivs[md].text)
-              mapdivs[md].text = name + " (" + tempStore._unique[maps[maps.indexOf(name)]].length + ")";
-              else
-              mapdivs[md].text = name + " (" + tempStore._unique[maps[maps.indexOf(name)]].length + ") (Beta)";
-              mapdivs[md].style.color = "blue";
-              mapdivs[md].style.fontWeight = "bold";
-              mapdivs[md].title = "Defeated Opponents For Cross Map Medal (from Map Rank)";
-              }
-            }
-          }
-      }
-      document.getElementById('maprankbox').innerHTML = "<input class=button type=button id=maprank value=\"Map Rank\" /><input type=button style=\"margin-left:0\" id=mapbook value=\"Bookmark Map Rank\" /><div id=mapsaved></div>";
-      document.getElementById('mapbook').addEventListener("click", saveButtonHandler, false);
-      myOptions = (deserialize("mapbook", new Object()))
-      if (typeof(myOptions) == "undefined") myOptions = new Object();
-      showSearchs();
-      if (myOptions['DEFAULT']) {
-       loadButtonHandler(myOptions['DEFAULT'],"",false)
-      }
-      document.getElementById('maprank').addEventListener('click', function () {
-        var opts = "";
-        var player = document.getElementById('player1').value;
-        var player2 = document.getElementById('player2').value;
-        var player3 = document.getElementById('player3').value;
-        var player4 = document.getElementById('player4').value;
-        var versus = document.getElementById('versus1').value;
-        var versus2 = document.getElementById('versus2').value;
-        var versus3 = document.getElementById('versus3').value;
-        var versus4 = document.getElementById('versus4').value;
-        var exclude = document.getElementById('exclude1').value;
-        var exclude2 = document.getElementById('exclude1').value;
-        var exclude3 = document.getElementById('exclude1').value;
-        var exclude4 = document.getElementById('exclude1').value;
-        if(player2 != "") opts += "<span class=rankoptions>Player 2: <b>" + player2 + "</b></span> ";
-        if(player3 != "") opts += "<span class=rankoptions>Player 3: <b>" + player3 + "</b></span> ";
-        if(player4 != "") opts += "<span class=rankoptions>Player 4: <b>" + player4 + "</b></span> ";
-        if(versus != "") opts += "<span class=rankoptions>vs. <b>" + versus + "</b></span> ";
-        if(versus2 != "") opts += "<span class=rankoptions>vs. <b>" + versus2 + "</b></span> ";
-        if(versus3 != "") opts += "<span class=rankoptions>vs. <b>" + versus3 + "</b></span> ";
-        if(versus4 != "") opts += "<span class=rankoptions>vs. <b>" + versus4 + "</b></span> ";
-        if(exclude != "") opts += "<span class=rankoptions>- <b>" + exclude + "</b></span> ";
-        if(exclude2 != "") opts += "<span class=rankoptions>- <b>" + exclude2 + "</b></span> ";
-        if(exclude3 != "") opts += "<span class=rankoptions>- <b>" + exclude3 + "</b></span> ";
-        if(exclude4 != "") opts += "<span class=rankoptions>- <b>" + exclude4 + "</b></span> ";
-        var numbers = cboxValues('np[]');
-        if(numbers.length) opts += "<span class=rankoptions>Number of Players: <b>" + numbers + "</b></span> ";
-        var mip = document.getElementById('maps').options;
-        var mp = new Array();
-        for(op = 0; op< mip.length; op++) {
-          if(mip[op].selected) {
-            var txt = mip[op].text.replace(/ \(Beta\)$/, '').replace(/ \(\d+\)/,'' );
-            mp.push(txt);
           }
         }
-        var gt = cboxValues('gt[]');
-        if(gt.length) opts += "<span class=rankoptions>Game Type: <b>" + gt + "</b></span> ";
-        var porder = cboxValues('po[]');
-        if(porder.length) opts += "<span class=rankoptions>Play Order: <b>" + porder + "</b></span> ";
-        var tps = cboxValues('it[]');
-        if(tps.length) opts += "<span class=rankoptions>Initial Troops: <b>" + tps + "</b></span> ";
-        var bonus = cboxValues('bc[]');
-        if(bonus.length) opts += "<span class=rankoptions>Bonus: <b>" + bonus + "</b></span> ";
-        var fort = cboxValues('ft[]');
-        if(fort.length) opts += "<span class=rankoptions>Fortifications: <b>" + fort + "</b></span> ";
-        var fog = cboxValues('wf[]');
-        if(fog.length) opts += "<span class=rankoptions>Fog of War:<b>" + fog + "</b></span> ";
-        var joinable = cboxValues('pt[]');
-        if(joinable.length) opts += "<span class=rankoptions>Joinability: <b>" + joinable + "</b></span> ";
-        var speed = cboxValues('sg[]');
-        if(speed.length) opts += "<span class=rankoptions>Round Length: <b>" + speed + "</b></span> ";
-        var nn = document.getElementById('tournament');
-        var tour = (nn.value);
-        if(tour != "") opts += "<span class=rankoptions>Tournament: <b>" + tour + "</b></span> ";
-        if(player == "") {
-          alert("Must give a player name");
+      }
+
+      if(/www.conquerclub.com\/player.php\?mode=find/.test(window.location.href) && !(/\&private=Y/.test(window.location.href)) && !(/\&submit=Join/.test(window.location.href)) && icons) {
+        if(document.getElementsByTagName('fieldset').length){
+          var speedDiv = document.getElementsByName('sg[]');
+          if(myDefeats._defeats['Speed'] && myDefeats._defeats['Speed'].length)
+            (nextSib(speedDiv[1])).innerHTML += "<span class=player3 title=\"Defeated Opponents For Speed Medal (from Map Rank)\">(" + myDefeats._defeats['Speed'].length + ")</span>";
+          var freeDiv = document.getElementsByName('po[]');
+          if(myDefeats._defeats['Freestyle'] && myDefeats._defeats['Freestyle'].length)
+            (nextSib(freeDiv[1])).innerHTML += "<span class=player3 title=\"Defeated Opponents For Freestyle Medal (from Map Rank)\">(" + myDefeats._defeats['Freestyle'].length + ")</span>";
+          var fogDiv = document.getElementsByName('wf[]');
+          if(myDefeats._defeats['Fog'] && myDefeats._defeats['Fog'].length)
+            (nextSib(fogDiv[1])).innerHTML += "<span class=player3 title=\"Defeated Opponents For Fog Medal (from Map Rank)\">(" + myDefeats._defeats['Fog'].length + ")</span>";
+          var manDiv = document.getElementsByName('it[]');
+          if(myDefeats._defeats['Manual'] && myDefeats._defeats['Manual'].length)
+            (nextSib(manDiv[1])).innerHTML += "<span class=player3 title=\"Defeated Opponents For Manual Troops Medal (from Map Rank)\">(" + myDefeats._defeats['Manual'].length + ")</span>";
+          var nuclearDiv = document.getElementsByName('bc[]');
+          if(myDefeats._defeats['Nuclear'] && myDefeats._defeats['Nuclear'].length)
+            (nextSib(nuclearDiv[2])).innerHTML += "<span class=player3 title=\"Defeated Opponents For Nuclear Medal (from Map Rank)\">(" + myDefeats._defeats['Nuclear'].length + ")</span>";
+          var gtDiv = document.getElementsByName('gt[]');
+          for(gt=0; gt< gtDiv.length;gt++) {
+            var name = (nextSib(gtDiv[gt])).innerHTML;
+            if(myDefeats._defeats[name] && myDefeats._defeats[name].length)
+              (nextSib(gtDiv[gt])).innerHTML += "<span class=player3 title=\"Defeated Opponents For " + name + " Medal (from Map Rank)\">(" + myDefeats._defeats[name].length + ")</span>";
+          }
+        }
+      }
+      if(/www.conquerclub.com\/player.php\?mode=start/.test(window.location.href) && icons) {
+        if(document.getElementsByTagName('fieldset').length){
+          var speedDiv = document.getElementsByName('sg');
+          if(myDefeats._defeats['Speed'] && myDefeats._defeats['Speed'].length)
+            (nextSib(speedDiv[1])).innerHTML += "<span class=player3 title=\"Defeated Opponents For Speed Medal (from Map Rank)\">(" + myDefeats._defeats['Speed'].length + ")</span>";
+          var freeDiv = document.getElementsByName('po');
+          if(myDefeats._defeats['Freestyle'] && myDefeats._defeats['Freestyle'].length)
+            (nextSib(freeDiv[1])).innerHTML += "<span class=player3 title=\"Defeated Opponents For Freestyle Medal (from Map Rank)\">(" + myDefeats._defeats['Freestyle'].length + ")</span>";
+          var fogDiv = document.getElementsByName('wf');
+          if(myDefeats._defeats['Fog'] && myDefeats._defeats['Fog'].length)
+            (nextSib(fogDiv[1])).innerHTML += "<span class=player3 title=\"Defeated Opponents For Fog Medal (from Map Rank)\">(" + myDefeats._defeats['Fog'].length + ")</span>";
+          var manDiv = document.getElementsByName('it');
+          if(myDefeats._defeats['Manual'] && myDefeats._defeats['Manual'].length)
+            (nextSib(manDiv[1])).innerHTML += "<span class=player3 title=\"Defeated Opponents For Manual Troops Medal (from Map Rank)\">(" + myDefeats._defeats['Manual'].length + ")</span>";
+          var nuclearDiv = document.getElementsByName('bc');
+          if(myDefeats._defeats['Nuclear'] && myDefeats._defeats['Nuclear'].length)
+            (nextSib(nuclearDiv[2])).innerHTML += "<span class=player3 title=\"Defeated Opponents For Nuclear Medal (from Map Rank)\">(" + myDefeats._defeats['Nuclear'].length + ")</span>";
+          var gtDiv = document.getElementsByName('gt');
+          for(gt=0; gt< gtDiv.length;gt++) {
+            var name = (nextSib(gtDiv[gt])).innerHTML;
+            if(myDefeats._defeats[name] && myDefeats._defeats[name].length)
+              (nextSib(gtDiv[gt])).innerHTML += "<span class=player3 title=\"Defeated Opponents For " + name + " Medal (from Map Rank)\">(" + myDefeats._defeats[name].length + ")</span>";
+          }
+        }
+      }
+    }
+    if(/www.conquerclub.com\/forum\/memberlist.php\?mode=viewprofile/.test(window.location.href)) {
+      var boxes = getElementsByClassName(document,'div','panel bg1 online',true);
+      if(boxes.length == 0) boxes = getElementsByClassName(document,'div','panel bg1',true);
+      var h2 = document.getElementsByTagName('h2')[0];
+      var profname = h2.innerHTML.match(/Viewing profile - (.+?)$/);
+      var prof = RegExp.$1;
+      var an = document.createElement ('input');
+      an.id = "profrank";
+      an.type = "button";
+      an.value = "Map Rank " + prof;
+      boxes[0].appendChild(an);
+      an.addEventListener("click" , function() {
+        createBox("Collecting Games", prof, '');
+        total = maps.length;
+        var insignia = 0;
+        var logout = getElementsByClassName(document,'div','vnav',true);
+        var para = logout[0].getElementsByTagName('a');
+        if(para[0].innerHTML.match(/logout <b>(.+?)<\/b>/)) {
+          var mine = RegExp.$1;
+          if(prof.match(mine, "i")) {
+            insignia = 1;
+            myStore = eval(GM_getValue('store'));
+            if(typeof(myStore) == "undefined" || myStore == null) {
+              myStore = new Store();
+              myDefeats = new Defeats();
+            }
+          }
+        }
+        totals = new Totals(insignia);
+        if(ratings) getRatings(prof,proto + '//www.conquerclub.com/player.php?mode=ratings2&username=' + escape(prof),1);
+        if(ratings) getXRatings(prof,proto + '//www.conquerclub.com/player.php?mode=ratings1&username=' + escape(prof),1);
+        ranks = [];
+        unique = [];
+        surl = "||||||";
+        getPlayerMedals(prof);
+        getPlayerId(prof, maps);
+      }
+      , true);
+      var logout = getElementsByClassName(document,'div','vnav',true);
+      var para = logout[0].getElementsByTagName('a');
+      if(para[0].innerHTML.match(/logout <b>(.+?)<\/b>/)) {
+        var mine = RegExp.$1;
+        if(!prof.match(mine, "i")) {
+          var van = document.createElement ('input');
+          van.type = "button";
+          van.id = "profvs";
+          van.value = "Map Rank vs.";
+          boxes[0].appendChild(van);
+          van.addEventListener("click" , function() {
+            var link = proto + "//www.conquerclub.com/player.php?submit=Search&game_status=F&player1=" + escape(prof);
+            var mopts = new MapOpts('','','','','','','','','','', prof, '', '', '', '', '', '', '', '', '', '');
+            createBox("Collecting Games", mine, "<span class=rankoptions>vs. <b>" + prof + "</b></span> ");
+            total = maps.length;
+            totals = new Totals(0);
+            ranks = [];
+            unique = [];
+            pcount = 0;
+            surl = "";
+            getPlayerPage (mine, maps, mopts, 'v1');
+          }
+          , true);
+
+        }
+      }
+    }
+
+    if(/www.conquerclub.com\/player.php\?mode=find/.test(window.location.href) && !(/\&private=Y/.test(window.location.href)) && !(/\&submit=Join/.test(window.location.href))) {
+      if(document.getElementsByTagName('fieldset').length){
+        var v1 = document.getElementById('player1');
+        var x1 = document.createElement('span');
+        v1.parentNode.appendChild(x1);
+        x1.innerHTML = '&nbsp;<b>Map Rank</b> vs.&nbsp;';
+        y1 = document.createElement('input');
+        y1.type = "text";
+        y1.id = "versus1";
+        y1.className = "fieldx";
+        v1.className = "fieldx";
+        v1.parentNode.appendChild(y1);
+        var ex1 = document.createElement('span');
+        v1.parentNode.appendChild(ex1);
+        ex1.innerHTML = '&nbsp;Exclude&nbsp;';
+        ey1 = document.createElement('input');
+        ey1.type = "text";
+        ey1.id = "exclude1";
+        ey1.className = "fieldx";
+        v1.parentNode.appendChild(ey1);
+        var v2 = document.getElementById('player2');
+        var x2 = document.createElement('span');
+        v2.parentNode.appendChild(x2);
+        x2.innerHTML = '&nbsp;<b>Map Rank</b> vs.&nbsp;';
+        y2 = document.createElement('input');
+        y2.type = "text";
+        y2.id = "versus2";
+        y2.className = "fieldx";
+        v2.className = "fieldx";
+        v2.parentNode.appendChild(y2);
+        var ex2 = document.createElement('span');
+        v2.parentNode.appendChild(ex2);
+        ex2.innerHTML = '&nbsp;Exclude&nbsp;';
+        ey2 = document.createElement('input');
+        ey2.type = "text";
+        ey2.id = "exclude2";
+        ey2.className = "fieldx";
+        v2.parentNode.appendChild(ey2);
+        var v3 = document.getElementById('player3');
+        var x3 = document.createElement('span');
+        v3.parentNode.appendChild(x3);
+        x3.innerHTML = '&nbsp;<b>Map Rank</b> vs.&nbsp;';
+        y3 = document.createElement('input');
+        y3.type = "text";
+        y3.id = "versus3";
+        y3.className = "fieldx";
+        v3.className = "fieldx";
+        v3.parentNode.appendChild(y3);
+        var ex3 = document.createElement('span');
+        v3.parentNode.appendChild(ex3);
+        ex3.innerHTML = '&nbsp;Exclude&nbsp;';
+        ey3 = document.createElement('input');
+        ey3.type = "text";
+        ey3.id = "exclude3";
+        ey3.className = "fieldx";
+        v3.parentNode.appendChild(ey3);
+        var v4 = document.getElementById('player4');
+        var x4 = document.createElement('span');
+        v4.parentNode.appendChild(x4);
+        x4.innerHTML = '&nbsp;<b>Map Rank</b> vs.&nbsp;';
+        y4 = document.createElement('input');
+        y4.type = "text";
+        y4.id = "versus4";
+        y4.className = "fieldx";
+        v4.parentNode.appendChild(y4);
+        var ex4 = document.createElement('span');
+        v4.parentNode.appendChild(ex4);
+        ex4.innerHTML = '&nbsp;Exclude&nbsp;';
+        ey4 = document.createElement('input');
+        ey4.type = "text";
+        ey4.id = "exclude4";
+        ey4.className = "fieldx";
+        v4.className = "fieldx";
+        v4.parentNode.appendChild(ey4);
+        var buttonDiv = document.getElementsByTagName('fieldset')[0].appendChild(document.createElement('div'));
+        buttonDiv.className = "field-row";
+        buttonDiv.id = "maprankbox";
+        buttonDiv.innerHTML = "<span class=field-label>Map Rank Loading...</span>";
+      }
+    }
+    window.addEventListener("unload" , cleanup, false);
+    GM_xmlhttpRequest({
+      method: 'GET',
+      url: proto + '//www.conquerclub.com/api.php?mode=maplist&nocache=' + Math.random(),
+      headers: {
+        'User-agent': 'Mozilla/4.0 (compatible) Greasemonkey',
+        'Accept': 'text/html'
+      },
+      onload: function(responseDetails) {
+        var parser = new DOMParser();
+        var dom = parser.parseFromString(responseDetails.responseText,"application/xml");
+        var mapxml = dom.getElementsByTagName('title');
+        var gmMenu = document.createElement('div');
+        gmMenu.id="missed";
+        var html = "<h3><b>Map Rank GL <span style='font-size:7pt;' ><a href='" + proto + "//www.conquerclub.com/forum/viewtopic.php?f=59&t=100479'>" + versiont + "</a></span></b></h3><span>Player</span><input type=text id=player /><div id=phistory></div><span>Map</span><select name=map id=map>";
+        html += "<option selected>All</option>";
+        for(var i=0; i< mapxml.length; i++) {
+          maps[i] = mapxml[i].firstChild.nodeValue;
+          html += "<option>" + maps[i] + "</option>";
+        }
+        html += "</select>";
+        gmMenu.innerHTML = html;
+        ul[0].parentNode.appendChild(gmMenu);
+        document.getElementById('player').addEventListener('keypress', function(event) {
+          event.stopPropagation();
+        }, false);
+        document.getElementById('player').addEventListener('keyup', function(event) {
+          event.stopPropagation();
+          key(this,event);
+        }, false);
+        document.getElementById('player').addEventListener('blur', function(event) {
+          event.stopPropagation();
+          setTimeout(function() {
+            clearSuggest();
+          },200);
+        }, false);
+        ul = document.createElement ('ul');
+        ul.style.borderWidth = "0px 1px 0px 1px";
+        ul.style.width = "151px";
+        ul.innerHTML += "<li><a href=\"javascript:void(0);\" id=rank >Map Rank</a></li>";
+        gmMenu.appendChild(ul);
+        ul = document.createElement ('ul');
+        ul.style.borderWidth = "0px 1px 0px 1px";
+        ul.style.width = "151px";
+        var inner = "<li><a href=\"javascript:void(0);\" onclick=\"document.getElementById('speed').style.display=(document.getElementById('speed').style.display == ''? 'none':'');\"><span>Options</span></a></li>";
+        inner += "<div id=\"speed\" style=\"display:none\">";
+        inner += "<input id=\"ratings\" type=\"checkbox\" name=\"ratings\"" + ((ratings)? " checked":"") + ">Ratings<br />";
+        inner += "<input id=\"icons\" type=\"checkbox\" name=\"icons\"" + ((icons)? " checked":"") + ">Display Icons<br />";
+        inner += "<input id=\"dark\" type=\"checkbox\" name=\"dark\"" + ((dark)? " checked":"") + ">Display Dark Icons";
+        inner += "<li></li></div>";
+        ul.innerHTML = inner;
+        gmMenu.appendChild(ul);
+        document.getElementById('ratings').addEventListener("click" , function () {
+          ratings = (this.checked == true)? 1:0;
+          GM_setValue('ratings',ratings);
+        }, true);
+        document.getElementById('icons').addEventListener("click" , function () {
+          icons = (this.checked == true)? 1:0;
+          GM_setValue('icons',icons);
+        }, true);
+        document.getElementById('dark').addEventListener("click" , function () {
+          dark = (this.checked == true)? 1:0;
+          GM_setValue('dark',dark);
+        }, true);
+        ul = document.createElement ('ul');
+        ul.style.borderWidth = "0px 1px 0px 1px";
+        ul.style.width = "151px";
+        ul.innerHTML += "<li><a href=\"javascript:void(0);\" id=reset >Reset</a></li>";
+        gmMenu.appendChild(ul);
+        document.getElementById('reset').addEventListener("click" , function () {
+          myDefeats = null;
+          myStore = null;
+          GM_setValue("defeats", uneval(myDefeats));
+          GM_setValue("store", uneval(myStore));
+          alert("Map Rank Cache Reset");
+        },true);
+        ul = document.createElement('ul');
+        ul.style.borderWidth = "0px 1px 0px 1px";
+        ul.style.width = "151px";
+        if(latestVersiont) {
+          ul.innerHTML = "<li><a id=\"tlatest\" href=http://userscripts.org/scripts/source/33912.user.js><span class=\"attention\">New Update Available</span></a></li>";
+          gmMenu.appendChild(ul);
         }
         else{
-          var link = proto + "//www.conquerclub.com/player.php?submit=Search&game_status=F&player1=" + escape(player) + "&player2=" + escape(player2);
-          var postlink = "&num_players=" + numbers + "&game_type=" + gt + "&bonus_cards=" + bonus + "&play_order=" + porder;
-          surl = "";
-          postlink += "&fortifications=" + fort + "&war_fog=" + fog + "&private=" + joinable + "&speed_game=" + speed + "&tournament=" + tour;
-          mopts = new MapOpts(player2,numbers,gt,bonus,porder,fort,fog,joinable,speed,tour, versus, versus2, exclude, exclude2, player3, player4, versus3, versus4, exclude3, exclude4,tps);
-          if(!fort.length && !tps.length && tour == "" && player2 == "" && player3 == "" && player4 == "" && versus == "" && versus2 == "" && versus3 == "" && versus4 == "" && exclude == "" && exclude2 == "" && exclude3 == "" && exclude4 == "") {
-           if(!joinable.length) surl = numbers + "|" + gt + "|" + porder + "|" + bonus + "|" + fog + "|" + speed + "|" + mp;
-           else{
-             if(joinable == "T" && !numbers.length && !gt.length && !porder.length && !bonus.length && !fog.length && !speed.length && !mp.length)
-                surl = "||||||T";
-           }
+          ul.innerHTML = "<li><a id=\"tlatest\" href=http://userscripts.org/scripts/source/33912.user.js><span>Latest Version Installed</span></a></li>";
+          gmMenu.appendChild(ul);
+        }
+        var ftext = features.join("\n");
+        document.getElementById('tlatest').addEventListener("click" , function () {
+          alert('New version features\n' + ftext);
+        },true);
+        document.getElementById('rank').addEventListener('click', function() {
+          var text = document.getElementById('map').options[document.getElementById('map').selectedIndex].text;
+          var player = document.getElementById('player').value;
+          if(player == "") {
+            alert("Must give a player name");
+            return false;
           }
-          if(!mp.length){
-           createBox("Collecting Games", player, opts);
-           total = maps.length;
-           totals = new Totals(0);
-           ranks = [];
-           unique = [];
-           pcount = 0;
-           if(player2) getPlayerPage (player, maps, mopts, 'p2');
-           if(player3) getPlayerPage (player, maps, mopts, 'p3');
-           if(player4) getPlayerPage (player, maps, mopts, 'p4');
-           if(versus)  getPlayerPage (player, maps, mopts, 'v1');
-           if(versus2) getPlayerPage (player, maps, mopts, 'v2');
-           if(versus3) getPlayerPage (player, maps, mopts, 'v3');
-           if(versus4) getPlayerPage (player, maps, mopts, 'v4');
-           if(exclude) getPlayerPage (player, maps, mopts, 'x1');
-           if(exclude2) getPlayerPage (player, maps, mopts, 'x2');
-           if(exclude3) getPlayerPage (player, maps, mopts, 'x3');
-           if(exclude4) getPlayerPage (player, maps, mopts, 'x4');
-           if(mopts._pcount == 0){
-            getPlayerMedals(player);
-            getPlayerId(player, maps,mopts);
-           }
-          }
-          else {
-           createBox("Collecting Games", player, opts);
-           total = mp.length;
-           totals = new Totals(0);
-           ranks = [];
-           unique = [];
-           pcount = 0;
-           if(player2) getPlayerPage (player, mp, mopts, 'p2');
-           if(player3) getPlayerPage (player, mp, mopts, 'p3');
-           if(player4) getPlayerPage (player, mp, mopts, 'p4');
-           if(versus)  getPlayerPage (player, mp, mopts, 'v1');
-           if(versus2) getPlayerPage (player, mp, mopts, 'v2');
-           if(versus3) getPlayerPage (player, mp, mopts, 'v3');
-           if(versus4) getPlayerPage (player, mp, mopts, 'v4');
-           if(exclude) getPlayerPage (player, mp, mopts, 'x1');
-           if(exclude2) getPlayerPage (player, mp, mopts, 'x2');
-           if(exclude3) getPlayerPage (player, mp, mopts, 'x3');
-           if(exclude4) getPlayerPage (player, mp, mopts, 'x4');
-           if(mopts._pcount == 0){
-            getPlayerMedals(player);
-            getPlayerId(player, mp,mopts);
-           }
+          else{
+            if(phist == "") {
+              phist = player;
+              GM_setValue('phist',phist);
+            }
+            else{
+              var hists = phist.split('|');
+              if(hists.indexOf(player) == -1) {
+                hists.push(player);
+                if(hists.length > 10) hists.shift();
+                phist = hists.join('|');
+                GM_setValue('phist',phist);
+              }
+            }
+            var link = proto + "//www.conquerclub.com/player.php?submit=Search&game_status=F&player1=" + escape(player);
+            surl = "";
+            if(text == "All") {
+              createBox("Collecting Games", player, '');
+              total = maps.length;
+              surl = "||||||";
+              var insignia = 0;
+              var logout = getElementsByClassName(document,'div','vnav',true);
+              var para = logout[0].getElementsByTagName('a');
+              if(para[0].innerHTML.match(/logout <b>(.+?)<\/b>/)) {
+                var mine = RegExp.$1;
+                if(player.match(mine, "i")) {
+                  insignia = 1;
+                  myStore = eval(GM_getValue('store'));
+                  if(typeof(myStore) == "undefined" || myStore == null) {
+                    myStore = new Store();
+                    myDefeats = new Defeats();
+                  } else {
+                    for(var ms in myStore._ranks) {
+                      if(!isNaN(ms)) {
+                        myStore = new Store();
+                        break;
+                      }
+                    }
+                  }
+                }
+              }
+              totals = new Totals(insignia);
+              if(ratings) getRatings(player,proto + '//www.conquerclub.com/player.php?mode=ratings2&username=' + escape(player),1);
+              if(ratings) getXRatings(player,proto + '//www.conquerclub.com/player.php?mode=ratings1&username=' + escape(player),1);
+              ranks = [];
+              unique = [];
+              getPlayerMedals(player);
+              getPlayerId(player, maps);
+            } else {
+              var ind = document.getElementById('map').selectedIndex - 1;
+              surl = "||||||" + maps[ind];
+              ranks = [];
+              unique = [];
+              createBox("Collecting Games", player, '');
+              total = 1;
+              totals = new Totals(0);
+              getPlayerMedals(player);
+              getPlayerId(player, new Array(maps[ind]));
+            }
           }
         }
-        return false;
-      }, true);
-     }
-    }
-    if(/www.conquerclub.com\/player.php\?mode=start/.test(window.location.href)) {
-     if(document.getElementsByTagName('fieldset').length){
-      if(icons) {
-        var mapdivs = document.getElementById("maps").getElementsByTagName('option');
-          var tempStore = eval(GM_getValue('store'));
-          if(typeof(tempStore) != "undefined" && tempStore !=null) {
-            for(md=0;md<mapdivs.length;md++) {
-              var name = mapdivs[md].text.replace(/ \(Beta\)$/, '');
-              if(tempStore._unique[maps[maps.indexOf(name)]] && tempStore._unique[maps[maps.indexOf(name)]].length) {
-              if(name == mapdivs[md].text)
-              mapdivs[md].text = name + " (" + tempStore._unique[maps[maps.indexOf(name)]].length + ")";
-              else
-              mapdivs[md].text = name + " (" + tempStore._unique[maps[maps.indexOf(name)]].length + ") (Beta)";
-              mapdivs[md].style.color = "blue";
-              mapdivs[md].style.fontWeight = "bold";
-              mapdivs[md].title = "Defeated Opponents For Cross Map Medal (from Map Rank)";
+        , true);
+        if(/www.conquerclub.com\/player.php\?mode=find/.test(window.location.href) && !(/\&private=Y/.test(window.location.href)) && !(/\&submit=Join/.test(window.location.href))) {
+          if(document.getElementsByTagName('fieldset').length){
+            if(icons) {
+              var mapdivs = document.getElementById("maps").getElementsByTagName('option');
+              var tempStore = eval(GM_getValue('store'));
+              if(typeof(tempStore) != "undefined" && tempStore !=null) {
+                for(md=0;md<mapdivs.length;md++) {
+                  var name = mapdivs[md].text.replace(/ \(Beta\)$/, '');
+                  if(tempStore._unique[maps[maps.indexOf(name)]] && tempStore._unique[maps[maps.indexOf(name)]].length) {
+                    if(name == mapdivs[md].text)
+                      mapdivs[md].text = name + " (" + tempStore._unique[maps[maps.indexOf(name)]].length + ")";
+                    else
+                      mapdivs[md].text = name + " (" + tempStore._unique[maps[maps.indexOf(name)]].length + ") (Beta)";
+                    mapdivs[md].style.color = "blue";
+                    mapdivs[md].style.fontWeight = "bold";
+                    mapdivs[md].title = "Defeated Opponents For Cross Map Medal (from Map Rank)";
+                  }
+                }
+              }
+            }
+            document.getElementById('maprankbox').innerHTML = "<input class=button type=button id=maprank value=\"Map Rank\" /><input type=button style=\"margin-left:0\" id=mapbook value=\"Bookmark Map Rank\" /><div id=mapsaved></div>";
+            document.getElementById('mapbook').addEventListener("click", saveButtonHandler, false);
+            myOptions = (deserialize("mapbook", {}));
+            if (typeof(myOptions) == "undefined") myOptions = {};
+            showSearchs();
+            if (myOptions['DEFAULT']) {
+              loadButtonHandler(myOptions['DEFAULT'],"",false);
+            }
+            document.getElementById('maprank').addEventListener('click', function () {
+              var opts = "";
+              var player = document.getElementById('player1').value;
+              var player2 = document.getElementById('player2').value;
+              var player3 = document.getElementById('player3').value;
+              var player4 = document.getElementById('player4').value;
+              var versus = document.getElementById('versus1').value;
+              var versus2 = document.getElementById('versus2').value;
+              var versus3 = document.getElementById('versus3').value;
+              var versus4 = document.getElementById('versus4').value;
+              var exclude = document.getElementById('exclude1').value;
+              var exclude2 = document.getElementById('exclude1').value;
+              var exclude3 = document.getElementById('exclude1').value;
+              var exclude4 = document.getElementById('exclude1').value;
+              if(player2 != "") opts += "<span class=rankoptions>Player 2: <b>" + player2 + "</b></span> ";
+              if(player3 != "") opts += "<span class=rankoptions>Player 3: <b>" + player3 + "</b></span> ";
+              if(player4 != "") opts += "<span class=rankoptions>Player 4: <b>" + player4 + "</b></span> ";
+              if(versus != "") opts += "<span class=rankoptions>vs. <b>" + versus + "</b></span> ";
+              if(versus2 != "") opts += "<span class=rankoptions>vs. <b>" + versus2 + "</b></span> ";
+              if(versus3 != "") opts += "<span class=rankoptions>vs. <b>" + versus3 + "</b></span> ";
+              if(versus4 != "") opts += "<span class=rankoptions>vs. <b>" + versus4 + "</b></span> ";
+              if(exclude != "") opts += "<span class=rankoptions>- <b>" + exclude + "</b></span> ";
+              if(exclude2 != "") opts += "<span class=rankoptions>- <b>" + exclude2 + "</b></span> ";
+              if(exclude3 != "") opts += "<span class=rankoptions>- <b>" + exclude3 + "</b></span> ";
+              if(exclude4 != "") opts += "<span class=rankoptions>- <b>" + exclude4 + "</b></span> ";
+              var numbers = cboxValues('np[]');
+              if(numbers.length) opts += "<span class=rankoptions>Number of Players: <b>" + numbers + "</b></span> ";
+              var mip = document.getElementById('maps').options;
+              var mp = [];
+              for(op = 0; op< mip.length; op++) {
+                if(mip[op].selected) {
+                  var txt = mip[op].text.replace(/ \(Beta\)$/, '').replace(/ \(\d+\)/,'' );
+                  mp.push(txt);
+                }
+              }
+              var gt = cboxValues('gt[]');
+              if(gt.length) opts += "<span class=rankoptions>Game Type: <b>" + gt + "</b></span> ";
+              var porder = cboxValues('po[]');
+              if(porder.length) opts += "<span class=rankoptions>Play Order: <b>" + porder + "</b></span> ";
+              var tps = cboxValues('it[]');
+              if(tps.length) opts += "<span class=rankoptions>Initial Troops: <b>" + tps + "</b></span> ";
+              var bonus = cboxValues('bc[]');
+              if(bonus.length) opts += "<span class=rankoptions>Bonus: <b>" + bonus + "</b></span> ";
+              var fort = cboxValues('ft[]');
+              if(fort.length) opts += "<span class=rankoptions>Fortifications: <b>" + fort + "</b></span> ";
+              var fog = cboxValues('wf[]');
+              if(fog.length) opts += "<span class=rankoptions>Fog of War:<b>" + fog + "</b></span> ";
+              var joinable = cboxValues('pt[]');
+              if(joinable.length) opts += "<span class=rankoptions>Joinability: <b>" + joinable + "</b></span> ";
+              var speed = cboxValues('sg[]');
+              if(speed.length) opts += "<span class=rankoptions>Round Length: <b>" + speed + "</b></span> ";
+              var nn = document.getElementById('tournament');
+              var tour = (nn.value);
+              if(tour != "") opts += "<span class=rankoptions>Tournament: <b>" + tour + "</b></span> ";
+              if(player == "") {
+                alert("Must give a player name");
+              }
+              else{
+                var link = proto + "//www.conquerclub.com/player.php?submit=Search&game_status=F&player1=" + escape(player) + "&player2=" + escape(player2);
+                var postlink = "&num_players=" + numbers + "&game_type=" + gt + "&bonus_cards=" + bonus + "&play_order=" + porder;
+                surl = "";
+                postlink += "&fortifications=" + fort + "&war_fog=" + fog + "&private=" + joinable + "&speed_game=" + speed + "&tournament=" + tour;
+                mopts = new MapOpts(player2,numbers,gt,bonus,porder,fort,fog,joinable,speed,tour, versus, versus2, exclude, exclude2, player3, player4, versus3, versus4, exclude3, exclude4,tps);
+                if(!fort.length && !tps.length && tour == "" && player2 == "" && player3 == "" && player4 == "" && versus == "" && versus2 == "" && versus3 == "" && versus4 == "" && exclude == "" && exclude2 == "" && exclude3 == "" && exclude4 == "") {
+                  if(!joinable.length) {
+                    surl = numbers + "|" + gt + "|" + porder + "|" + bonus + "|" + fog + "|" + speed + "|" + mp;
+                  } else {
+                    if(joinable == "T" && !numbers.length && !gt.length && !porder.length && !bonus.length && !fog.length && !speed.length && !mp.length) {
+                      surl = "||||||T";
+                    }
+                  }
+                }
+                if(!mp.length){
+                  createBox("Collecting Games", player, opts);
+                  total = maps.length;
+                  totals = new Totals(0);
+                  ranks = [];
+                  unique = [];
+                  pcount = 0;
+                  if(player2) getPlayerPage (player, maps, mopts, 'p2');
+                  if(player3) getPlayerPage (player, maps, mopts, 'p3');
+                  if(player4) getPlayerPage (player, maps, mopts, 'p4');
+                  if(versus)  getPlayerPage (player, maps, mopts, 'v1');
+                  if(versus2) getPlayerPage (player, maps, mopts, 'v2');
+                  if(versus3) getPlayerPage (player, maps, mopts, 'v3');
+                  if(versus4) getPlayerPage (player, maps, mopts, 'v4');
+                  if(exclude) getPlayerPage (player, maps, mopts, 'x1');
+                  if(exclude2) getPlayerPage (player, maps, mopts, 'x2');
+                  if(exclude3) getPlayerPage (player, maps, mopts, 'x3');
+                  if(exclude4) getPlayerPage (player, maps, mopts, 'x4');
+                  if(mopts._pcount == 0){
+                    getPlayerMedals(player);
+                    getPlayerId(player, maps,mopts);
+                  }
+                } else {
+                  createBox("Collecting Games", player, opts);
+                  total = mp.length;
+                  totals = new Totals(0);
+                  ranks = [];
+                  unique = [];
+                  pcount = 0;
+                  if(player2) getPlayerPage (player, mp, mopts, 'p2');
+                  if(player3) getPlayerPage (player, mp, mopts, 'p3');
+                  if(player4) getPlayerPage (player, mp, mopts, 'p4');
+                  if(versus)  getPlayerPage (player, mp, mopts, 'v1');
+                  if(versus2) getPlayerPage (player, mp, mopts, 'v2');
+                  if(versus3) getPlayerPage (player, mp, mopts, 'v3');
+                  if(versus4) getPlayerPage (player, mp, mopts, 'v4');
+                  if(exclude) getPlayerPage (player, mp, mopts, 'x1');
+                  if(exclude2) getPlayerPage (player, mp, mopts, 'x2');
+                  if(exclude3) getPlayerPage (player, mp, mopts, 'x3');
+                  if(exclude4) getPlayerPage (player, mp, mopts, 'x4');
+                  if(mopts._pcount == 0){
+                    getPlayerMedals(player);
+                    getPlayerId(player, mp,mopts);
+                  }
+                }
+              }
+              return false;
+            }, true);
+          }
+        }
+        if(/www.conquerclub.com\/player.php\?mode=start/.test(window.location.href)) {
+          if(document.getElementsByTagName('fieldset').length){
+            if(icons) {
+              var mapdivs = document.getElementById("maps").getElementsByTagName('option');
+              var tempStore = eval(GM_getValue('store'));
+              if(typeof(tempStore) != "undefined" && tempStore !=null) {
+                for(md=0;md<mapdivs.length;md++) {
+                  var name = mapdivs[md].text.replace(/ \(Beta\)$/, '');
+                  if(tempStore._unique[maps[maps.indexOf(name)]] && tempStore._unique[maps[maps.indexOf(name)]].length) {
+                    if(name == mapdivs[md].text)
+                      mapdivs[md].text = name + " (" + tempStore._unique[maps[maps.indexOf(name)]].length + ")";
+                    else
+                      mapdivs[md].text = name + " (" + tempStore._unique[maps[maps.indexOf(name)]].length + ") (Beta)";
+                    mapdivs[md].style.color = "blue";
+                    mapdivs[md].style.fontWeight = "bold";
+                    mapdivs[md].title = "Defeated Opponents For Cross Map Medal (from Map Rank)";
+                  }
+                }
               }
             }
           }
-      }
-     }
-    }
+        }
 
-    if(/www.conquerclub.com\/player.php\?mode=browse/.test(window.location.href)) {
-      if(icons) {
-        var mapdivs = document.getElementById('maps').getElementsByTagName("div");
-          var tempStore = eval(GM_getValue('store'));
-          if(typeof(tempStore) != "undefined" && tempStore !=null) {
-            for(md=0;md<mapdivs.length;md++) {
-              var label = mapdivs[md].getElementsByTagName('label')[0];
-              var name = label.innerHTML;
-              if(tempStore._unique[maps[maps.indexOf(name)]] && tempStore._unique[maps[maps.indexOf(name)]].length)
-              label.innerHTML += "<span class=player3 title=\"Defeated Opponents For Cross Map Medal (from Map Rank)\">(" + tempStore._unique[maps[maps.indexOf(name)]].length + ")</span>";
+        if(/www.conquerclub.com\/player.php\?mode=browse/.test(window.location.href)) {
+          if(icons) {
+            var mapdivs = document.getElementById('maps').getElementsByTagName("div");
+            var tempStore = eval(GM_getValue('store'));
+            if(typeof(tempStore) != "undefined" && tempStore !=null) {
+              for(md=0;md<mapdivs.length;md++) {
+                var label = mapdivs[md].getElementsByTagName('label')[0];
+                var name = label.innerHTML;
+                if(tempStore._unique[maps[maps.indexOf(name)]] && tempStore._unique[maps[maps.indexOf(name)]].length) {
+                  label.innerHTML += "<span class=player3 title=\"Defeated Opponents For Cross Map Medal (from Map Rank)\">(" + tempStore._unique[maps[maps.indexOf(name)]].length + ")</span>";
+                }
+              }
             }
           }
+        }
       }
-    }
-
-
+    });
   }
-});
-}
 }
 
-function d2h(d)
-{
- var h = hD.substr(d&15,1);
- while(d>15) {d>>=4;h=hD.substr(d&15,1)+h;}
- return h;
+function d2h(d) {
+  var hD="0123456789ABCDEF";
+  var h = hD.substr(d&15,1);
+  while (d>15) {
+    d>>=4;
+    h=hD.substr(d&15,1)+h;
+  }
+  return h;
 }
 
-function h2d(h)
-{
- return parseInt(h,16);
+function h2d(h) {
+  return parseInt(h,16);
 }
 
 function line_graph(max,min)
 {
- this.ct = 0;
+  this.ct = 0;
 
- this.data      = new Array();
- this.colour    = new Array();
- this.x_name    = new Array();
- this.max       = -64000; //MAX INT
- this.min       = 64000;
- this.maxbounds    = max;
- this.minbounds    = min;
- this.maxind = 0;
- this.minind = 0;
+  this.data      = [];
+  this.colour    = [];
+  this.x_name    = [];
+  this.max       = -64000; // MAX INT
+  this.min       = 64000;
+  this.maxbounds    = max;
+  this.minbounds    = min;
+  this.maxind = 0;
+  this.minind = 0;
 
- this.c_array = new Array();
- this.c_array[0] = new Array(255, 192, 95);
- this.c_array[1] = new Array(80, 127, 175);
- this.c_array[2] = new Array(159, 87, 112);
- this.c_array[3] = new Array(111, 120, 96);
- this.c_array[4] = new Array(224, 119, 96);
- this.c_array[5] = new Array(80, 159, 144);
- this.c_array[6] = new Array(207, 88, 95);
- this.c_array[7] = new Array(64, 135, 96);
- this.c_array[8] = new Array(239, 160, 95);
- this.c_array[9] = new Array(144, 151, 80);
- this.c_array[10] = new Array(255, 136, 80);
+  this.c_array = [[255, 192, 95],
+  [80, 127, 175],
+  [159, 87, 112],
+  [111, 120, 96],
+  [224, 119, 96],
+  [80, 159, 144],
+  [207, 88, 95],
+  [64, 135, 96],
+  [239, 160, 95],
+  [144, 151, 80],
+  [255, 136, 80]];
 
- this.getColor = function()
-  {
-   if(this.ct >= (this.c_array.length-1))
+  this.getColor = function() {
+    if(this.ct >= (this.c_array.length-1)) {
       this.ct = 0;
-   else
+    } else {
       this.ct++;
+    }
+    return "#" + d2h(this.c_array[this.ct][0]) + d2h(this.c_array[this.ct][1]) + d2h(this.c_array[this.ct][2]);
+  };
 
-   return "#" + d2h(this.c_array[this.ct][0]) + d2h(this.c_array[this.ct][1]) + d2h(this.c_array[this.ct][2]);
-  }
 
-
- this.add = function(x_name, value, colour)
+  this.add = function(x_name, value, colour)
   {
-   var val = parseInt(value,10);
-   this.x_name.push(x_name);
-   this.data.push(val);
-   this.colour.push(colour);
+    var val = parseInt(value,10);
+    this.x_name.push(x_name);
+    this.data.push(val);
+    this.colour.push(colour);
 
-   if(val > this.max){
+    if(val > this.max){
       this.max = val;
       this.maxind = this.data.length - 1;
-   }
-   if(val < this.min) {
+    }
+    if(val < this.min) {
       this.min = val;
       this.minind = this.data.length - 1;
     }
-  }
+  };
    
- this.render = function(canvas, title)
-  {
-   var jg = new jsGraphics(canvas);
-   var h  = 300;
-   var dw = 30;
-   var fnt    = 12;
-   var sx = 50;
- 	 var step = (this.data.length > 14) ?  Math.round(this.data.length / 15) : 1;
- 	 var span = 21;
- 	 var maxdrawn = 0;
- 	 var mindrawn = 0;
-	 var ht1;
-	 var draw = 0;
-	 var rtmax = sx + 10 + (dw+Math.round((dw/2)))*(span);
-   var i;
+  this.render = function(canvas, title) {
+    var jg = new jsGraphics(canvas);
+    var h  = 300;
+    var dw = 30;
+    var fnt    = 12;
+    var sx = 50;
+    var step = (this.data.length > 14) ?  Math.round(this.data.length / 15) : 1;
+    var span = 21;
+    var maxdrawn = 0;
+    var mindrawn = 0;
+    var ht1;
+    var draw = 0;
+    var rtmax = sx + 10 + (dw+Math.round((dw/2)))*(span);
+    var i;
 
-   jg.setColor("blue");
-   if(this.maxbounds == null) this.maxbounds = this.max;
-   if(this.minbounds == null) this.minbounds = this.min;
-   if(this.maxbounds) {
-   for(i = 0 ; i <= 5 ; i++)
-     {
-      jg.drawLine(0,Math.round((h/5*i)),rtmax+20,Math.round((h/5*i)));
-      var ff = Math.round(this.maxbounds - ((this.maxbounds - this.minbounds)/ 5 * i));
-      jg.drawString(ff+"",4,Math.round((h/5*i)-2));
-     }
-   }
-   else{
+    jg.setColor("blue");
+    if(this.maxbounds == null) this.maxbounds = this.max;
+    if(this.minbounds == null) this.minbounds = this.min;
+    if(this.maxbounds) {
+      for(i = 0 ; i <= 5 ; i++) {
+        jg.drawLine(0,Math.round((h/5*i)),rtmax+20,Math.round((h/5*i)));
+        var ff = Math.round(this.maxbounds - ((this.maxbounds - this.minbounds)/ 5 * i));
+        jg.drawString(ff+"",4,Math.round((h/5*i)-2));
+      }
+    } else {
       jg.drawLine(0,h,rtmax+20,h);
       jg.drawString("0",4,h-2);
-   }
+    }
 
-   // Draw the bar graph
-   var color = this.getColor();
-   var oldx, oldy;
-   jg.setStroke(1);
+    // Draw the bar graph
+    var color = this.getColor();
+    var oldx, oldy;
+    jg.setStroke(1);
  
- 	 for(i = 0; i < this.data.length; i+=step)
- 	 {
-  	 var triplet = new Array();
+    for(i = 0; i < this.data.length; i+=step)
+    {
+      var triplet = [];
    
-   	 triplet.push(i);
-   	 if(this.maxind > i && this.maxind < i+step) triplet.push(this.maxind);
-   	 if(this.minind > i && this.minind < i+step && this.minind != this.maxind) triplet.push(this.minind);
-   	 triplet.sort();
+      triplet.push(i);
+      if(this.maxind > i && this.maxind < i+step) triplet.push(this.maxind);
+      if(this.minind > i && this.minind < i+step && this.minind != this.maxind) triplet.push(this.minind);
+      triplet.sort();
    
-   	 for(var k=0; k<triplet.length; k++) {
-   		 if(this.max)
-    	 ht1 = Math.round((this.data[triplet[k]] - this.minbounds)*h/(this.maxbounds - this.minbounds));
-   	 	 else ht1 = 0;
-   	 	 if(triplet[k])
-   	 	 {
-     			jg.setColor(this.colour[triplet[k]]);
-     			jg.drawLine(oldx, h-oldy, sx, h-ht1);
-   	 	 }
-   	 	 jg.setColor(this.colour[triplet[k]]);
-       jg.fillEllipse(sx-2, h-ht1-2, 8, 8, this.data[triplet[k]]);
-       jg.setColor("green");
-   	 	 jg.drawString(this.x_name[triplet[k]], sx, h);
+      for(var k=0; k<triplet.length; k++) {
+        if(this.max)
+          ht1 = Math.round((this.data[triplet[k]] - this.minbounds)*h/(this.maxbounds - this.minbounds));
+        else ht1 = 0;
+        if(triplet[k])
+        {
+          jg.setColor(this.colour[triplet[k]]);
+          jg.drawLine(oldx, h-oldy, sx, h-ht1);
+        }
+        jg.setColor(this.colour[triplet[k]]);
+        jg.fillEllipse(sx-2, h-ht1-2, 8, 8, this.data[triplet[k]]);
+        jg.setColor("green");
+        jg.drawString(this.x_name[triplet[k]], sx, h);
    	 	 
-   	 	 oldx = sx;
-   	 	 oldy = ht1;
-   		 sx = sx+dw+Math.round(dw/2);
-  	 }  
- 	 }
+        oldx = sx;
+        oldy = ht1;
+        sx = sx+dw+Math.round(dw/2);
+      }  
+    }
  	 
- 	 if(this.maxind != this.data.length - 1 && this.mindind != this.data.length - 1 && i-step < this.data.length-1) {
-   	if(this.max)
-    ht1 = Math.round((this.data[this.data.length - 1] - this.minbounds)*h/(this.maxbounds - this.minbounds));
-   	else ht1 = 0;
-   	if(this.data.length  > 1)
-   	{
-    	jg.setColor(this.colour[this.data.length - 1]);
-     	jg.drawLine(oldx, h-oldy, sx, h-ht1);
-   	}
-   	jg.setColor(this.colour[this.data.length - 1]);
-    jg.fillEllipse(sx-2, h-ht1-2, 8, 8, this.data[this.data.length - 1]);
-    jg.setColor("green");
-   	jg.drawString(this.x_name[this.data.length - 1], sx, h);
-   	oldx = sx;
-   	oldy = ht1;
-  	sx = sx+dw+Math.round(dw/2);
- 		}
+    if(this.maxind != this.data.length - 1 && this.mindind != this.data.length - 1 && i-step < this.data.length-1) {
+      if(this.max)
+        ht1 = Math.round((this.data[this.data.length - 1] - this.minbounds)*h/(this.maxbounds - this.minbounds));
+      else ht1 = 0;
+      if(this.data.length  > 1)
+      {
+        jg.setColor(this.colour[this.data.length - 1]);
+        jg.drawLine(oldx, h-oldy, sx, h-ht1);
+      }
+      jg.setColor(this.colour[this.data.length - 1]);
+      jg.fillEllipse(sx-2, h-ht1-2, 8, 8, this.data[this.data.length - 1]);
+      jg.setColor("green");
+      jg.drawString(this.x_name[this.data.length - 1], sx, h);
+      oldx = sx;
+      oldy = ht1;
+      sx = sx+dw+Math.round(dw/2);
+    }
  
-  jg.setFont("Verdana", fnt,  Font.BOLD);
-  jg.paint();
-}
+    jg.setFont("Verdana", fnt,  Font.BOLD);
+    jg.paint();
+  };
 
 }
 
-function pntCnvDom()
-{
+function pntCnvDom() {
   var x = viewer.document.createRange();
-	x.setStartBefore(this.cnv);
+  x.setStartBefore(this.cnv);
   x = x.createContextualFragment(this.htm);
-	this.cnv.appendChild(x);
-	this.htm = '';
+  this.cnv.appendChild(x);
+  this.htm = '';
 }
 
-function mkDiv(x, y, w, h)
-{
+function mkDiv(x, y, w, h) {
   this.htm += '<div style="position:absolute;'+
-		'left:' + x + 'px;'+
-		'top:' + y + 'px;'+
-		'width:' + w + 'px;'+
-		'height:' + h + 'px;'+
-		'clip:rect(0,'+w+'px,'+h+'px,0);'+
-		'background-color:' + this.color +
-    ''+
-		';"><\/div>';
+  'left:' + x + 'px;'+
+  'top:' + y + 'px;'+
+  'width:' + w + 'px;'+
+  'height:' + h + 'px;'+
+  'clip:rect(0,'+w+'px,'+h+'px,0);'+
+  'background-color:' + this.color +
+  ''+
+  ';"><\/div>';
 }
 
-function mkDivD(x, y, w, h, d)
-{
+function mkDivD(x, y, w, h, d) {
   this.htm += '<div title="' + d + '" style="position:absolute;'+
-		'left:' + x + 'px;'+
-		'top:' + y + 'px;'+
-		'width:' + w + 'px;'+
-		'height:' + h + 'px;'+
-		'clip:rect(0,'+w+'px,'+h+'px,0);'+
-		'background-color:' + this.color +
-    ''+
-		';"><\/div>';
+  'left:' + x + 'px;'+
+  'top:' + y + 'px;'+
+  'width:' + w + 'px;'+
+  'height:' + h + 'px;'+
+  'clip:rect(0,'+w+'px,'+h+'px,0);'+
+  'background-color:' + this.color +
+  ''+
+  ';"><\/div>';
 }
 
-function mkLin(x1, y1, x2, y2)
-{
-	if (x1 > x2)
-	{
-		var _x2 = x2;
-		var _y2 = y2;
-		x2 = x1;
-		y2 = y1;
-		x1 = _x2;
-		y1 = _y2;
-	}
-	var dx = x2-x1, dy = Math.abs(y2-y1),
-	x = x1, y = y1,
-	yIncr = (y1 > y2)? -1 : 1;
+function mkLin(x1, y1, x2, y2) {
+  var _x2, _y2, dx, dy, pr, pru, p, ox, oy, x, y, yIncr;
+  if (x1 > x2) {
+    _x2 = x2;
+    _y2 = y2;
+    x2 = x1;
+    y2 = y1;
+    x1 = _x2;
+    y1 = _y2;
+  }
+  dx = x2-x1, dy = Math.abs(y2-y1),
+  x = x1, y = y1,
+  yIncr = (y1 > y2)? -1 : 1;
 
-	if (dx >= dy)
-	{
-		var pr = dy<<1,
-		pru = pr - (dx<<1),
-		p = pr-dx,
-		ox = x;
-		while ((dx--) > 0)
-		{
-			++x;
-			if (p > 0)
-			{
-				this.mkDiv(ox, y, x-ox, 1);
-				y += yIncr;
-				p += pru;
-				ox = x;
-			}
-			else p += pr;
-		}
-		this.mkDiv(ox, y, x2-ox+1, 1);
-	}
-
-	else
-	{
-		var pr = dx<<1,
-		pru = pr - (dy<<1),
-		p = pr-dy,
-		oy = y;
-		if (y2 <= y1)
-		{
-			while ((dy--) > 0)
-			{
-				if (p > 0)
-				{
-					this.mkDiv(x++, y, 1, oy-y+1);
-					y += yIncr;
-					p += pru;
-					oy = y;
-				}
-				else
-				{
-					y += yIncr;
-					p += pr;
-				}
-			}
-			this.mkDiv(x2, y2, 1, oy-y2+1);
-		}
-		else
-		{
-			while ((dy--) > 0)
-			{
-				y += yIncr;
-				if (p > 0)
-				{
-					this.mkDiv(x++, oy, 1, y-oy);
-					p += pru;
-					oy = y;
-				}
-					else p += pr;
-			}
-			this.mkDiv(x2, oy, 1, y2-oy+1);
-		}
-	}
+  if (dx >= dy)	{
+    pr = dy<<1;
+    pru = pr - (dx<<1);
+    p = pr-dx;
+    ox = x;
+    while ((dx--) > 0) {
+      ++x;
+      if (p > 0) {
+        this.mkDiv(ox, y, x-ox, 1);
+        y += yIncr;
+        p += pru;
+        ox = x;
+      }	else p += pr;
+    }
+    this.mkDiv(ox, y, x2-ox+1, 1);
+  }	else {
+    pr = dx<<1;
+    pru = pr - (dy<<1);
+    p = pr-dy;
+    oy = y;
+    if (y2 <= y1)	{
+      while ((dy--) > 0) {
+        if (p > 0) {
+          this.mkDiv(x++, y, 1, oy-y+1);
+          y += yIncr;
+          p += pru;
+          oy = y;
+        } else {
+          y += yIncr;
+          p += pr;
+        }
+      }
+      this.mkDiv(x2, y2, 1, oy-y2+1);
+    }	else {
+      while ((dy--) > 0) {
+        y += yIncr;
+        if (p > 0) {
+          this.mkDiv(x++, oy, 1, y-oy);
+          p += pru;
+          oy = y;
+        }	else p += pr;
+      }
+      this.mkDiv(x2, oy, 1, y2-oy+1);
+    }
+  }
 }
 
-function mkOv(left, top, width, height)
-{
-	var a = width>>1, b = height>>1,
-	wod = width&1, hod = (height&1)+1,
-	cx = left+a, cy = top+b,
-	x = 0, y = b,
-	ox = 0, oy = b,
-	aa = (a*a)<<1, bb = (b*b)<<1,
-	st = (aa>>1)*(1-(b<<1)) + bb,
-	tt = (bb>>1) - aa*((b<<1)-1),
-	w, h;
-	while (y > 0)
-	{
-		if (st < 0)
-		{
-			st += bb*((x<<1)+3);
-			tt += (bb<<1)*(++x);
-		}
-		else if (tt < 0)
-		{
-			st += bb*((x<<1)+3) - (aa<<1)*(y-1);
-			tt += (bb<<1)*(++x) - aa*(((y--)<<1)-3);
-			w = x-ox;
-			h = oy-y;
-			if (w&2 && h&2)
-			{
-				this.mkOvQds(cx, cy, -x+2, ox+wod, -oy, oy-1+hod, 1, 1);
-				this.mkOvQds(cx, cy, -x+1, x-1+wod, -y-1, y+hod, 1, 1);
-			}
-			else this.mkOvQds(cx, cy, -x+1, ox+wod, -oy, oy-h+hod, w, h);
-			ox = x;
-			oy = y;
-		}
-		else
-		{
-			tt -= aa*((y<<1)-3);
-			st -= (aa<<1)*(--y);
-		}
-	}
-	this.mkDiv(cx-a, cy-oy, a-ox+1, (oy<<1)+hod);
-	this.mkDiv(cx+ox+wod, cy-oy, a-ox+1, (oy<<1)+hod);
+function mkOv(left, top, width, height) {
+  var a = width>>1, b = height>>1,
+  wod = width&1, hod = (height&1)+1,
+  cx = left+a, cy = top+b,
+  x = 0, y = b,
+  ox = 0, oy = b,
+  aa = (a*a)<<1, bb = (b*b)<<1,
+  st = (aa>>1)*(1-(b<<1)) + bb,
+  tt = (bb>>1) - aa*((b<<1)-1),
+  w, h;
+  while (y > 0) {
+    if (st < 0) {
+      st += bb*((x<<1)+3);
+      tt += (bb<<1)*(++x);
+    } else if (tt < 0) {
+      st += bb*((x<<1)+3) - (aa<<1)*(y-1);
+      tt += (bb<<1)*(++x) - aa*(((y--)<<1)-3);
+      w = x-ox;
+      h = oy-y;
+      if (w&2 && h&2) {
+        this.mkOvQds(cx, cy, -x+2, ox+wod, -oy, oy-1+hod, 1, 1);
+        this.mkOvQds(cx, cy, -x+1, x-1+wod, -y-1, y+hod, 1, 1);
+      }
+      else this.mkOvQds(cx, cy, -x+1, ox+wod, -oy, oy-h+hod, w, h);
+      ox = x;
+      oy = y;
+    } else {
+      tt -= aa*((y<<1)-3);
+      st -= (aa<<1)*(--y);
+    }
+  }
+  this.mkDiv(cx-a, cy-oy, a-ox+1, (oy<<1)+hod);
+  this.mkDiv(cx+ox+wod, cy-oy, a-ox+1, (oy<<1)+hod);
 }
 
-function mkRect(x, y, w, h)
-{
-	var s = this.stroke;
-	this.mkDiv(x, y, w, s);
-	this.mkDiv(x+w, y, s, h);
-	this.mkDiv(x, y+h, w+s, s);
-	this.mkDiv(x, y+s, s, h-s);
+function mkRect(x, y, w, h) {
+  var s = this.stroke;
+  this.mkDiv(x, y, w, s);
+  this.mkDiv(x+w, y, s, h);
+  this.mkDiv(x, y+h, w+s, s);
+  this.mkDiv(x, y+s, s, h-s);
 }
 
-function jsgFont()
-{
-	this.PLAIN = 'font-weight:normal;';
-	this.BOLD = 'font-weight:bold;';
-	this.ITALIC = 'font-style:italic;';
-	this.ITALIC_BOLD = this.ITALIC + this.BOLD;
-	this.BOLD_ITALIC = this.ITALIC_BOLD;
+function Font() {
+  this.PLAIN = 'font-weight:normal;';
+  this.BOLD = 'font-weight:bold;';
+  this.ITALIC = 'font-style:italic;';
+  this.ITALIC_BOLD = this.ITALIC + this.BOLD;
+  this.BOLD_ITALIC = this.ITALIC_BOLD;
 }
 
+function jsGraphics(id, wnd) {
+  this.setColor = function(arg) {
+    this.color = arg.toLowerCase();
+  };
 
-function jsgStroke()
-{
-	this.DOTTED = -1;
-}
-
-function jsGraphics(id, wnd)
-{
-	this.setColor = new Function('arg', 'this.color = arg.toLowerCase();');
-
-	this.setStroke = function(x)
-	{
-		this.stroke = x;
+  this.setStroke = function(x) {
+    this.stroke = x;
     this.drawLine = mkLin;
     this.mkOv = mkOv;
     this.drawRect = mkRect;
-	};
+  };
 
-	this.setFont = function(fam, sz, sty)
-	{
-		this.ftFam = fam;
-		this.ftSz = sz;
-		this.ftSty = sty || Font.PLAIN;
-	};
+  this.setFont = function(fam, sz, sty) {
+    this.ftFam = fam;
+    this.ftSz = sz;
+    this.ftSty = sty || Font.PLAIN;
+  };
 
-  this.fillEllipse = function(left, top, w, h, dt)
-	{
-		var a = (w -= 1)>>1, b = (h -= 1)>>1,
-		wod = (w&1)+1, hod = (h&1)+1,
-		cx = left+a, cy = top+b,
-		x = 0, y = b,
-		ox = 0, oy = b,
-		aa2 = (a*a)<<1, aa4 = aa2<<1, bb = (b*b)<<1,
-		st = (aa2>>1)*(1-(b<<1)) + bb,
-		tt = (bb>>1) - aa2*((b<<1)-1),
-		pxl, dw, dh;
-		if (w+1) while (y > 0)
-		{
-			if (st < 0)
-			{
-				st += bb*((x<<1)+3);
-				tt += (bb<<1)*(++x);
-			}
-			else if (tt < 0)
-			{
-				st += bb*((x<<1)+3) - aa4*(y-1);
-				pxl = cx-x;
-				dw = (x<<1)+wod;
-				tt += (bb<<1)*(++x) - aa2*(((y--)<<1)-3);
-				dh = oy-y;
+  this.fillEllipse = function(left, top, w, h, dt) {
+    var a = (w -= 1)>>1, b = (h -= 1)>>1,
+    wod = (w&1)+1, hod = (h&1)+1,
+    cx = left+a, cy = top+b,
+    x = 0, y = b,
+    ox = 0, oy = b,
+    aa2 = (a*a)<<1, aa4 = aa2<<1, bb = (b*b)<<1,
+    st = (aa2>>1)*(1-(b<<1)) + bb,
+    tt = (bb>>1) - aa2*((b<<1)-1),
+    pxl, dw, dh;
+    if (w+1) while (y > 0) {
+      if (st < 0) {
+        st += bb*((x<<1)+3);
+        tt += (bb<<1)*(++x);
+      } else if (tt < 0) {
+        st += bb*((x<<1)+3) - aa4*(y-1);
+        pxl = cx-x;
+        dw = (x<<1)+wod;
+        tt += (bb<<1)*(++x) - aa2*(((y--)<<1)-3);
+        dh = oy-y;
         this.mkDivD(pxl, cy-oy, dw, dh, dt);
         this.mkDivD(pxl, cy+y+hod, dw, dh, dt);
-				ox = x;
-				oy = y;
-			}
-			else
-			{
-				tt -= aa2*((y<<1)-3);
-				st -= aa4*(--y);
-			}
-		}
+        ox = x;
+        oy = y;
+      } else {
+        tt -= aa2*((y<<1)-3);
+        st -= aa4*(--y);
+      }
+    }
     this.mkDivD(cx-a, cy-oy, w+1, (oy<<1)+hod, dt);
-	};
+  };
 	
-	this.drawString = function(txt, x, y)
-	{
-		this.htm += '<div style="position:absolute;white-space:nowrap;'+
-			'left:' + x + 'px;'+
-			'top:' + y + 'px;'+
-			'font-family:' +  this.ftFam + ';'+
-			'font-size:' + this.ftSz + ';'+
-			'color:' + this.color + ';' + this.ftSty + '">'+
-			txt +
-			'<\/div>';
-	};
+  this.drawString = function(txt, x, y)	{
+    this.htm += '<div style="position:absolute;white-space:nowrap;'+
+    'left:' + x + 'px;'+
+    'top:' + y + 'px;'+
+    'font-family:' +  this.ftFam + ';'+
+    'font-size:' + this.ftSz + ';'+
+    'color:' + this.color + ';' + this.ftSty + '">'+
+    txt +
+    '<\/div>';
+  };
 
-	this.clear = function()
-	{
-		this.htm = "";
-		if (this.cnv) this.cnv.innerHTML = this.defhtm;
-	};
+  this.clear = function() {
+    this.htm = "";
+    if (this.cnv) this.cnv.innerHTML = this.defhtm;
+  };
 
-	this.mkOvQds = function(cx, cy, xl, xr, yt, yb, w, h)
-	{
-		this.mkDiv(xr+cx, yt+cy, w, h);
-		this.mkDiv(xr+cx, yb+cy, w, h);
-		this.mkDiv(xl+cx, yb+cy, w, h);
-		this.mkDiv(xl+cx, yt+cy, w, h);
-	};
+  this.mkOvQds = function(cx, cy, xl, xr, yt, yb, w, h)	{
+    this.mkDiv(xr+cx, yt+cy, w, h);
+    this.mkDiv(xr+cx, yb+cy, w, h);
+    this.mkDiv(xl+cx, yb+cy, w, h);
+    this.mkDiv(xl+cx, yt+cy, w, h);
+  };
 
-	this.setStroke(1);
+  this.setStroke(1);
   this.setFont('verdana,geneva,helvetica,sans-serif', String.fromCharCode(0x31, 0x32, 0x70, 0x78), Font.BOLD);
-	this.color = '#000000';
-	this.htm = '';
+  this.color = '#000000';
+  this.htm = '';
 
   this.cnv = viewer.document.getElementById(id);
   this.defhtm = (this.cnv && this.cnv.innerHTML)? this.cnv.innerHTML : '';
@@ -3728,9 +3692,4 @@ function jsGraphics(id, wnd)
 
   this.mkDiv = mkDiv;
   this.mkDivD = mkDivD;
-}
-
-function integer_compare(x,y)
-{
-	return (x < y) ? -1 : ((x > y)*1);
 }
