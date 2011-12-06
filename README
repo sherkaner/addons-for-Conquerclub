@@ -1,0 +1,4 @@
+The place to retrieve/update/improve addons for www.conquerclub.com.
+Most scripts are currently greasemonkey scripts, and Map Rank is used as a test case whether github fits our needs (working with a few people together on scripts, and making it easy to supply improvements for new people working on the scripts.)
+
+For now, the only script here is one developed by ChipV, who left the CC community. The script needs to be maintained because of site changes and currently does not work for Chrome.
