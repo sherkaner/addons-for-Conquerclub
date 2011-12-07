@@ -16,7 +16,6 @@ var maps = [];
 var unique = [];
 var totals;
 var cid = 0;
-var total = 0;
 var viewer = null;
 var ghist = [];
 var rateReq = [];
@@ -33,33 +32,33 @@ var myOptions;
 var myStore;
 var sortable = ["smap","spts","swin","suni","skil", "srel"];
 var graphTypes = {
-  'points' : new GraphType("Points","point gain/loss",pointsalg,1000, "red",null,null) , 
+  'points' : new GraphType("Points","point gain/loss",pointsalg,1000, "red",null,null) ,
   'winloss' : new GraphType("Win/Loss %","win/loss",winlossalg,0, "green(win) and red(loss)",100,0)
 };
 var gm = {
-  'Standard' : 'S', 
-  'Terminator' : 'C', 
-  'Assassin': 'A', 
-  'Doubles': 'D', 
-  'Triples' : 'T', 
-  'Quadruples' : 'Q'
+  Standard : 'S',
+  Terminator : 'C',
+  Assassin: 'A',
+  Doubles: 'D',
+  Triples : 'T',
+  Quadruples : 'Q'
 };
-var mg = {
-  'S' : 'Standard', 
-  'C' : 'Terminator', 
-  'A' : 'Assassin', 
-  'D' : 'Doubles', 
-  'T' : 'Triples', 
-  'Q' : 'Quadruples'
+function findKeyByValue(object, value) {
+	for (var key in object) {
+		if (object[key] == value) {
+			return key;
+		}
+	}
+	return "";
 };
 var modulo = {
-  'D' : 2, 
-  'T' : 3, 
+  'D' : 2,
+  'T' : 3,
   'Q' : 4
 };
 var medlev = {
-  'Standard' : [0,20,100,400],  
-  'Crossmap' : [0,20,40,60], 
+  'Standard' : [0,20,100,400],
+  'Crossmap' : [0,20,40,60],
   'Rating' : [0,40,200,500]
 };
 var medname = ["0", "Bronze (1)", "Silver (2)", "Gold (3)"];
@@ -68,14 +67,14 @@ var meddivclass = ["nomeddiv", "bmeddiv", "smeddiv", "gmeddiv", "omeddiv"];
 var medcombo = ["Manual", "Freestyle", "Fog", "Speed", "Crossmap", "Nuclear"];
 var medcombourl = ["&it=M", "&po=F", "&wf=Y", "&sg=Y", "", "&bc=4"];
 var medmatrix = [[0,1,2,3,4,5],
-                [0,1,2,3,4],[0,1,2,3,5],[0,1,2,4,5],[0,1,3,4,5],[0,2,3,4,5],[1,2,3,4,5],                          
+                [0,1,2,3,4],[0,1,2,3,5],[0,1,2,4,5],[0,1,3,4,5],[0,2,3,4,5],[1,2,3,4,5],
                 [0,1,2,3],[0,1,2,4],[0,1,3,4],[0,2,3,4],[1,2,3,4],
                 [0,1,2,5],[0,1,3,5],[0,2,3,5],[1,2,3,5],[0,1,4,5],
-                [0,2,4,5],[1,2,4,5],[0,3,4,5],[1,3,4,5],[2,3,4,5],                          
+                [0,2,4,5],[1,2,4,5],[0,3,4,5],[1,3,4,5],[2,3,4,5],
                 [0,1,2],[0,1,3],[0,1,4],[0,2,3],[0,2,4],
                 [0,3,4],[1,2,3],[1,2,4],[1,3,4],[2,3,4],
                 [0,1,5],[0,2,5],[0,3,5],[1,2,5],[1,3,5],
-                [2,3,5],[0,4,5],[1,4,5],[2,4,5],[3,4,5],                          
+                [2,3,5],[0,4,5],[1,4,5],[2,4,5],[3,4,5],
                 [0,1],[0,2],[0,3],[0,4],[0,5],
                 [1,2],[1,3],[1,4],[1,5],
                 [2,3],[2,4],[2,5],[3,4],[3,5],[4,5],
@@ -322,14 +321,14 @@ function removeListener(event) {
   }
 }
 
-function setThumbnails(opts) {	
+function setThumbnails(opts) {
   var thumbs = '';
   for (var i = 0; i < opts.length; i++) {
     if (opts[i].selected) {
       var map_status = (unsafeWindow.mapStatuses[i] == 'B') ? 'http://static.conquerclub.com/map_beta.png' : 'http://static.conquerclub.com/map_normal.png';
       thumbs += ' <a href="http://maps.conquerclub.com/' + unsafeWindow.mapFiles[i] + '" rel="lightbox" title="' + unsafeWindow.mapTitles[i] + ',' + unsafeWindow.mapTopics[i] + '"><img style="background-image:url(http://maps.conquerclub.com/'+ unsafeWindow.mapThumbs[i] + ')" src="' + map_status + '" width="50" height="34" alt="' + unsafeWindow.mapTitles[i] + '" title="' + unsafeWindow.mapTitles[i] + '" /></a>';
     }
-  }		
+  }
   unsafeWindow.map_thumbs.innerHTML = thumbs;
   unsafeWindow.initLightbox();
 }
@@ -713,7 +712,7 @@ function endGame(user) {
       }
     }
   }
-  
+
   if(totals._points >= 0) trank = "+" + (totals._points);
   else trank = totals._points;
   if(totals._realscore != null) trank = totals._realscore;
@@ -723,7 +722,7 @@ function endGame(user) {
   td.parentNode.id = "gtot";
   td.innerHTML = "<b>Totals" + missing + "</b>";
   var td = tds[1].getElementsByTagName('a')[0];
-  if(totals._realscore != null) 
+  if(totals._realscore != null)
     td.innerHTML = '' + getRank(totals._games, totals._realscore) + nextRank(totals._realscore);
   else
     td.innerHTML = '' + getRank(totals._games, totals._points + 1000) + nextRank(totals._points + 1000);
@@ -738,7 +737,6 @@ function endGame(user) {
   td.innerHTML = '' + getKiller(totals._games - totals._wins,totals._kills);
   var td = tds[6].getElementsByTagName('a')[0];
   td.innerHTML = '' + getRelative(totals._meanwin,totals._beaten);
-  total = 0;
   for(var d=0; d<maps.length; d++) {
     if(!ranks[maps[d]]) unplayed.push(maps[d]);
     else played.push(maps[d]);
@@ -844,7 +842,7 @@ function endGame(user) {
         for(var step=0; step<medmatrix[mat].length; step++){
           if(medcombo[medmatrix[mat][step]] != "Crossmap" && pm[medcombo[medmatrix[mat][step]]]._medals > 2) {
             show = 0;
-            break; 
+            break;
           }
           combos.push(pm[medcombo[medmatrix[mat][step]]]);
         }
@@ -869,10 +867,10 @@ function endGame(user) {
             combos.sort(sortCombo);
             if(combos[0]._best.length) x+= optimalrows[optimalkey] + mps[combos[0]._medal] + "\", \"mrsugg\");wdw.focus();'>" + optimaltext[optimalkey] + nm._medal + "</a></td><td colspan=4>" + combos[0]._best + "</td></tr>";
             else if(nm._best.length) x+= optimalrows[optimalkey] + mps[nm._medal] + "\", \"mrsugg\");wdw.focus();'>" + optimaltext[optimalkey] + nm._medal + "</a></td><td colspan=4>" + nm._best + "</td></tr>";
-            else x+= optimalrows[optimalkey] + "\", \"mrsugg\");wdw.focus();'>" + optimaltext[optimalkey] + nm._medal + "</a></td><td colspan=4>-</td></tr>";   	 		
+            else x+= optimalrows[optimalkey] + "\", \"mrsugg\");wdw.focus();'>" + optimaltext[optimalkey] + nm._medal + "</a></td><td colspan=4>-</td></tr>";
           }
-        }	   	   
-      }     
+        }
+      }
     }
     else{
       var hrefbase = base;
@@ -920,7 +918,7 @@ function endGame(user) {
         for(var step=0; step<medmatrix[mat].length; step++){
           if(medcombo[medmatrix[mat][step]] != "Crossmap" && pm[medcombo[medmatrix[mat][step]]]._medals > 2) {
             show = 0;
-            break; 
+            break;
           }
           combos.push(pm[medcombo[medmatrix[mat][step]]]);
         }
@@ -944,10 +942,10 @@ function endGame(user) {
           else{
             combos.sort(sortCombo);
             if(combos[0]._best.length) x+= optimalrows[optimalkey] + mps[combos[0]._medal] + "\", \"mrsugg\");wdw.focus();'>" + optimaltext[optimalkey].substr(0,optimaltext[optimalkey].length-1) + "</a></td><td colspan=4>" + combos[0]._best + "</td></tr>";
-            else x+= optimalrows[optimalkey] + "\", \"mrsugg\");wdw.focus();'>" + optimaltext[optimalkey].substr(0,optimaltext[optimalkey].length-1) + "</a></td><td colspan=4>-</td></tr>";   	 		
+            else x+= optimalrows[optimalkey] + "\", \"mrsugg\");wdw.focus();'>" + optimaltext[optimalkey].substr(0,optimaltext[optimalkey].length-1) + "</a></td><td colspan=4>-</td></tr>";
           }
-        }	   	   
-      }     
+        }
+      }
     }
   }
   x+= "<tr><td colspan=5><br />Notes: The Maps column show the best maps for that medal (most unique defeats). ";
@@ -1082,7 +1080,7 @@ function endGame(user) {
   if(surl != "") {
     var sentscore;
     var senthi;
-	 
+
     if(totals._realscore != null) {
       sentscore = totals._realscore;
       senthi = (dummyscore + 1000);
@@ -1090,7 +1088,7 @@ function endGame(user) {
     else{
       sentscore = (totals._points + 1000);
       senthi = (hiscore + 1000);
-    } 
+    }
     GM_xmlhttpRequest({
       method: 'POST',
       url: "http://chipv.freehostia.com/scoreboard.php?act=s&player=" + user + "&score=" + sentscore + "&win=" + totals._wins + "&loss=" + (totals._games - totals._wins) + "&rr=" + getRR(totals._meanwin,totals._beaten)  + "&hiscore=" + senthi +  "&unique=" + totals._unique.length + "&medals=" + totals._medals + "&url=" + surl,
@@ -1174,7 +1172,7 @@ function graph(holder, arr, start, end, title, graphtype) {
   var parray = holder[arr];
   var offset = 0;
   var deficit;
-  
+
   viewer.document.getElementById('lines').innerHTML = '';
   switchTabs(2);
   parray.sort(psort);
@@ -1187,9 +1185,9 @@ function graph(holder, arr, start, end, title, graphtype) {
   viewer.document.getElementById('cheader').innerHTML = "<h3 class=header>Map Rank Chart For " + title + " " + graphtype._type + "</h3><br /><span><b>" + graphtype._type + "</b>";
   viewer.document.getElementById('cfooter').innerHTML = "<h3><b>Timestamp</h3>";
   if(start==0 && graphtype == graphTypes['points']) g.add('',graphtype._initial,"red");
-  if(title == "Totals" && totals._realscore != null && graphtype == graphTypes['points']) deficit = totals._realscore - totals._points - 1000;  
+  if(title == "Totals" && totals._realscore != null && graphtype == graphTypes['points']) deficit = totals._realscore - totals._points - 1000;
   for(var f=start; f<=end; f++) {
-    offset = (typeof(deficit) != "undefined" && parray[f]._time > lastTime)? deficit:0; 
+    offset = (typeof(deficit) != "undefined" && parray[f]._time > lastTime)? deficit:0;
     g.add('<span title=\"' +  (parseInt(running._data[f]) + offset) + " on " +  new Date(parray[f]._time).toLocaleString() +'\">' + f + '</span>', parseInt(running._data[f]) + offset, running._colour[f]);
   }
   g.render("lines", "Time");
@@ -2031,9 +2029,9 @@ function getPlayerId (user, maplist, mopts) {
             break;
           }
         }
+      } else {
+        totals._realscore = null;
       }
-      else totals._realscore = null;
-
       getHistPage(user, maplist,1, mopts);
     }
   };
@@ -2041,6 +2039,7 @@ function getPlayerId (user, maplist, mopts) {
 }
 
 function getPlayerMedals(user) {
+  var medalAlts = ['Tournament Contribution', 'Map Contribution', 'General Contribution', 'General Achievement', 'Tournament Achievement', 'Clan Achievement', 'Training Achievement'];
   var pump = proto + '//www.conquerclub.com/forum/memberlist.php?mode=viewprofile&un=' + escape(user);
   var majax = new XMLHttpRequest();
   majax.open('GET', pump, true);
@@ -2050,7 +2049,7 @@ function getPlayerMedals(user) {
       div.innerHTML = majax.responseText;
       var imgs = div.getElementsByTagName('img');
       for(var im=0; im<imgs.length; im++) {
-        if(imgs[im].alt == 'Tournament Contribution' || imgs[im].alt == 'Map Contribution' || imgs[im].alt == 'General Contribution' || imgs[im].alt == 'General Achievement' || imgs[im].alt == 'Tournament Achievement') {
+        if(medalAlts.indexOf(imgs[im].alt) > -1) {
           if(imgs[im].parentNode.align == "center") {
             if(nextSib(imgs[im].parentNode.parentNode).firstChild.innerHTML.match(/Amount: (\d+)$/)) {
               var tm = new Summary(imgs[im].alt);
@@ -2069,24 +2068,24 @@ function getPlayerMedals(user) {
 
 
 
-function getHistPage(user,maplist,page,mapopts) {	
+function getHistPage(user,maplist,page,mapopts) {
   var jump = proto + '//www.conquerclub.com/api.php?mode=gamelist&events=Y&gs=F&p1un=' + escape(user);
   if(maplist.length == 1) jump += "&mp=" + maplist[0];
   if(mapopts) {
-    if(mapopts._num.length==1) jump += "&np=" + mapopts._num[0];		
-    if(mapopts._type.length==1) jump += "&gt=" + mapopts._type[0];    
+    if(mapopts._num.length==1) jump += "&np=" + mapopts._num[0];
+    if(mapopts._type.length==1) jump += "&gt=" + mapopts._type[0];
     if(mapopts._bonus.length==1) jump += "&bc=" + mapopts._bonus[0];
     if(mapopts._order.length==1) jump += "&po=" + mapopts._order[0];
     if(mapopts._troops.length==1) jump += "&it=" + mapopts._troops[0];
     if(mapopts._fort.length==1) jump += "&ft=" + mapopts._fort[0];
     if(mapopts._fog.length==1) jump += "&wf=" + mapopts._fog[0];
     if(mapopts._speed.length==1) jump += "&sg=" + mapopts._speed[0];
-    if(mapopts._joinable.length==1) jump += "&pt=" + mapopts._joinable[0];        
-    if(mapopts._tname) jump += "&to=" + (mapopts._tname);    
+    if(mapopts._joinable.length==1) jump += "&pt=" + mapopts._joinable[0];
+    if(mapopts._tname) jump += "&to=" + (mapopts._tname);
     if(mapopts._players['p2']) jump += "&p2=" + mapopts._players['p2'];
     if(mapopts._players['p3']) jump += "&p3=" + mapopts._players['p3'];
-    if(mapopts._players['p4']) jump += "&p4=" + mapopts._players['p4'];						
-  }		
+    if(mapopts._players['p4']) jump += "&p4=" + mapopts._players['p4'];
+  }
   if(page > 1) jump += "&page=" + page;
   ghist["paging" + page] = new XMLHttpRequest();
   ghist["paging" + page].open('GET', jump, true);
@@ -2265,7 +2264,7 @@ function getHistPage(user,maplist,page,mapopts) {
                 if(unique[mapname].indexOf(losers[p]) == -1) {
                   unique[mapname].push(losers[p]);
                 }
-                var gt = mg[games[g].getElementsByTagName('game_type')[0].firstChild.nodeValue];
+                var gt = findKeyByValue(gm, games[g].getElementsByTagName('game_type')[0].firstChild.nodeValue);
                 if(totals._defeats[gt].indexOf(losers[p]) == -1) {
                   totals._defeats[gt].push(losers[p]);
                   ranks[mapname]._defeats[gt].push(losers[p]);
@@ -2308,7 +2307,7 @@ function getHistPage(user,maplist,page,mapopts) {
             }
             else{
               for(var p=0; p<winners.length;p++) {
-                var gt = mg[games[g].getElementsByTagName('game_type')[0].firstChild.nodeValue];
+                var gt = findKeyByValue(gm, games[g].getElementsByTagName('game_type')[0].firstChild.nodeValue);
                 if(totals._defeats['X' + gt].indexOf(winners[p]) == -1) {
                   totals._defeats['X' + gt].push(winners[p]);
                   ranks[mapname]._defeats['X' + gt].push(winners[p]);
@@ -2570,7 +2569,7 @@ function getHistPage(user,maplist,page,mapopts) {
             }
             totals._games++;
             ranks[mapname]._counter++;
-          } 
+          }
         }
         totals._pages++;
         totals._counter += games.length;
@@ -2751,7 +2750,7 @@ if(leftBar) {
                       img.src = "http://i811.photobucket.com/albums/zz39/chipv_bucket/" + def + ".png";
                       img.style.verticalAlign = "middle";
                       img.title = imgtitle;
-                    }	            	 
+                    }
                   }
                 }
               }
@@ -2824,7 +2823,6 @@ if(leftBar) {
       boxes[0].appendChild(an);
       an.addEventListener("click" , function() {
         createBox("Collecting Games", prof, '');
-        total = maps.length;
         var insignia = 0;
         var logout = getElementsByClassName(document,'div','vnav',true);
         var para = logout[0].getElementsByTagName('a');
@@ -2863,7 +2861,6 @@ if(leftBar) {
             var link = proto + "//www.conquerclub.com/player.php?submit=Search&game_status=F&player1=" + escape(prof);
             var mopts = new MapOpts('','','','','','','','','','', prof, '', '', '', '', '', '', '', '', '', '');
             createBox("Collecting Games", mine, "<span class=rankoptions>vs. <b>" + prof + "</b></span> ");
-            total = maps.length;
             totals = new Totals(0);
             ranks = [];
             unique = [];
@@ -3073,7 +3070,6 @@ if(leftBar) {
             surl = "";
             if(text == "All") {
               createBox("Collecting Games", player, '');
-              total = maps.length;
               surl = "||||||";
               var insignia = 0;
               var logout = getElementsByClassName(document,'div','vnav',true);
@@ -3109,7 +3105,6 @@ if(leftBar) {
               ranks = [];
               unique = [];
               createBox("Collecting Games", player, '');
-              total = 1;
               totals = new Totals(0);
               getPlayerMedals(player);
               getPlayerId(player, new Array(maps[ind]));
@@ -3219,7 +3214,6 @@ if(leftBar) {
                 }
                 if(!mp.length){
                   createBox("Collecting Games", player, opts);
-                  total = maps.length;
                   totals = new Totals(0);
                   ranks = [];
                   unique = [];
@@ -3241,7 +3235,6 @@ if(leftBar) {
                   }
                 } else {
                   createBox("Collecting Games", player, opts);
-                  total = mp.length;
                   totals = new Totals(0);
                   ranks = [];
                   unique = [];
@@ -3370,7 +3363,7 @@ function line_graph(max,min)
       this.minind = this.data.length - 1;
     }
   };
-   
+
   this.render = function(canvas, title) {
     var jg = new jsGraphics(canvas);
     var h  = 300;
@@ -3404,16 +3397,16 @@ function line_graph(max,min)
     var color = this.getColor();
     var oldx, oldy;
     jg.setStroke(1);
- 
+
     for(i = 0; i < this.data.length; i+=step)
     {
       var triplet = [];
-   
+
       triplet.push(i);
       if(this.maxind > i && this.maxind < i+step) triplet.push(this.maxind);
       if(this.minind > i && this.minind < i+step && this.minind != this.maxind) triplet.push(this.minind);
       triplet.sort();
-   
+
       for(var k=0; k<triplet.length; k++) {
         if(this.max)
           ht1 = Math.round((this.data[triplet[k]] - this.minbounds)*h/(this.maxbounds - this.minbounds));
@@ -3427,13 +3420,13 @@ function line_graph(max,min)
         jg.fillEllipse(sx-2, h-ht1-2, 8, 8, this.data[triplet[k]]);
         jg.setColor("green");
         jg.drawString(this.x_name[triplet[k]], sx, h);
-   	 	 
+
         oldx = sx;
         oldy = ht1;
         sx = sx+dw+Math.round(dw/2);
-      }  
+      }
     }
- 	 
+
     if(this.maxind != this.data.length - 1 && this.mindind != this.data.length - 1 && i-step < this.data.length-1) {
       if(this.max)
         ht1 = Math.round((this.data[this.data.length - 1] - this.minbounds)*h/(this.maxbounds - this.minbounds));
@@ -3451,8 +3444,8 @@ function line_graph(max,min)
       oldy = ht1;
       sx = sx+dw+Math.round(dw/2);
     }
- 
-    jg.setFont("Verdana", fnt,  Font.BOLD);
+
+    jg.setFont("Verdana", fnt, 'font-weight:bold;');
     jg.paint();
   };
 
@@ -3474,19 +3467,17 @@ function mkDiv(x, y, w, h) {
   'height:' + h + 'px;'+
   'clip:rect(0,'+w+'px,'+h+'px,0);'+
   'background-color:' + this.color +
-  ''+
   ';"><\/div>';
 }
 
 function mkDivD(x, y, w, h, d) {
-  this.htm += '<div title="' + d + '" style="position:absolute;'+
+  this.htm += '<div title="' + d + '" style="position:absolute;' +
   'left:' + x + 'px;'+
   'top:' + y + 'px;'+
   'width:' + w + 'px;'+
   'height:' + h + 'px;'+
   'clip:rect(0,'+w+'px,'+h+'px,0);'+
   'background-color:' + this.color +
-  ''+
   ';"><\/div>';
 }
 
@@ -3504,7 +3495,7 @@ function mkLin(x1, y1, x2, y2) {
   x = x1, y = y1,
   yIncr = (y1 > y2)? -1 : 1;
 
-  if (dx >= dy)	{
+  if (dx >= dy)    {
     pr = dy<<1;
     pru = pr - (dx<<1);
     p = pr-dx;
@@ -3516,15 +3507,15 @@ function mkLin(x1, y1, x2, y2) {
         y += yIncr;
         p += pru;
         ox = x;
-      }	else p += pr;
+      }    else p += pr;
     }
     this.mkDiv(ox, y, x2-ox+1, 1);
-  }	else {
+  }    else {
     pr = dx<<1;
     pru = pr - (dy<<1);
     p = pr-dy;
     oy = y;
-    if (y2 <= y1)	{
+    if (y2 <= y1)    {
       while ((dy--) > 0) {
         if (p > 0) {
           this.mkDiv(x++, y, 1, oy-y+1);
@@ -3537,14 +3528,14 @@ function mkLin(x1, y1, x2, y2) {
         }
       }
       this.mkDiv(x2, y2, 1, oy-y2+1);
-    }	else {
+    }    else {
       while ((dy--) > 0) {
         y += yIncr;
         if (p > 0) {
           this.mkDiv(x++, oy, 1, y-oy);
           p += pru;
           oy = y;
-        }	else p += pr;
+        }    else p += pr;
       }
       this.mkDiv(x2, oy, 1, y2-oy+1);
     }
@@ -3594,14 +3585,6 @@ function mkRect(x, y, w, h) {
   this.mkDiv(x, y+s, s, h-s);
 }
 
-function Font() {
-  this.PLAIN = 'font-weight:normal;';
-  this.BOLD = 'font-weight:bold;';
-  this.ITALIC = 'font-style:italic;';
-  this.ITALIC_BOLD = this.ITALIC + this.BOLD;
-  this.BOLD_ITALIC = this.ITALIC_BOLD;
-}
-
 function jsGraphics(id, wnd) {
   this.setColor = function(arg) {
     this.color = arg.toLowerCase();
@@ -3617,7 +3600,7 @@ function jsGraphics(id, wnd) {
   this.setFont = function(fam, sz, sty) {
     this.ftFam = fam;
     this.ftSz = sz;
-    this.ftSty = sty || Font.PLAIN;
+    this.ftSty = sty || 'font-weight:normal;';
   };
 
   this.fillEllipse = function(left, top, w, h, dt) {
@@ -3651,8 +3634,8 @@ function jsGraphics(id, wnd) {
     }
     this.mkDivD(cx-a, cy-oy, w+1, (oy<<1)+hod, dt);
   };
-	
-  this.drawString = function(txt, x, y)	{
+
+  this.drawString = function(txt, x, y)    {
     this.htm += '<div style="position:absolute;white-space:nowrap;'+
     'left:' + x + 'px;'+
     'top:' + y + 'px;'+
@@ -3668,7 +3651,7 @@ function jsGraphics(id, wnd) {
     if (this.cnv) this.cnv.innerHTML = this.defhtm;
   };
 
-  this.mkOvQds = function(cx, cy, xl, xr, yt, yb, w, h)	{
+  this.mkOvQds = function(cx, cy, xl, xr, yt, yb, w, h)    {
     this.mkDiv(xr+cx, yt+cy, w, h);
     this.mkDiv(xr+cx, yb+cy, w, h);
     this.mkDiv(xl+cx, yb+cy, w, h);
@@ -3676,7 +3659,7 @@ function jsGraphics(id, wnd) {
   };
 
   this.setStroke(1);
-  this.setFont('verdana,geneva,helvetica,sans-serif', String.fromCharCode(0x31, 0x32, 0x70, 0x78), Font.BOLD);
+  this.setFont('verdana,geneva,helvetica,sans-serif', String.fromCharCode(0x31, 0x32, 0x70, 0x78), 'font-weight:bold;');
   this.color = '#000000';
   this.htm = '';
 
