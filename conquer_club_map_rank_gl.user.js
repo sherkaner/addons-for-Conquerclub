@@ -10,11 +10,11 @@
 var versiont = "1.5.3";
 var latestVersiont = 0;
 var __eventListeners = [];
-var ranks = [];
+var ranks = {};
 var features = [];
 var maps = [];
-var unique = [];
-var totals;
+var unique = {};
+var totals, myOptions, myStore;
 var cid = 0;
 var viewer = null;
 var ghist = [];
@@ -28,28 +28,26 @@ var icons = 0;
 var ratings = 0;
 var dark = 0;
 var pcount = 0;
-var myOptions;
-var myStore;
 var sortable = ["smap","spts","swin","suni","skil", "srel"];
 var graphTypes = {
   'points' : new GraphType("Points","point gain/loss",pointsalg,1000, "red",null,null) ,
   'winloss' : new GraphType("Win/Loss %","win/loss",winlossalg,0, "green(win) and red(loss)",100,0)
 };
 var gm = {
-  Standard : 'S',
-  Terminator : 'C',
-  Assassin: 'A',
-  Doubles: 'D',
-  Triples : 'T',
-  Quadruples : 'Q'
+  standard : 'S',
+  terminator : 'C',
+  assassin: 'A',
+  doubles: 'D',
+  triples : 'T',
+  quadruples : 'Q'
 };
 function findKeyByValue(object, value) {
-	for (var key in object) {
-		if (object[key] == value) {
-			return key;
-		}
-	}
-	return "";
+  for (var key in object) {
+    if (object[key] == value) {
+      return key;
+    }
+  }
+  return undefined;
 };
 var modulo = {
   'D' : 2,
@@ -57,31 +55,30 @@ var modulo = {
   'Q' : 4
 };
 var medlev = {
-  'Standard' : [0,20,100,400],
-  'Crossmap' : [0,20,40,60],
-  'Rating' : [0,40,200,500]
+  'standard' : [0,20,100,400],
+  'crossmap' : [0,20,40,60],
+  'rating' : [0,40,200,500]
 };
 var medname = ["0", "Bronze (1)", "Silver (2)", "Gold (3)"];
 var medclass = ["nomedal", "bmedal", "smedal", "gmedal", "omedal"];
 var meddivclass = ["nomeddiv", "bmeddiv", "smeddiv", "gmeddiv", "omeddiv"];
-var medcombo = ["Manual", "Freestyle", "Fog", "Speed", "Crossmap", "Nuclear"];
+var medcombo = ["manual", "freestyle", "fog", "speed", "crossmap", "nuclear"];
 var medcombourl = ["&it=M", "&po=F", "&wf=Y", "&sg=Y", "", "&bc=4"];
-var medmatrix = [[0,1,2,3,4,5],
-                [0,1,2,3,4],[0,1,2,3,5],[0,1,2,4,5],[0,1,3,4,5],[0,2,3,4,5],[1,2,3,4,5],
-                [0,1,2,3],[0,1,2,4],[0,1,3,4],[0,2,3,4],[1,2,3,4],
-                [0,1,2,5],[0,1,3,5],[0,2,3,5],[1,2,3,5],[0,1,4,5],
-                [0,2,4,5],[1,2,4,5],[0,3,4,5],[1,3,4,5],[2,3,4,5],
-                [0,1,2],[0,1,3],[0,1,4],[0,2,3],[0,2,4],
-                [0,3,4],[1,2,3],[1,2,4],[1,3,4],[2,3,4],
-                [0,1,5],[0,2,5],[0,3,5],[1,2,5],[1,3,5],
-                [2,3,5],[0,4,5],[1,4,5],[2,4,5],[3,4,5],
-                [0,1],[0,2],[0,3],[0,4],[0,5],
-                [1,2],[1,3],[1,4],[1,5],
-                [2,3],[2,4],[2,5],[3,4],[3,5],[4,5],
-                [0],[1],[2],[3],[4],[5]];
+var medmatrix = []; // all possible combinations to get medals.
+for (var i = 1; i < 6; i++) {
+  for (var j = medmatrix.length - 1; j > -1; j--) {
+    var temp = medmatrix[j].slice(0);
+    temp.push(i);
+    medmatrix.push(temp);
+  }
+  medmatrix.push([i]);
+}
+medmatrix.sort(function(a,b) {
+  return b.length - a.length;
+});
 var slider;
 var sarray;
-var proto;
+var baseURL = window.location.protocol + "//www.conquerclub.com/";
 var surl = "";
 var lastLog = new Date();
 lastLog.setFullYear(2008,1,13);
@@ -105,29 +102,7 @@ function Rank() {
   this._kills = 0;
   this._meanwin = 0;
   this._beaten = 0;
-  this._defeats = {};
-  this._defeats["Speed"] = [];
-  this._defeats["Standard"] = [];
-  this._defeats["Terminator"] = [];
-  this._defeats["Assassin"] = [];
-  this._defeats["Doubles"] = [];
-  this._defeats["Triples"] = [];
-  this._defeats["Quadruples"] = [];
-  this._defeats["Manual"] = [];
-  this._defeats["Fog"] = [];
-  this._defeats["Freestyle"] = [];
-  this._defeats["XSpeed"] = [];
-  this._defeats["XStandard"] = [];
-  this._defeats["XTerminator"] = [];
-  this._defeats["XAssassin"] = [];
-  this._defeats["XDoubles"] = [];
-  this._defeats["XTriples"] = [];
-  this._defeats["XQuadruples"] = [];
-  this._defeats["XManual"] = [];
-  this._defeats["XFog"] = [];
-  this._defeats["XFreestyle"] = [];
-  this._defeats["Nuclear"] = [];
-  this._defeats["XNuclear"] = [];
+  this._defeats = new Defeats();
 }
 
 function Store() {
@@ -163,59 +138,41 @@ function Totals(insignia) {
   this._xmedals = 0;
   this._counter = 0;
   this._types = [];
-  this._defeats = {};
-  this._defeats['Speed'] = [];
-  this._defeats['Standard'] = [];
-  this._defeats['Terminator'] = [];
-  this._defeats['Assassin'] = [];
-  this._defeats['Doubles'] = [];
-  this._defeats['Triples'] = [];
-  this._defeats['Quadruples'] = [];
-  this._defeats["Manual"] = [];
-  this._defeats["Fog"] = [];
-  this._defeats["Freestyle"] = [];
-  this._defeats['Rating'] = [];
-  this._defeats['XSpeed'] = [];
-  this._defeats['XStandard'] = [];
-  this._defeats['XTerminator'] = [];
-  this._defeats['XAssassin'] = [];
-  this._defeats['XDoubles'] = [];
-  this._defeats['XTriples'] = [];
-  this._defeats['XQuadruples'] = [];
-  this._defeats["XManual"] = [];
-  this._defeats["XFog"] = [];
-  this._defeats["XFreestyle"] = [];
-  this._defeats['XRating'] = [];
-  this._defeats["Nuclear"] = [];
-  this._defeats["XNuclear"] = [];
+  this._defeats = new Defeats();
+}
+
+function pushUnique(array, value) {
+  if (array.indexOf(value) == -1) {
+    array.push(value);
+  }
 }
 
 function Defeats() {
-  this._defeats = {};
-  this._defeats["Speed"] = [];
-  this._defeats["Standard"] = [];
-  this._defeats["Terminator"] = [];
-  this._defeats["Assassin"] = [];
-  this._defeats["Doubles"] = [];
-  this._defeats["Triples"] = [];
-  this._defeats["Quadruples"] = [];
-  this._defeats['Rating'] = [];
-  this._defeats["XSpeed"] = [];
-  this._defeats["Manual"] = [];
-  this._defeats["Fog"] = [];
-  this._defeats["Freestyle"] = [];
-  this._defeats["XStandard"] = [];
-  this._defeats["XTerminator"] = [];
-  this._defeats["XAssassin"] = [];
-  this._defeats["XDoubles"] = [];
-  this._defeats["XTriples"] = [];
-  this._defeats["XQuadruples"] = [];
-  this._defeats["XManual"] = [];
-  this._defeats["XFog"] = [];
-  this._defeats["XFreestyle"] = [];
-  this._defeats['XRating'] = [];
-  this._defeats["Nuclear"] = [];
-  this._defeats["XNuclear"] = [];
+  this.speed = [];
+  this.standard = [];
+  this.terminator = [];
+  this.assassin = [];
+  this.doubles = [];
+  this.triples = [];
+  this.quadruples = [];
+  this.rating = [];
+  this.xSpeed = [];
+  this.manual = [];
+  this.fog = [];
+  this.freestyle = [];
+  this.xStandard = [];
+  this.xTerminator = [];
+  this.xAssassin = [];
+  this.xDoubles = [];
+  this.xTriples = [];
+  this.xQuadruples = [];
+  this.xManual = [];
+  this.xFog = [];
+  this.xFreestyle = [];
+  this.xRating = [];
+  this.nuclear = [];
+  this.xNuclear = [];
+
 }
 
 function Summary(name) {
@@ -227,7 +184,7 @@ function Summary(name) {
 }
 
 function Pinfo() {
-  this._defeats = [];
+  this._defeats = {};
 }
 
 function GraphType(type,info,alg,initial,markers,maxbound,minbound) {
@@ -263,29 +220,24 @@ function Slide(length,to,parray) {
 
 function MapOpts(player2, num, type, bonus, order, fort, fog, joinable, speed, tname, versus, versus2, ex1, ex2, player3,player4,versus3,versus4,ex3,ex4,troops) {
   this._pcount = 0;
-  this._players = [];
-  this._players['p2'] = player2;
-  if (player2) this._pcount++;
-  this._players['p3'] = player3;
-  if (player3) this._pcount++;
-  this._players['p4'] = player4;
-  if (player4) this._pcount++;
-  this._players['v1'] = versus;
-  if (versus) this._pcount++;
-  this._players['v2'] = versus2;
-  if (versus2) this._pcount++;
-  this._players['v3'] = versus3;
-  if (versus3) this._pcount++;
-  this._players['v4'] = versus4;
-  if (versus4) this._pcount++;
-  this._players['x1'] = ex1;
-  if (ex1) this._pcount++;
-  this._players['x2'] = ex2;
-  if (ex2) this._pcount++;
-  this._players['x3'] = ex3;
-  if (ex3) this._pcount++;
-  this._players['x4'] = ex4;
-  if (ex4) this._pcount++;
+  this._players = {
+    p2: player2,
+    p3: player3,
+    p4: player4,
+    v1: versus,
+    v2: versus2,
+    v3: versus3,
+    v4: versus4,
+    x1: ex1,
+    x2: ex2,
+    x3: ex3,
+    x4: ex4
+  };
+  for (var i in this._players) {
+    if (this._players[i]) {
+      this._pcount++;
+    }
+  }
   this._num = num;
   this._type = type;
   this._bonus = bonus;
@@ -336,10 +288,10 @@ function setThumbnails(opts) {
 function pointsalg(array) {
   var counter = 1000;
   var running = new PointInfo();
-  for(var f=0; f< array.length; f++) {
+  for (var f=0; f< array.length; f++) {
     counter += array[f]._points;
     running._data.push(counter);
-    if(array[f]._points < 0) running._colour.push("red");
+    if (array[f]._points < 0) running._colour.push("red");
     else running._colour.push("green");
   }
   return running;
@@ -359,11 +311,11 @@ function winlossalg(array) {
     losstreak._num++;
   }
   running._data.push(100 * counter);
-  for(var f=1; f< array.length; f++) {
-    if(array[f]._points == 1) {
+  for (var f=1; f< array.length; f++) {
+    if (array[f]._points == 1) {
       counter += array[f]._points;
-      if(array[f - 1]._points == -1) {
-        if(losstreak._num > running._losstreak._num) {
+      if (array[f - 1]._points == -1) {
+        if (losstreak._num > running._losstreak._num) {
           running._losstreak._start = losstreak._start;
           running._losstreak._num = losstreak._num;
         }
@@ -374,8 +326,8 @@ function winlossalg(array) {
       running._colour.push("green");
     }
     else{
-      if(array[f - 1]._points == 1) {
-        if(winstreak._num > running._winstreak._num) {
+      if (array[f - 1]._points == 1) {
+        if (winstreak._num > running._winstreak._num) {
           running._winstreak._start = winstreak._start;
           running._winstreak._num = winstreak._num;
         }
@@ -387,14 +339,14 @@ function winlossalg(array) {
     }
     running._data.push((100 * counter / (f+1)).toFixed(0));
   }
-  if(array[f - 1]._points == -1) {
-    if(losstreak._num > running._losstreak._num) {
+  if (array[f - 1]._points == -1) {
+    if (losstreak._num > running._losstreak._num) {
       running._losstreak._start = losstreak._start;
       running._losstreak._num = losstreak._num;
     }
   }
-  else if(array[f - 1]._points == 1) {
-    if(winstreak._num > running._winstreak._num) {
+  else if (array[f - 1]._points == 1) {
+    if (winstreak._num > running._winstreak._num) {
       running._winstreak._start = winstreak._start;
       running._winstreak._num = winstreak._num;
     }
@@ -404,18 +356,18 @@ function winlossalg(array) {
 }
 
 function cascadewin(pinfoarray, name) {
-  if(!pinfoarray[name]) return 0;
+  if (!pinfoarray[name]) return 0;
   var retVal = 0;
-  for(var x in pinfoarray[name]._defeats) {
+  for (var x in pinfoarray[name]._defeats) {
     retVal += pinfoarray[name]._defeats[x] + (pinfoarray[name]._defeats[x] * cascadewin(pinfoarray,x));
   }
   return retVal;
 }
 
 function cascadeloss(pinfoarray, name) {
-  if(!pinfoarray[name]) return 1;
+  if (!pinfoarray[name]) return 1;
   var retVal;
-  for(var x in pinfoarray[name]._defeats) {
+  for (var x in pinfoarray[name]._defeats) {
     retVal = pinfoarray[name]._defeats[x] * cascadeloss(pinfoarray,x);
   }
   return retVal;
@@ -440,27 +392,27 @@ function nextSib(node){
 function setTable() {
   var rws = viewer.document.getElementById('ranktable').getElementsByTagName('tr');
   var cross = totals._crossmaps;
-  if(cross >= 60) {
+  if (cross >= 60) {
     cross = "gmedal";
   }
-  else if(cross >= 40) {
+  else if (cross >= 40) {
     cross = "smedal";
   }
-  else if(cross >= 20) {
+  else if (cross >= 20) {
     cross = "bmedal";
   }
 
   var cwidth = totals._maps < 25 ? "noflow" : "";
-  for(var r=0; r<rws.length; r++) {
+  for (var r=0; r<rws.length; r++) {
     var td = rws[r].getElementsByTagName('td');
     var c = (r&1) ? "mrodd": "mreven";
-    for(var t=0; t<td.length; t++) {
+    for (var t=0; t<td.length; t++) {
       td[t].className = c;
     }
     td[td.length - 1].className += " " + cwidth;
   }
-  for(var cr=0; cr<totals._crossmap.length; cr++) {
-    if(totals._crossmap[cr]) {
+  for (var cr=0; cr<totals._crossmap.length; cr++) {
+    if (totals._crossmap[cr]) {
       viewer.document.getElementById('result' + cr).className += " " + cross;
     }
   }
@@ -470,8 +422,8 @@ function setTable() {
     slider = new Slide(200, totals._warray.length - 1, totals._warray);
     graph(totals, "_warray",0,totals._warray.length - 1, "Totals", graphTypes['winloss']);
   });
-  for(var v in ranks) {
-    if(ranks[v] && ranks[v]._counter) {
+  for (var v in ranks) {
+    if (ranks[v] && ranks[v]._counter) {
       viewer.document.getElementById('wtot' + maps.indexOf(v)).className = "chart";
       viewer.document.getElementById('wtot' + maps.indexOf(v)).title = v + " Win/Loss Chart";
       addListener(viewer.document.getElementById('wtot' + maps.indexOf(v)),'click', function() {
@@ -487,8 +439,8 @@ function setTable() {
     slider = new Slide(200, totals._parray.length - 1, totals._parray);
     graph(totals, "_parray",0,totals._parray.length - 1, "Totals", graphTypes['points']);
   });
-  for(var v in ranks) {
-    if(ranks[v] && ranks[v]._counter) {
+  for (var v in ranks) {
+    if (ranks[v] && ranks[v]._counter) {
       viewer.document.getElementById('gtot' + maps.indexOf(v)).className = "chart";
       viewer.document.getElementById('gtot' + maps.indexOf(v)).title = v + " Points Chart";
       addListener(viewer.document.getElementById('gtot' + maps.indexOf(v)),'click', function() {
@@ -538,14 +490,14 @@ function endGame(user) {
   var pm = [];
   var nm;
 
-  for(var s in totals._defeats) {
-    if(s.charAt(0) != 'X') {
-      if(ratings || s!= 'Rating') {
+  for (var s in totals._defeats) {
+    if (s.charAt(0) != 'x') {
+      if (ratings || s!= 'rating') {
         var sm = new Summary(s);
         sm._current = totals._defeats[s].length;
-        if(medlev[s]) {
-          for(var e=0; e< medlev[s].length; e++) {
-            if(sm._current >= medlev[s][e]) sm._medals = e;
+        if (medlev[s]) {
+          for (var e=0; e< medlev[s].length; e++) {
+            if (sm._current >= medlev[s][e]) sm._medals = e;
             else{
               sm._next = medlev[s][e] - sm._current;
               break;
@@ -553,36 +505,36 @@ function endGame(user) {
           }
         }
         else{
-          for(var e=0; e< medlev['Standard'].length; e++) {
-            if(sm._current >= medlev['Standard'][e]) sm._medals = e;
+          for (var e=0; e< medlev.standard.length; e++) {
+            if (sm._current >= medlev.standard[e]) sm._medals = e;
             else{
-              sm._next = medlev['Standard'][e] - sm._current;
+              sm._next = medlev.standard[e] - sm._current;
               break;
             }
           }
         }
         totals._medals += sm._medals;
         var best = [];
-        if(sm._current) {
-          for(var j in ranks) {
-            if(ranks[j]._defeats[s] && s!= 'Rating') {
-              if(ranks[j]._defeats[s].length > sm._best) {
+        if (sm._current) {
+          for (var j in ranks) {
+            if (ranks[j]._defeats[s] && s!= 'rating') {
+              if (ranks[j]._defeats[s].length > sm._best) {
                 sm._best = ranks[j]._defeats[s].length;
                 best = [];
                 best.push(j);
               }
-              else if(ranks[j]._defeats[s].length == sm._best) best.push(j);
+              else if (ranks[j]._defeats[s].length == sm._best) best.push(j);
             }
           }
         }
         sm._best = best;
         summary.push(sm);
-        if(s == 'Speed' || s == 'Fog' || s == 'Freestyle' || s == 'Manual' || s == 'Nuclear') pm[s] = sm;
+        if (s == 'speed' || s == 'fog' || s == 'freestyle' || s == 'manual' || s == 'nuclear') pm[s] = sm;
       }
     }
   }
-  for(var m in ranks) {
-    if(ranks[m]._rank >= 1000) {
+  for (var m in ranks) {
+    if (ranks[m]._rank >= 1000) {
       srank = "+" + (ranks[m]._rank - 1000);
       pos.push(m);
     }
@@ -596,7 +548,7 @@ function endGame(user) {
     totals._sorted.sort();
     viewer.document.getElementById('ranktable').insertBefore(tr,viewer.document.getElementById('ranktable').getElementsByTagName('tr')[totals._sorted.indexOf(m)]);
     tr.className = "result";
-    if(unique[m].length >= 5) {
+    if (unique[m].length >= 5) {
       totals._crossmap[maps.indexOf(m)] = 1;
       totals._crossmaps++;
       mu.push(m);
@@ -605,7 +557,7 @@ function endGame(user) {
       totals._crossmap[maps.indexOf(m)] = 0;
       mnu.push(m);
     }
-    if(ranks[m]._missing) {
+    if (ranks[m]._missing) {
       missing = "<sup>" + ranks[m]._missing + "</sup>";
       totals._missing += ranks[m]._missing;
     }
@@ -634,49 +586,48 @@ function endGame(user) {
     td = viewer.document.createElement('td');
     td.innerHTML = '' + getRelative(ranks[m]._meanwin,ranks[m]._beaten);
     tr.appendChild(td);
-    if(ranks[m]._wins) mwon.push(m);
+    if (ranks[m]._wins) mwon.push(m);
     else mlost.push(m);
-    if(ranks[m]._counter >= 5) freq.push(m);
+    if (ranks[m]._counter >= 5) freq.push(m);
     else nfreq.push(m);
-    for(var ms =0; ms<ranks[m]._games.length; ms++) {
-      miss.push("<a target=\"_blank\" href=" + proto + "//www.conquerclub.com/game.php?game=" + ranks[m]._games[ms] + ">Game " + ranks[m]._games[ms] + "</a>");
+    for (var ms =0; ms<ranks[m]._games.length; ms++) {
+      miss.push("<a target=\"_blank\" href=" + baseURL + "game.php?game=" + ranks[m]._games[ms] + ">Game " + ranks[m]._games[ms] + "</a>");
     }
     viewer.document.getElementById('progress').innerHTML = "Scanned " + user + " on " + m;
   }
-  var cm = new Summary('Crossmap');
+  var cm = new Summary('crossmap');
   cm._current = totals._crossmaps;
-  for(var e=0; e< medlev['Crossmap'].length; e++) {
-    if(cm._current >= medlev['Crossmap'][e]) cm._medals = e;
+  for (var e=0; e< medlev['crossmap'].length; e++) {
+    if (cm._current >= medlev['crossmap'][e]) cm._medals = e;
     else{
-      cm._next = medlev['Crossmap'][e] - cm._current;
+      cm._next = medlev['crossmap'][e] - cm._current;
       break;
     }
   }
   totals._medals += cm._medals;
   var best = [];
-  if(totals._crossmaps) {
-    for(var j in ranks) {
-      if(unique[j] && unique[j].length < 5){
-        if(unique[j].length > cm._best) {
+  if (totals._crossmaps) {
+    for (var j in ranks) {
+      if (unique[j] && unique[j].length < 5){
+        if (unique[j].length > cm._best) {
           cm._best = unique[j].length;
           best = [];
           best.push(j);
         }
-        else if(unique[j].length == cm._best) best.push(j);
+        else if (unique[j].length == cm._best) best.push(j);
       }
     }
   }
   cm._best = best;
   summary.push(cm);
   summary.sort(ssort);
-  var tds = viewer.document.getElementById('summary').getElementsByTagName('td');
   var medal = totals._unique.length;
-  if(medal >= 400) {
+  if (medal >= 400) {
     medal = "<span class=gmedal>" + medal + "</span>";
   }
-  else if(medal >= 100) {
+  else if (medal >= 100) {
     medal = "<span class=smedal>" + medal + "</span>";
-  } else if(medal >= 20) {
+  } else if (medal >= 20) {
     medal = "<span class=bmedal>" + medal + "</span>";
   } else {
     medal = "<span>" + medal + "</span>";
@@ -704,8 +655,8 @@ function endGame(user) {
           hitime = harray[t]._time;
         }
       }
-      if(harray[t]._time < firstTime){
-        if(runningscore > dummyscore) {
+      if (harray[t]._time < firstTime){
+        if (runningscore > dummyscore) {
           dummyscore = runningscore;
           hitime = harray[t]._time;
         }
@@ -713,160 +664,155 @@ function endGame(user) {
     }
   }
 
-  if(totals._points >= 0) trank = "+" + (totals._points);
+  if (totals._points >= 0) trank = "+" + (totals._points);
   else trank = totals._points;
-  if(totals._realscore != null) trank = totals._realscore;
-  if(totals._missing) missing = "<sup>" + totals._missing + "</sup>";
+  if (totals._realscore != null) trank = totals._realscore;
+  if (totals._missing) missing = "<sup>" + totals._missing + "</sup>";
   else missing = "";
-  var td = tds[0].getElementsByTagName('a')[0];
-  td.parentNode.id = "gtot";
-  td.innerHTML = "<b>Totals" + missing + "</b>";
-  var td = tds[1].getElementsByTagName('a')[0];
-  if(totals._realscore != null)
-    td.innerHTML = '' + getRank(totals._games, totals._realscore) + nextRank(totals._realscore);
-  else
-    td.innerHTML = '' + getRank(totals._games, totals._points + 1000) + nextRank(totals._points + 1000);
-  var td = tds[2].getElementsByTagName('a')[0];
-  td.innerHTML = '' + trank;
-  var td = tds[3].getElementsByTagName('a')[0];
-  td.parentNode.id = "wtot";
-  td.innerHTML = totals._wins + " from " + totals._games + "(" + (100 * (totals._wins)/(totals._games)).toFixed(0) + "%)";
-  var td = tds[4].getElementsByTagName('a')[0];
-  td.innerHTML = '' + medal + " (<span class=" + cross + ">" + totals._crossmaps + "</span>)";
-  var td = tds[5].getElementsByTagName('a')[0];
-  td.innerHTML = '' + getKiller(totals._games - totals._wins,totals._kills);
-  var td = tds[6].getElementsByTagName('a')[0];
-  td.innerHTML = '' + getRelative(totals._meanwin,totals._beaten);
-  for(var d=0; d<maps.length; d++) {
-    if(!ranks[maps[d]]) unplayed.push(maps[d]);
+  var tds = viewer.document.getElementById('summary').getElementsByTagName('td');
+  tds[0].id = "gtot";
+  tds[0].innerHTML = "<b>Totals" + missing + "</b>";
+  if (totals._realscore != null) {
+    tds[1].innerHTML = '' + getRank(totals._games, totals._realscore) + nextRank(totals._realscore);
+  } else {
+    tds[1].innerHTML = '' + getRank(totals._games, totals._points + 1000) + nextRank(totals._points + 1000);
+  }
+  tds[2].innerHTML = '' + trank;
+  tds[3].id = "wtot";
+  tds[3].innerHTML = totals._wins + " from " + totals._games + "(" + (100 * (totals._wins)/(totals._games)).toFixed(0) + "%)";
+  tds[4].innerHTML = '' + medal + " (<span class=" + cross + ">" + totals._crossmaps + "</span>)";
+  tds[5].innerHTML = '' + getKiller(totals._games - totals._wins,totals._kills);
+  tds[6].innerHTML = '' + getRelative(totals._meanwin,totals._beaten);
+  for (var d=0; d<maps.length; d++) {
+    if (!ranks[maps[d]]) unplayed.push(maps[d]);
     else played.push(maps[d]);
   }
   var x = "<table width=100% cellspacing=0 cellpadding=0 align=center>";
   x+= "<thead class=fixedHeader><tr><td><b>Medal Summary For " + user + "</b></td></tr></thead>";
   x+= "<tbody class=scrollContent><tr><td>Medal Name</td><td>Number of Medals</td><td>Defeats</td><td>Next Medal</td><td>Maps</td></tr>";
   x+= "<tr><td colspan=5 class=summ><b>Game Achievements: " + (totals._medals -  totals._xmedals) + " Medals</b></td></tr>";
-  var base = proto + "//www.conquerclub.com/player.php?submit=Search&gs=W&pt=N";
-  for(var y=0; y<summary.length;y++) {
+  var base = baseURL + "player.php?submit=Search&gs=W&pt=N";
+  for (var y=0; y<summary.length;y++) {
     var href = base;
-    if(!nm) {
-      if(summary[y]._medals < 3 && summary[y]._medal != 'Crossmap' && summary[y]._medal != 'Speed' && summary[y]._medal != 'Fog' && summary[y]._medal != 'Freestyle' && summary[y]._medal != 'Manual' && summary[y]._medal != 'Nuclear' && summary[y]._medal != 'Rating') {
+    if (!nm) {
+      if (summary[y]._medals < 3 && summary[y]._medal != 'crossmap' && summary[y]._medal != 'Speed' && summary[y]._medal != 'Fog' && summary[y]._medal != 'Freestyle' && summary[y]._medal != 'Manual' && summary[y]._medal != 'Nuclear' && summary[y]._medal != 'Rating') {
         nm = summary[y];
       }
     }
-    if(gm[summary[y]._medal]) href+= "&amp;gt=" + gm[summary[y]._medal];
-    else if(summary[y]._medal == 'Speed')href+= "&sg=Y";
-    else if(summary[y]._medal == 'Fog')href+= "&wf=Y";
-    else if(summary[y]._medal == 'Freestyle')href+= "&po=F";
-    else if(summary[y]._medal == 'Manual')href+= "&it=M";
-    else if(summary[y]._medal == 'Nuclear')href+= "&bc=4";
+    if (gm[summary[y]._medal]) href+= "&amp;gt=" + gm[summary[y]._medal];
+    else if (summary[y]._medal == 'Speed')href+= "&sg=Y";
+    else if (summary[y]._medal == 'Fog')href+= "&wf=Y";
+    else if (summary[y]._medal == 'Freestyle')href+= "&po=F";
+    else if (summary[y]._medal == 'Manual')href+= "&it=M";
+    else if (summary[y]._medal == 'Nuclear')href+= "&bc=4";
     var mids = [];
-    for(cnv=0; cnv<summary[y]._best.length; cnv++) {
+    for (cnv=0; cnv<summary[y]._best.length; cnv++) {
       mids.push(maps.indexOf(summary[y]._best[cnv]) + 1);
     }
     href+= "&mp=" + mids;
-    if(summary[y]._medal != 'Rating') {
-      x+= "<tr><td><a href=\"javascript:void(0)\" title=\"Find Best " + summary[y]._medal + " Games\" onclick='var wdw=window.open(\"" + href + "\", \"mrsugg\");wdw.focus();'>" + summary[y]._medal + "</a></td>";
+    if (summary[y]._medal != 'Rating') {
+      x+= "<tr><td><a href='#' title=\"Find Best " + summary[y]._medal + " Games\" onclick='e.preventdefault();var wdw=window.open(\"" + href + "\", \"mrsugg\");wdw.focus();'>" + summary[y]._medal + "</a></td>";
     }
     else x+= "<tr><td>" + summary[y]._medal + "</td>";
     x+= "<td class=" + medclass[summary[y]._medals] + ">" + medname[summary[y]._medals] + "</td>";
     x+= "<td>" + summary[y]._current + "</td><td>" + summary[y]._next + "</td>";
-    if(summary[y]._medal == 'Rating') x+= "<td>-</td></tr>";
-    else if(summary[y]._best.length == 0) x+= "<td>None</td></tr>";
-    else if(summary[y]._medal == 'Crossmap') {
+    if (summary[y]._medal == 'Rating') x+= "<td>-</td></tr>";
+    else if (summary[y]._best.length == 0) x+= "<td>None</td></tr>";
+    else if (summary[y]._medal == 'crossmap') {
       x+= "<td>" + summary[y]._best + " (" + unique[summary[y]._best[0]].length + ")</td></tr>";
     }
     else x+= "<td>" + summary[y]._best + "</td></tr>";
   }
-  if(totals._contribute.length) x+= "<tr><td colspan=5 class=summ><b>Contributions: " + totals._xmedals + " Medals</b></td></tr>";
-  for(var y=0; y< totals._contribute.length;y++) {
+  if (totals._contribute.length) x+= "<tr><td colspan=5 class=summ><b>Contributions: " + totals._xmedals + " Medals</b></td></tr>";
+  for (var y=0; y< totals._contribute.length;y++) {
     x+= "<tr><td>" + totals._contribute[y]._medal + "</td><td class=" + medclass[4] + ">" + totals._contribute[y]._medals + "</td>";
     x+= "<td>-</td><td>-</td><td>-</td></tr>";
   }
   x+= "<tr><td colspan=5 class=summ><b>Total Medals Won: " + totals._medals + "</b></td></tr>";
   var comboleft = 0;
-  for(var p in pm) {
-    if(pm[p]._medals < 3) comboleft++;
+  for (var p in pm) {
+    if (pm[p]._medals < 3) comboleft++;
   }
-  if(cm._medals < 3 || comboleft) {
+  if (cm._medals < 3 || comboleft) {
     x+= "<tr><td colspan=5 class=banner><b>Optimal Medal Combinations</b></td></tr>";
     x+= "<tr><td>Medals</td><td colspan=4>Maps</td></tr>";
-    if(nm){
+    if (nm){
       var hrefbase = base + "&amp;gt=" + gm[nm._medal];
-      var optimalrows = new Array(medmatrix.length);
-      var optimaltext = new Array(medmatrix.length);
-      for(var mat=0; mat<medmatrix.length;mat++) {
+      var optimalrows = {};
+      var optimaltext = {};
+      for (var mat=0; mat<medmatrix.length;mat++) {
         var assoc = [];
         var optimalkey = medmatrix[mat].join(',');
         var exturl = "";
         optimaltext[optimalkey] = "";
-        for(var step=0; step<medmatrix[mat].length; step++){
+        for (var step=0; step<medmatrix[mat].length; step++){
           assoc.push(medcombo[medmatrix[mat][step]]);
           exturl += medcombourl[medmatrix[mat][step]];
           optimaltext[optimalkey] += medcombo[medmatrix[mat][step]] + ",";
         }
-        optimalrows[optimalkey] = "<tr><td><a href=\"javascript:void(0)\" title=\"Find " + assoc.join(" ") + " " + nm._medal + " Games\" onclick='var wdw=window.open(\"" + hrefbase + exturl + "&mp=";
+        optimalrows[optimalkey] = "<tr><td><a href='#' title='Find " + assoc.join(" ") + " " + nm._medal + " Games' onclick='e.preventDefault();var wdw=window.open(\"" + hrefbase + exturl + "&mp=";
       }
 
-      var mps = [];
+      var mps = {};
       mps[nm._medal] = [];
-      mps['Crossmap'] = [];
-      for(var md=0; md< medcombo.length; md++) {
+      mps['crossmap'] = [];
+      for (var md=0; md< medcombo.length; md++) {
         mps[medcombo[md]] = [];
       }
 
-      if(nm._best.length) {
-        for(cnv=0; cnv<nm._best.length; cnv++) {
+      if (nm._best.length) {
+        for (cnv=0; cnv<nm._best.length; cnv++) {
           mps[nm._medal].push(maps.indexOf(nm._best[cnv]) + 1);
         }
       }
-      if(cm._medals < 3) {
-        if(cm._best.length) {
-          for(cnv=0; cnv<cm._best.length; cnv++) {
-            mps['Crossmap'].push(maps.indexOf(cm._best[cnv]) + 1);
+      if (cm._medals < 3) {
+        if (cm._best.length) {
+          for (cnv=0; cnv<cm._best.length; cnv++) {
+            mps['crossmap'].push(maps.indexOf(cm._best[cnv]) + 1);
           }
         }
       }
-      for(var p in pm) {
-        if(pm[p]._medals < 3) {
-          if(pm[p]._best.length) {
-            for(cnv=0; cnv<pm[p]._best.length; cnv++) {
+      for (var p in pm) {
+        if (pm[p]._medals < 3) {
+          if (pm[p]._best.length) {
+            for (cnv=0; cnv<pm[p]._best.length; cnv++) {
               mps[pm[p]._medal].push(maps.indexOf(pm[p]._best[cnv]) + 1);
             }
           }
         }
       }
-      for(var mat=0; mat<medmatrix.length;mat++) {
+      for (var mat=0; mat<medmatrix.length;mat++) {
         var optimalkey = medmatrix[mat].join(',');
         var combos = [];
         var show = 1;
-        for(var step=0; step<medmatrix[mat].length; step++){
-          if(medcombo[medmatrix[mat][step]] != "Crossmap" && pm[medcombo[medmatrix[mat][step]]]._medals > 2) {
+        for (var step=0; step<medmatrix[mat].length; step++){
+          if (medcombo[medmatrix[mat][step]] != "crossmap" && pm[medcombo[medmatrix[mat][step]]]._medals > 2) {
             show = 0;
             break;
           }
           combos.push(pm[medcombo[medmatrix[mat][step]]]);
         }
-        if(show) {
-          if(medmatrix[mat].indexOf(4) != -1) {
-            if(cm._medals < 3) {
-              if(cm._best.length) x+= optimalrows[optimalkey] + mps['Crossmap'] + "\", \"mrsugg\");wdw.focus();'>" + optimaltext[optimalkey] + nm._medal + "</a></td><td colspan=4>" + cm._best + "</td></tr>";
+        if (show) {
+          if (medmatrix[mat].indexOf(4) != -1) {
+            if (cm._medals < 3) {
+              if (cm._best.length) x+= optimalrows[optimalkey] + mps['crossmap'] + "\", \"mrsugg\");wdw.focus();'>" + optimaltext[optimalkey] + nm._medal + "</a></td><td colspan=4>" + cm._best + "</td></tr>";
               else{
                 var noWins = [];
                 var noWinsText = [];
-                for(var un in ranks) {
-                  if(!unique[un]) {
+                for (var un in ranks) {
+                  if (!unique[un]) {
                     noWins.push(maps.indexOf(un));
                     noWinsText.push(un);
                   }
                 }
-                if(noWins.length) x+= optimalrows[optimalkey] + noWins + "\", \"mrsugg\");wdw.focus();'>" + optimaltext[optimalkey] + nm._medal + "</a></td><td colspan=4>" + noWins + "</td></tr>";
+                if (noWins.length) x+= optimalrows[optimalkey] + noWins + "\", \"mrsugg\");wdw.focus();'>" + optimaltext[optimalkey] + nm._medal + "</a></td><td colspan=4>" + noWins + "</td></tr>";
               }
             }
           }
           else{
             combos.sort(sortCombo);
-            if(combos[0]._best.length) x+= optimalrows[optimalkey] + mps[combos[0]._medal] + "\", \"mrsugg\");wdw.focus();'>" + optimaltext[optimalkey] + nm._medal + "</a></td><td colspan=4>" + combos[0]._best + "</td></tr>";
-            else if(nm._best.length) x+= optimalrows[optimalkey] + mps[nm._medal] + "\", \"mrsugg\");wdw.focus();'>" + optimaltext[optimalkey] + nm._medal + "</a></td><td colspan=4>" + nm._best + "</td></tr>";
+            if (combos[0]._best.length) x+= optimalrows[optimalkey] + mps[combos[0]._medal] + "\", \"mrsugg\");wdw.focus();'>" + optimaltext[optimalkey] + nm._medal + "</a></td><td colspan=4>" + combos[0]._best + "</td></tr>";
+            else if (nm._best.length) x+= optimalrows[optimalkey] + mps[nm._medal] + "\", \"mrsugg\");wdw.focus();'>" + optimaltext[optimalkey] + nm._medal + "</a></td><td colspan=4>" + nm._best + "</td></tr>";
             else x+= optimalrows[optimalkey] + "\", \"mrsugg\");wdw.focus();'>" + optimaltext[optimalkey] + nm._medal + "</a></td><td colspan=4>-</td></tr>";
           }
         }
@@ -876,72 +822,72 @@ function endGame(user) {
       var hrefbase = base;
       var optimalrows = new Array(medmatrix.length);
       var optimaltext = new Array(medmatrix.length);
-      for(var mat=0; mat<medmatrix.length;mat++) {
+      for (var mat=0; mat<medmatrix.length;mat++) {
         var assoc = [];
         var optimalkey = medmatrix[mat].join(',');
         var exturl = "";
         optimaltext[optimalkey] = "";
-        for(var step=0; step<medmatrix[mat].length; step++){
+        for (var step=0; step<medmatrix[mat].length; step++){
           assoc.push(medcombo[medmatrix[mat][step]]);
           exturl += medcombourl[medmatrix[mat][step]];
           optimaltext[optimalkey] += medcombo[medmatrix[mat][step]] + ",";
         }
-        optimalrows[optimalkey] = "<tr><td><a href=\"javascript:void(0)\" title=\"Find " + assoc.join(" ") + " Games\" onclick='var wdw=window.open(\"" + hrefbase + exturl + "&mp=";
+        optimalrows[optimalkey] = "<tr><td><a href='#' title='Find " + assoc.join(" ") + " Games' onclick='e.preventDefault();var wdw=window.open(\"" + hrefbase + exturl + "&mp=";
       }
 
       var mps = [];
-      mps['Crossmap'] = [];
-      for(var md=0; md< medcombo.length; md++) {
+      mps['crossmap'] = [];
+      for (var md=0; md< medcombo.length; md++) {
         mps[medcombo[md]] = [];
       }
 
-      if(cm._medals < 3) {
-        if(cm._best.length) {
-          for(cnv=0; cnv<cm._best.length; cnv++) {
-            mps['Crossmap'].push(maps.indexOf(cm._best[cnv]) + 1);
+      if (cm._medals < 3) {
+        if (cm._best.length) {
+          for (cnv=0; cnv<cm._best.length; cnv++) {
+            mps['crossmap'].push(maps.indexOf(cm._best[cnv]) + 1);
           }
         }
       }
-      for(var p in pm) {
-        if(pm[p]._medals < 3) {
-          if(pm[p]._best.length) {
-            for(cnv=0; cnv<pm[p]._best.length; cnv++) {
+      for (var p in pm) {
+        if (pm[p]._medals < 3) {
+          if (pm[p]._best.length) {
+            for (cnv=0; cnv<pm[p]._best.length; cnv++) {
               mps[pm[p]._medal].push(maps.indexOf(pm[p]._best[cnv]) + 1);
             }
           }
         }
       }
-      for(var mat=0; mat<medmatrix.length;mat++) {
+      for (var mat=0; mat<medmatrix.length;mat++) {
         var optimalkey = medmatrix[mat].join(',');
         var combos = [];
         var show = 1;
-        for(var step=0; step<medmatrix[mat].length; step++){
-          if(medcombo[medmatrix[mat][step]] != "Crossmap" && pm[medcombo[medmatrix[mat][step]]]._medals > 2) {
+        for (var step=0; step<medmatrix[mat].length; step++){
+          if (medcombo[medmatrix[mat][step]] != "crossmap" && pm[medcombo[medmatrix[mat][step]]]._medals > 2) {
             show = 0;
             break;
           }
           combos.push(pm[medcombo[medmatrix[mat][step]]]);
         }
-        if(show) {
-          if(medmatrix[mat].indexOf(4) != -1) {
-            if(cm._medals < 3) {
-              if(cm._best.length) x+= optimalrows[optimalkey] + mps['Crossmap'] + "\", \"mrsugg\");wdw.focus();'>" + optimaltext[optimalkey].substr(0,optimaltext[optimalkey].length-1) + "</a></td><td colspan=4>" + cm._best + "</td></tr>";
+        if (show) {
+          if (medmatrix[mat].indexOf(4) != -1) {
+            if (cm._medals < 3) {
+              if (cm._best.length) x+= optimalrows[optimalkey] + mps['crossmap'] + "\", \"mrsugg\");wdw.focus();'>" + optimaltext[optimalkey].substr(0,optimaltext[optimalkey].length-1) + "</a></td><td colspan=4>" + cm._best + "</td></tr>";
               else{
                 var noWins = [];
                 var noWinsText = [];
-                for(var un in ranks) {
-                  if(!unique[un]) {
+                for (var un in ranks) {
+                  if (!unique[un]) {
                     noWins.push(maps.indexOf(un));
                     noWinsText.push(un);
                   }
                 }
-                if(noWins.length) x+= optimalrows[optimalkey] + noWins + "\", \"mrsugg\");wdw.focus();'>" + optimaltext[optimalkey].substr(0,optimaltext[optimalkey].length-1) + "</a></td><td colspan=4>" + noWins + "</td></tr>";
+                if (noWins.length) x+= optimalrows[optimalkey] + noWins + "\", \"mrsugg\");wdw.focus();'>" + optimaltext[optimalkey].substr(0,optimaltext[optimalkey].length-1) + "</a></td><td colspan=4>" + noWins + "</td></tr>";
               }
             }
           }
           else{
             combos.sort(sortCombo);
-            if(combos[0]._best.length) x+= optimalrows[optimalkey] + mps[combos[0]._medal] + "\", \"mrsugg\");wdw.focus();'>" + optimaltext[optimalkey].substr(0,optimaltext[optimalkey].length-1) + "</a></td><td colspan=4>" + combos[0]._best + "</td></tr>";
+            if (combos[0]._best.length) x+= optimalrows[optimalkey] + mps[combos[0]._medal] + "\", \"mrsugg\");wdw.focus();'>" + optimaltext[optimalkey].substr(0,optimaltext[optimalkey].length-1) + "</a></td><td colspan=4>" + combos[0]._best + "</td></tr>";
             else x+= optimalrows[optimalkey] + "\", \"mrsugg\");wdw.focus();'>" + optimaltext[optimalkey].substr(0,optimaltext[optimalkey].length-1) + "</a></td><td colspan=4>-</td></tr>";
           }
         }
@@ -949,7 +895,7 @@ function endGame(user) {
     }
   }
   x+= "<tr><td colspan=5><br />Notes: The Maps column show the best maps for that medal (most unique defeats). ";
-  if(nm) x+= "E.g. for " + nm._medal + " most defeats have come from " + nm._best + "<br />";
+  if (nm) x+= "E.g. for " + nm._medal + " most defeats have come from " + nm._best + "<br />";
   x+= "For crossmaps, the maps shown are those closest to 5 unique defeats. The number in brackets is the number of defeats for those maps.<br />";
   x+= "Click on the links to show game finder results for best medal + maps combination.<br />";
   x+= "</td></tr>";
@@ -957,74 +903,38 @@ function endGame(user) {
   viewer.document.getElementById('meds').innerHTML = x;
   var stable = viewer.document.getElementById('stable');
   tr = viewer.document.createElement('tr');
-  td = viewer.document.createElement('td');
-  td.className = "summ";
-  td.innerHTML = "<a href=\"javascript:void(0);\" title=\"List Of Maps Completed\" id=played><b>" + played.length + " Maps Completed</b></a>";
-  tr.appendChild(td);
-  td = viewer.document.createElement('td');
-  td.className = "summ";
-  td.innerHTML = "<a href=\"javascript:void(0);\" title=\"List Of Maps Never Completed\" id=unplayed><b>" + unplayed.length + " Maps Not Completed</b></a>";
-  tr.appendChild(td);
-  td = viewer.document.createElement('td');
-  td.className = "summ";
+  function createSummTd(id, title, text) {
+    return "<td class='summ'><a href='javascript:void(0);' title='" + title + "' id='" + id + "'><b>" + text + "</b></a></td>";
+  }
+  var trHTML = createSummTd("played", "List of Maps Completed", played.length + " Maps Completed");
+  trHTML += createSummTd("unplayed", "List of Maps Never Completed", (maps.length - played.length) + " Maps Not Completed");
+  trHTML += createSummTd("freq", "List Of Maps Played 5 times Or More", freq.length + " Frequent Maps");
+  trHTML += createSummTd("nfreq", "List Of Maps Played Less Than 5 Times", nfreq.length + " Infrequent Maps");
+  trHTML += createSummTd("mu", "List Of Maps Played With 5 Or More Unique Defeats", mu.length + " Crossmaps Maps");
+  trHTML += createSummTd("mnu", "List Of Maps Played With Less Than 5 Unique Defeats", mnu.length + " Non Crossmaps Maps");
+  tr.innerHTML = trHTML;
+  stable.appendChild(tr);
+  tr = viewer.document.createElement('tr');
+  trHTML = createSummTd("mwon", "List Of Maps Played With At Least 1 Win", mwon.length + " Maps Won");
+  trHTML += createSummTd("mlost", "List Of Maps Played With No Wins", mlost.length + " Maps Not Won");
+  trHTML += createSummTd("pos", "List Of Maps Played With Score 0 Or More", pos.length + " Positive Maps");
+  trHTML += createSummTd("neg", "List Of Maps Played With Negative Score", neg.length + " Negative Maps");
+  trHTML += createSummTd("miss", "List Of Missing Game Logs", miss.length + " Missing Logs");
+  trHTML += "<td class='summ'>&nbsp;</td>"
+  tr.innerHTML = trHTML;
+  stable.appendChild(tr);
+  tr = viewer.document.createElement('tr');
+  tr.innerHTML = "<td class='maplist' id='maplist' colspan=6>Click On Light Blue Cells For Lists</td>";
+  stable.appendChild(tr);
   freq.sort();
-  td.innerHTML = "<a href=\"javascript:void(0);\" title=\"List Of Maps Played 5 times Or More\" id=freq><b>" + freq.length + " Frequent Maps</b></a>";
-  tr.appendChild(td);
-  td = viewer.document.createElement('td');
-  td.className = "summ";
   nfreq.sort();
-  td.innerHTML = "<a href=\"javascript:void(0);\" title=\"List Of Maps Played Less Than 5 Times\" id=nfreq><b>" + nfreq.length + " Infrequent Maps</b></a>";
-  tr.appendChild(td);
-  td = viewer.document.createElement('td');
-  td.className = "summ";
   mu.sort();
-  td.innerHTML = "<a href=\"javascript:void(0);\" title=\"List Of Maps Played With 5 Or More Unique Defeats\" id=mu><b>" + mu.length + " Crossmaps Maps</b></a>";
-  tr.appendChild(td);
-  td = viewer.document.createElement('td');
-  td.className = "summ";
   mnu.sort();
-  td.innerHTML = "<a href=\"javascript:void(0);\" title=\"List Of Maps Played With Less Than 5 Unique Defeats\" id=mnu><b>" + mnu.length + " Non Crossmaps Maps</b></a>";
-  tr.appendChild(td);
-  stable.appendChild(tr);
-  tr = viewer.document.createElement('tr');
-  td = viewer.document.createElement('td');
-  td.className = "summ";
   mwon.sort();
-  td.innerHTML = "<a href=\"javascript:void(0);\" title=\"List Of Maps Played With At Least 1 Win\" id=mwon><b>" + mwon.length + " Maps Won</b></a>";
-  tr.appendChild(td);
-  td = viewer.document.createElement('td');
-  td.className = "summ";
   mlost.sort();
-  td.innerHTML = "<a href=\"javascript:void(0);\" title=\"List Of Maps Played With No Wins\" id=mlost><b>" + mlost.length + " Maps Not Won</b></a>";
-  tr.appendChild(td);
-  td = viewer.document.createElement('td');
-  td.className = "summ";
-  td.innerHTML = "<a href=\"javascript:void(0);\" title=\"List Of Maps Played With Score 0 Or More\" id=pos><b>" + pos.length + " Positive Maps</b></a>";
   pos.sort();
-  tr.appendChild(td);
-  td = viewer.document.createElement('td');
-  td.className = "summ";
   neg.sort();
-  td.innerHTML = "<a href=\"javascript:void(0);\" title=\"List Of Maps Played With Negative Score\" id=neg><b>" + neg.length + " Negative Maps</b></a>";
-  tr.appendChild(td);
-  td = viewer.document.createElement('td');
-  td.className = "summ";
   miss.sort();
-  td.innerHTML = "<a href=\"javascript:void(0);\" title=\"List Of Missing Game Logs\" id=miss><b>" + miss.length + " Missing Logs</b></a>";
-  tr.appendChild(td);
-  td = viewer.document.createElement('td');
-  td.className = "summ";
-  td.innerHTML = "<a href=\"javascript:void(0);\">&nbsp;</a>";
-  tr.appendChild(td);
-  stable.appendChild(tr);
-  tr = viewer.document.createElement('tr');
-  td = viewer.document.createElement('td');
-  td.className = "maplist";
-  td.id = "maplist";
-  td.colspan = 6;
-  td.innerHTML = 'Click On Light Blue Cells For Lists';
-  tr.appendChild(td);
-  stable.appendChild(tr);
 
   addListener(viewer.document.getElementById('played'),'click', function() {
     viewer.document.getElementById('maplist').innerHTML = '<span>Maps Completed</span><br /><br />' + played;
@@ -1060,28 +970,28 @@ function endGame(user) {
     viewer.document.getElementById('maplist').innerHTML = '<span>Missing Logs</span><br /><br />' + miss;
   });
 
-  for(var st=0; st< sortable.length; st++) {
+  for (var st=0; st< sortable.length; st++) {
     viewer.document.getElementById(sortable[st]).className = "sorton";
   }
   setTable();
-  if(totals._insignia) {
+  if (totals._insignia) {
     myDefeats = new Defeats();
-    for(def in totals._defeats) {
-      myDefeats._defeats[def] = totals._defeats[def];
+    for (def in totals._defeats) {
+      myDefeats[def] = totals._defeats[def];
     }
     myStore._total = totals._counter;
-    GM_setValue("defeats", uneval(myDefeats));
-    GM_setValue("store", uneval(myStore));
+    serialize("defeats", myDefeats);
+    serialize("store", myStore);
   }
   viewer.document.getElementById('closeRank').style.opacity = "0.9";
   viewer.document.getElementById('closeRank').style.backgroundColor = "green";
   viewer.document.getElementById('progress').innerHTML = "<b>Scan Complete. Click on light blue column headers to sort. Click again to reverse sort. Click on yellow boxes for chart.</b>";
 
-  if(surl != "") {
+  if (surl != "") {
     var sentscore;
     var senthi;
 
-    if(totals._realscore != null) {
+    if (totals._realscore != null) {
       sentscore = totals._realscore;
       senthi = (dummyscore + 1000);
     }
@@ -1110,7 +1020,7 @@ function valToPix(val) {
 function tinput(id) {
   displayObj = viewer.document.getElementById('display_' + id);
   displayVal = parseInt(displayObj.value);
-  if(displayVal <= slider._toVal) {
+  if (displayVal <= slider._toVal) {
     var n = valToPix(displayVal);
     slideLeft('slider_' + id,n);
     viewer.document.getElementById('stamp_' + id).innerHTML = '' + new Date(slider._parray[displayVal]._time).toLocaleString();
@@ -1184,15 +1094,15 @@ function graph(holder, arr, start, end, title, graphtype) {
   viewer.document.getElementById('buttons').style.display = "block";
   viewer.document.getElementById('cheader').innerHTML = "<h3 class=header>Map Rank Chart For " + title + " " + graphtype._type + "</h3><br /><span><b>" + graphtype._type + "</b>";
   viewer.document.getElementById('cfooter').innerHTML = "<h3><b>Timestamp</h3>";
-  if(start==0 && graphtype == graphTypes['points']) g.add('',graphtype._initial,"red");
-  if(title == "Totals" && totals._realscore != null && graphtype == graphTypes['points']) deficit = totals._realscore - totals._points - 1000;
-  for(var f=start; f<=end; f++) {
-    offset = (typeof(deficit) != "undefined" && parray[f]._time > lastTime)? deficit:0;
+  if (start==0 && graphtype == graphTypes['points']) g.add('',graphtype._initial,"red");
+  if (title == "Totals" && totals._realscore != null && graphtype == graphTypes['points']) deficit = totals._realscore - totals._points - 1000;
+  for (var f=start; f<=end; f++) {
+    offset = (deficit && parray[f]._time > lastTime)? deficit:0;
     g.add('<span title=\"' +  (parseInt(running._data[f]) + offset) + " on " +  new Date(parray[f]._time).toLocaleString() +'\">' + f + '</span>', parseInt(running._data[f]) + offset, running._colour[f]);
   }
-  g.render("lines", "Time");
+  g.render("lines");
   var buttontxt = "<table cellspacing=0 cellpadding=0 border=1><tr class=mrodd><td colspan=4>Min: " + g.min + "&nbsp;&nbsp;&nbsp;Max: " + g.max + "</td></tr>";
-  if(graphtype == graphTypes['winloss']) {
+  if (graphtype == graphTypes['winloss']) {
     buttontxt += "<tr class=mrodd><td colspan=4><span id=wstreak>Longest Winning Streak : " + (running._winstreak._num) + "</span>&nbsp;&nbsp;&nbsp;";
     buttontxt += "<span id=lstreak>Longest Losing Streak : " + (running._losstreak._num) + "</span></td></tr>";
   }
@@ -1232,7 +1142,7 @@ function graph(holder, arr, start, end, title, graphtype) {
   addListener(viewer.document.getElementById('graph'),'click', function() {
     fromVal = parseInt(viewer.document.getElementById('display_1').value);
     toVal = parseInt(viewer.document.getElementById('display_2').value);
-    if(isNaN(fromVal) || isNaN(toVal) || fromVal > toVal || fromVal > slide._toVal || toVal < 0 || fromVal < 0 || toVal > slide._toVal) {
+    if (isNaN(fromVal) || isNaN(toVal) || fromVal > toVal || fromVal > slide._toVal || toVal < 0 || fromVal < 0 || toVal > slide._toVal) {
       alert("Invalid range");
     }
     else{
@@ -1242,7 +1152,7 @@ function graph(holder, arr, start, end, title, graphtype) {
   addListener(viewer.document.getElementById('gall'),'click', function() {
     graph(holder, arr, 0,parray.length - 1, title, graphtype);
   });
-  if(graphtype == graphTypes['winloss']) {
+  if (graphtype == graphTypes['winloss']) {
     addListener(viewer.document.getElementById('wstreak'),'click', function() {
       graph(holder, arr, running._winstreak._start,running._winstreak._start + running._winstreak._num - 1, title, graphtype);
     });
@@ -1255,21 +1165,21 @@ function graph(holder, arr, start, end, title, graphtype) {
 function handleSearchSuggest(lastval) {
   var next = document.getElementById('player').value;
   var k=0;
-  if(next == '') {
+  if (next == '') {
     clearSuggest();
     return;
   }
-  if(next != lastval) {
+  if (next != lastval) {
     return;
   }
   var ss = document.getElementById('phistory');
   ss.innerHTML = '';
   var str = phist.split("|");
-  for(i=0; i < str.length; i++) {
-    if(str[i].substring(next.length,0).match(next, "i")) {
+  for (i=0; i < str.length; i++) {
+    if (str[i].substring(next.length,0).match(next, "i")) {
       var suggest = document.createElement('div');
       suggest.innerHTML = str[i];
-      if(k==0) {
+      if (k==0) {
         suggest.className = "history_link_over";
       }
       else{
@@ -1290,7 +1200,7 @@ function handleSearchSuggest(lastval) {
     }
   }
   suggtot = k;
-  if(suggtot > 0) {
+  if (suggtot > 0) {
     current = 0;
   }
   else {
@@ -1300,7 +1210,7 @@ function handleSearchSuggest(lastval) {
 
 function suggestOver(div_value) {
   var divs = document.getElementById('phistory').getElementsByTagName('div');
-  for(i=0; i< suggtot; i++) {
+  for (i=0; i< suggtot; i++) {
     divs[i].className = "history_link";
   }
   div_value.className = 'history_link_over';
@@ -1322,23 +1232,23 @@ function clearSuggest() {
 }
 
 function updownArrow(keyCode) {
-  if(keyCode == 40 || keyCode == 38){
-    if(keyCode == 38){ // keyUp
-      if(current == 0 || current == -1){
+  if (keyCode == 40 || keyCode == 38){
+    if (keyCode == 38){ // keyUp
+      if (current == 0 || current == -1){
         current = suggtot-1;
       }else{
         current--;
       }
     } else { // keyDown
-      if(current == suggtot-1){
+      if (current == suggtot-1){
         current = 0;
       }else {
         current++;
       }
     }
     var divs = document.getElementById('phistory').getElementsByTagName('div');
-    for(i=0; i< suggtot; i++) {
-      if(i == current){
+    for (i=0; i< suggtot; i++) {
+      if (i == current){
         divs[i].className = "history_link_over";
       } else {
         divs[i].className = "history_link";
@@ -1354,7 +1264,7 @@ function updownArrow(keyCode) {
 function key(input,e) {
   var keyCode;
 
-  if(!e) {
+  if (!e) {
     keyCode = window.event.keyCode;
   }
   else{
@@ -1362,8 +1272,8 @@ function key(input,e) {
   }
   last = input.value;
 
-  if(keyCode == 13) {
-    if(current != -1) {
+  if (keyCode == 13) {
+    if (current != -1) {
       var divs = document.getElementById('phistory').getElementsByTagName('div');
       setSearch(divs[current].innerHTML);
     }
@@ -1380,32 +1290,32 @@ function key(input,e) {
 }
 
 function deserialize(name, def) {
-  return eval(GM_getValue(name, (def || '({})')));
+  var toReturn;
+  try {
+    toReturn = JSON.parse(GM_getValue(name), def || {});
+  } catch (e) {}
+  return toReturn || def || {};
 }
 
 function serialize(name, val) {
-  GM_setValue(name, uneval(val));
+  GM_setValue(name, JSON.stringify(val));
 }
 
 var saveButtonHandler = function() {
   var name= prompt("Please Name this map rank (reusing a name will overwrite it)",loadedName);
-  if (name!="" && name != null)
-  {
+  if (name) {
     var searchDetails={};
     var allP = document.getElementById('middleColumn').getElementsByTagName("input");
     var mSel = document.getElementById("maps");
-    for( i in allP )
-    {
-      if(allP[i].type=="checkbox")
-      {
+    for ( i in allP ) {
+      if (allP[i].type=="checkbox") {
         searchDetails[allP[i].id] = allP[i].checked;
       }
-      if(allP[i].type=="text")
-      {
+      if (allP[i].type=="text") {
         searchDetails[allP[i].id] = allP[i].value;
       }
     }
-    for(j=0; j< mSel.options.length; j++) {
+    for (j=0; j< mSel.options.length; j++) {
       var strip = mSel.options[j].innerHTML.replace(/ \(Beta\)$/, '').replace(/\(\d+\) /,'' );
       searchDetails[strip] = mSel.options[j].selected;
     }
@@ -1419,9 +1329,9 @@ var loadButtonHandler = function (searchDetails,s,bRun) {
   loadedName = s;
   var allP =document.getElementById('middleColumn').getElementsByTagName("input");
   var mSel = document.getElementById("maps");
-  for(j=0; j< mSel.options.length; j++) {
+  for (j=0; j< mSel.options.length; j++) {
     var strip = mSel.options[j].innerHTML.replace(/ \(Beta\)$/, '').replace(/\(\d+\) /,'' );
-    if ( typeof(searchDetails[strip]) != "undefined" ){
+    if (searchDetails[strip]){
       mSel.options[j].selected = searchDetails[strip];
     }
     else{
@@ -1432,9 +1342,9 @@ var loadButtonHandler = function (searchDetails,s,bRun) {
     }
   }
   setThumbnails(mSel.options);
-  for( i in allP ) {
-    if(allP[i].type=="checkbox") {
-      if ( typeof(searchDetails[allP[i].id]) != "undefined") {
+  for ( i in allP ) {
+    if (allP[i].type=="checkbox") {
+      if (searchDetails[allP[i].id]) {
         allP[i].checked = searchDetails[allP[i].id] ;
       } else {
         allP[i].checked = false;
@@ -1443,8 +1353,8 @@ var loadButtonHandler = function (searchDetails,s,bRun) {
         serialize("mapbook", myOptions);
       }
     }
-    if(allP[i].type=="text") {
-      if( typeof(searchDetails[allP[i].id]) != "undefined") {
+    if (allP[i].type=="text") {
+      if (searchDetails[allP[i].id] != undefined) {
         allP[i].value = searchDetails[allP[i].id];
       } else {
         allP[i].value = "";
@@ -1459,7 +1369,7 @@ var loadButtonHandler = function (searchDetails,s,bRun) {
   }
 };
 
-var delButtonHandler = function(searchName) {
+var delButtonHandler = function (searchName) {
   if (confirm("Are you sure you want to remove the saved map rank "+ searchName)) {
     var newOptions = {};
     for (var s in myOptions) {
@@ -1473,14 +1383,16 @@ var delButtonHandler = function(searchName) {
   }
 };
 
-var makedelButtonHandler = function makedelButtonHandler(searchName) {
-  return function() {
+var makedelButtonHandler = function (searchName) {
+  return function(e) {
+    e.preventDefault();
     delButtonHandler(searchName);
   };
 };
 
-var makeloadButtonHandler = function makeloadButtonHandler(search,s,run) {
-  return function () {
+var makeloadButtonHandler = function (search,s,run) {
+  return function(e) {
+    e.preventDefault();
     loadButtonHandler (search,s,run);
   };
 };
@@ -1506,7 +1418,6 @@ var showSearchs = function showSearchs() {
     var spm = document.createElement('a');
     srch2.appendChild(spm);
     spm.innerHTML = "Run";
-    spm.href="javascript:void(0);";
     spm.addEventListener("click", makeloadButtonHandler(myOptions[s],s,true), false);
 
     var srch2 = document.createElement('td');
@@ -1515,7 +1426,6 @@ var showSearchs = function showSearchs() {
     var spm = document.createElement('a');
     srch2.appendChild(spm);
     spm.innerHTML = "Load";
-    spm.href="javascript:void(0);";
     spm.addEventListener("click", makeloadButtonHandler(myOptions[s],s,false), false);
 
     var srch2 = document.createElement('td');
@@ -1524,71 +1434,70 @@ var showSearchs = function showSearchs() {
     var spm = document.createElement('a');
     srch2.appendChild(spm);
     spm.innerHTML = "Delete";
-    spm.href="javascript:void(0);";
     spm.addEventListener("click", makedelButtonHandler(s), false);
   }
 };
 
 function getRank(games,total) {
-  if(games >= 250 && total >= 4500) return "Field Marshal";
-  if(games >= 200 && total >= 3500) return "General";
-  if(games >= 150 && total >= 3000) return "Brigadier";
-  if(games >= 100 && total >= 2500) return "Colonel";
-  if(games >= 80 && total >= 2000) return "Major";
-  if(games >= 60 && total >= 1800) return "Captain";
-  if(games >= 40 && total >= 1600) return "Lieutenant";
-  if(games >= 20 && total >= 1400) return "Sergeant 1st Class";
-  if(games >= 20 && total >= 1300) return "Sergeant";
-  if(games >= 10 && total >= 1200) return "Corporal 1st Class";
-  if(games >= 10 && total >= 1100) return "Corporal";
-  if(games >= 5 && total >= 1000) return "Private 1st Class";
-  if(games >= 5 && total >= 900) return "Private";
-  if(games >= 5 && total >= 800) return "Cadet";
-  if(games >= 5) return "Cook";
+  if (games >= 250 && total >= 4500) return "Field Marshal";
+  if (games >= 200 && total >= 3500) return "General";
+  if (games >= 150 && total >= 3000) return "Brigadier";
+  if (games >= 100 && total >= 2500) return "Colonel";
+  if (games >= 80 && total >= 2000) return "Major";
+  if (games >= 60 && total >= 1800) return "Captain";
+  if (games >= 40 && total >= 1600) return "Lieutenant";
+  if (games >= 20 && total >= 1400) return "Sergeant 1st Class";
+  if (games >= 20 && total >= 1300) return "Sergeant";
+  if (games >= 10 && total >= 1200) return "Corporal 1st Class";
+  if (games >= 10 && total >= 1100) return "Corporal";
+  if (games >= 5 && total >= 1000) return "Private 1st Class";
+  if (games >= 5 && total >= 900) return "Private";
+  if (games >= 5 && total >= 800) return "Cadet";
+  if (games >= 5) return "Cook";
   return "New Recruit";
 }
 
 function nextRank(total) {
-  if(total >= 4500) return "";
-  if(total >= 3500) return "<sup>" + (4500 - total) + "</sup>";
-  if(total >= 3000) return "<sup>" + (3500 - total) + "</sup>";
-  if(total >= 2500) return "<sup>" + (3000 - total) + "</sup>";
-  if(total >= 2000) return "<sup>" + (2500 - total) + "</sup>";
-  if(total >= 1800) return "<sup>" + (2000 - total) + "</sup>";
-  if(total >= 1600) return "<sup>" + (1800 - total) + "</sup>";
-  if(total >= 1400) return "<sup>" + (1600 - total) + "</sup>";
-  if(total >= 1300) return "<sup>" + (1400 - total) + "</sup>";
-  if(total >= 1200) return "<sup>" + (1300 - total) + "</sup>";
-  if(total >= 1100) return "<sup>" + (1200 - total) + "</sup>";
-  if(total >= 1000) return "<sup>" + (1100 - total) + "</sup>";
-  if(total >= 900) return "<sup>" + (1000 - total) + "</sup>";
-  if(total >= 800) return "<sup>" + (900 - total) + "</sup>";
+  if (total >= 4500) return "";
+  if (total >= 3500) return "<sup>" + (4500 - total) + "</sup>";
+  if (total >= 3000) return "<sup>" + (3500 - total) + "</sup>";
+  if (total >= 2500) return "<sup>" + (3000 - total) + "</sup>";
+  if (total >= 2000) return "<sup>" + (2500 - total) + "</sup>";
+  if (total >= 1800) return "<sup>" + (2000 - total) + "</sup>";
+  if (total >= 1600) return "<sup>" + (1800 - total) + "</sup>";
+  if (total >= 1400) return "<sup>" + (1600 - total) + "</sup>";
+  if (total >= 1300) return "<sup>" + (1400 - total) + "</sup>";
+  if (total >= 1200) return "<sup>" + (1300 - total) + "</sup>";
+  if (total >= 1100) return "<sup>" + (1200 - total) + "</sup>";
+  if (total >= 1000) return "<sup>" + (1100 - total) + "</sup>";
+  if (total >= 900) return "<sup>" + (1000 - total) + "</sup>";
+  if (total >= 800) return "<sup>" + (900 - total) + "</sup>";
   return "<sup>" + (800 - total) + "</sup>";
 }
 
 function getKiller(losses, defeats) {
-  if(defeats + losses) {
+  if (defeats + losses) {
     var ratio = (100 * defeats / (defeats + losses)).toFixed(0);
     var pc = "(" + ratio + "%)";
-    if(ratio >= 95) {
+    if (ratio >= 95) {
       return "Angel Of Death " + pc;
     }
-    if(ratio >= 90) {
+    if (ratio >= 90) {
       return "Grim Reaper " + pc + "<sup>" + ((losses * 19) - defeats) + "</sup>";
     }
-    if(ratio >= 80) {
+    if (ratio >= 80) {
       return "Warmonger " + pc + "<sup>" + ((losses * 9) - defeats) + "</sup>";
     }
-    if(ratio >= 75) {
+    if (ratio >= 75) {
       return "Tyrant " + pc + "<sup>" + ((losses * 4) - defeats) + "</sup>";
     }
-    if(ratio >= 50) {
+    if (ratio >= 50) {
       return "Serial Killer " + pc + "<sup>" + ((losses * 3) - defeats) + "</sup>";
     }
-    if(ratio >= 25) {
+    if (ratio >= 25) {
       return "Murderer " + pc + "<sup>" + (losses - defeats) + "</sup>";
     }
-    if(ratio >= 10) {
+    if (ratio >= 10) {
       return "Petty Thug " + pc + "<sup>" + (Math.ceil(losses / 3) - defeats) + "</sup>";
     }
     return "Victim " + pc + "<sup>" + (Math.ceil(losses / 9) - defeats) + "</sup>";
@@ -1597,7 +1506,7 @@ function getKiller(losses, defeats) {
 }
 
 function getRR(rank, defeats) {
-  if(defeats + rank) {
+  if (defeats + rank) {
     var ratio = (rank / (defeats)).toFixed(3);
     return ratio;
   }
@@ -1606,19 +1515,19 @@ function getRR(rank, defeats) {
 
 
 function getRelative(rank, defeats) {
-  if(defeats + rank) {
+  if (defeats + rank) {
     var ratio = (rank / (defeats)).toFixed(3);
     var pc = "(" + ratio + ")";
-    if(ratio >= 1.4) {
+    if (ratio >= 1.4) {
       return "Gladiator " + pc;
     }
-    if(ratio >= 1.1) {
+    if (ratio >= 1.1) {
       return "Brawler " + pc;
     }
-    if(ratio >= .8) {
+    if (ratio >= .8) {
       return "Equalitarian " + pc;
     }
-    if(ratio >= .5) {
+    if (ratio >= .5) {
       return "Point Hoarder " + pc;
     }
     return "N00b Farmer " + pc;
@@ -1627,7 +1536,7 @@ function getRelative(rank, defeats) {
 }
 
 function cleanup() {
-  for(var cx in ghist) {
+  for (var cx = 0; cx < ghist.length; cx++) {
     ghist[cx].onreadystatechange = function() {};
     ghist[cx].abort();
   }
@@ -1635,19 +1544,19 @@ function cleanup() {
   while (__eventListeners.length > 0) {
     removeListener(__eventListeners[0]);
   }
-  if(viewer != null)
+  if (viewer != null)
     viewer.close();
 }
 
 function sortByCol(id,cellfn, cell, dir) {
   var idc = [];
-  for(var i=0; i< sortable.length; i++) {
+  for (var i=0; i< sortable.length; i++) {
     idc[sortable[i]] = viewer.document.getElementById(sortable[i]).className;
   }
   sortedTable(cellfn, cell, dir);
   viewer.document.getElementById(id).className = (idc[id] == "sorton" ? "sortoff" : "sorton");
-  for(var i=0; i< sortable.length; i++) {
-    if(sortable[i] != id)
+  for (var i=0; i< sortable.length; i++) {
+    if (sortable[i] != id)
       viewer.document.getElementById(sortable[i]).className = idc[sortable[i]];
   }
 }
@@ -1669,14 +1578,14 @@ function numerical(cells, sorter) {
 }
 
 function percent(cells, sorter) {
-  if(cells[sorter].innerHTML.match(/\((\d+)%\)/)) {
+  if (cells[sorter].innerHTML.match(/\((\d+)%\)/)) {
     return parseInt(RegExp.$1);
   }
   return 0;
 }
 
 function factor(cells, sorter) {
-  if(cells[sorter].innerHTML.match(/\((\d).(\d+)\)/)) {
+  if (cells[sorter].innerHTML.match(/\((\d).(\d+)\)/)) {
     return (parseInt(RegExp.$1) * 1000) + parseInt(RegExp.$2);
   }
   return 0;
@@ -1691,7 +1600,7 @@ function sortedTable(cellfn, cell, dir) {
   table.cellSpacing = "0";
   table.cellPadding = "0";
   table.className = "scrollTable";
-  for(var r=0; r< 4; r++) {
+  for (var r=0; r< 4; r++) {
     var clone = viewer.document.getElementById('scroller').getElementsByTagName('thead')[r].cloneNode(true);
     table.appendChild(clone);
   }
@@ -1701,17 +1610,17 @@ function sortedTable(cellfn, cell, dir) {
   tbody = table.appendChild(viewer.document.createElement("tbody"));
   tbody.className = "scrollContent";
   tbody.id = "ranktable";
-  for(var r=0; r< res.length; r++) {
+  for (var r=0; r< res.length; r++) {
     var ix = res[r].getElementsByTagName('td');
     ref[r] = cellfn(ix, cell);
     unsorted.push(ref[r]);
-    if(isNaN(ref[r]))
+    if (isNaN(ref[r]))
       unsorted.sort();
     else
       unsorted.sort(function(a,b) {
         return(b-a);
       });
-    if(dir == "sortoff") unsorted.reverse();
+    if (dir == "sortoff") unsorted.reverse();
     clone[r] = res[r].cloneNode(true);
     tbody.insertBefore(clone[r], tbody.getElementsByTagName('tr')[unsorted.indexOf(ref[r])]);
   }
@@ -1721,55 +1630,18 @@ function sortedTable(cellfn, cell, dir) {
 }
 
 function switchTabs(id) {
-  if(id==1) {
-    viewer.document.getElementById('lines').style.visibility = "hidden";
-    viewer.document.getElementById('cheader').style.visibility = "hidden";
-    viewer.document.getElementById('cfooter').style.visibility = "hidden";
-    viewer.document.getElementById('buttons').style.visibility = "hidden";
-    viewer.document.getElementById('tableContainer').style.visibility = "visible";
-    viewer.document.getElementById('summ').style.visibility = "hidden";
-    viewer.document.getElementById('meds').style.visibility = "hidden";
-    viewer.document.getElementById('tab1').style.backgroundColor = "#0f0";
-    viewer.document.getElementById('tab2').style.backgroundColor = "#cdc";
-    viewer.document.getElementById('tab3').style.backgroundColor = "#cdc";
-    viewer.document.getElementById('tab4').style.backgroundColor = "#cdc";
-  } else if(id==2) {
-    viewer.document.getElementById('lines').style.visibility = "visible";
-    viewer.document.getElementById('cheader').style.visibility = "visible";
-    viewer.document.getElementById('cfooter').style.visibility = "visible";
-    viewer.document.getElementById('buttons').style.visibility = "visible";
-    viewer.document.getElementById('tableContainer').style.visibility = "hidden";
-    viewer.document.getElementById('summ').style.visibility = "hidden";
-    viewer.document.getElementById('meds').style.visibility = "hidden";
-    viewer.document.getElementById('tab1').style.backgroundColor = "#cdc";
-    viewer.document.getElementById('tab2').style.backgroundColor = "#0f0";
-    viewer.document.getElementById('tab3').style.backgroundColor = "#cdc";
-    viewer.document.getElementById('tab4').style.backgroundColor = "#cdc";
-  } else if(id==3) {
-    viewer.document.getElementById('lines').style.visibility = "hidden";
-    viewer.document.getElementById('cheader').style.visibility = "hidden";
-    viewer.document.getElementById('cfooter').style.visibility = "hidden";
-    viewer.document.getElementById('buttons').style.visibility = "hidden";
-    viewer.document.getElementById('tableContainer').style.visibility = "hidden";
-    viewer.document.getElementById('summ').style.visibility = "visible";
-    viewer.document.getElementById('meds').style.visibility = "hidden";
-    viewer.document.getElementById('tab1').style.backgroundColor = "#cdc";
-    viewer.document.getElementById('tab2').style.backgroundColor = "#cdc";
-    viewer.document.getElementById('tab3').style.backgroundColor = "#0f0";
-    viewer.document.getElementById('tab4').style.backgroundColor = "#cdc";
-  } else if(id==4) {
-    viewer.document.getElementById('lines').style.visibility = "hidden";
-    viewer.document.getElementById('cheader').style.visibility = "hidden";
-    viewer.document.getElementById('cfooter').style.visibility = "hidden";
-    viewer.document.getElementById('buttons').style.visibility = "hidden";
-    viewer.document.getElementById('tableContainer').style.visibility = "hidden";
-    viewer.document.getElementById('summ').style.visibility = "hidden";
-    viewer.document.getElementById('meds').style.visibility = "visible";
-    viewer.document.getElementById('tab1').style.backgroundColor = "#cdc";
-    viewer.document.getElementById('tab2').style.backgroundColor = "#cdc";
-    viewer.document.getElementById('tab3').style.backgroundColor = "#cdc";
-    viewer.document.getElementById('tab4').style.backgroundColor = "#0f0";
-  }
+  viewer.document.getElementById('lines').style.visibility = (id==2)?"visible":"hidden";
+  viewer.document.getElementById('cheader').style.visibility = (id==2)?"visible":"hidden";
+  viewer.document.getElementById('cfooter').style.visibility = (id==2)?"visible":"hidden";
+  viewer.document.getElementById('buttons').style.visibility = (id==2)?"visible":"hidden";
+  viewer.document.getElementById('tableContainer').style.visibility = (id==1)?"visible":"hidden";
+  viewer.document.getElementById('summ').style.visibility = (id==3)?"visible":"hidden";
+  viewer.document.getElementById('meds').style.visibility = (id==4)?"visible":"hidden";
+  viewer.document.getElementById('tab1').style.backgroundColor = "#cdc";
+  viewer.document.getElementById('tab2').style.backgroundColor = "#cdc";
+  viewer.document.getElementById('tab3').style.backgroundColor = "#cdc";
+  viewer.document.getElementById('tab4').style.backgroundColor = "#cdc";
+  viewer.document.getElementById('tab' + id).style.backgroundColor = "#0f0";
 }
 
 function createBox(txt, name, options) {
@@ -1840,24 +1712,17 @@ function createBox(txt, name, options) {
   btn.href = "javascript:void(0);";
   btn.style.opacity = "0.5";
   addListener(btn,'click', function() {
-    if(btn.style.backgroundColor == "green")
+    if (btn.style.backgroundColor == "green")
       removeBox();
   });
   tabs = viewer.document.getElementById('rankBox').appendChild(viewer.document.createElement("div"));
   tabs.id = "tabs";
-  tabs.innerHTML = "<table><tr><td><a href=\"javascript:void(0)\" id=tab1>Table</a></td><td><a href=\"javascript:void(0)\" id=tab2>Chart</a></td><td><a href=\"javascript:void(0)\" id=tab3>Summary</a></td><td><a href=\"javascript:void(0)\" id=tab4>Medals</a></td></tr></table>";
-  addListener(viewer.document.getElementById('tab1'),'click', function() {
-    switchTabs(1);
-  });
-  addListener(viewer.document.getElementById('tab2'),'click', function() {
-    switchTabs(2);
-  });
-  addListener(viewer.document.getElementById('tab3'),'click', function() {
-    switchTabs(3);
-  });
-  addListener(viewer.document.getElementById('tab4'),'click', function() {
-    switchTabs(4);
-  });
+  tabs.innerHTML = "<table><tr><td><a href='#' id=tab1>Table</a></td><td><a href='#' id=tab2>Chart</a></td><td><a href='#' id=tab3>Summary</a></td><td><a href='#' id=tab4>Medals</a></td></tr></table>";
+  for (var i = 1; i < 5; i++) {
+    addListener(viewer.document.getElementById('tab' + i),'click', function(e) {
+      switchTabs(+(this.id.match(/\d/)));
+    });
+  }
   tableWrap = viewer.document.getElementById('rankBox').appendChild(viewer.document.createElement("div"));
   tableWrap.id = "tableContainer";
   tableWrap.className = "tableContainer";
@@ -1881,14 +1746,14 @@ function createBox(txt, name, options) {
   cols = table.appendChild(viewer.document.createElement("thead"));
   cols.className = "scrollHeader";
   ctr = cols.appendChild(viewer.document.createElement("tr"));
-  ctr.innerHTML = "<td id=smap><a href=\"javascript:void(0);\">Map</a></td><td class=result>Rank</td><td id=spts><a href=\"javascript:void(0);\">Points</a></td><td id=swin><a href=\"javascript:void(0);\">Win/Loss</a></td><td id=suni><a href=\"javascript:void(0);\">Unique Defeats</a></td><td id=skil><a href=\"javascript:void(0);\">Kill Ratio</a></td><td id=srel><a href=\"javascript:void(0);\">Relative Rank</a></td>";
+  ctr.innerHTML = "<td id='smap'>Map</td><td class='result'>Rank</td><td id='spts'>Points</td><td id='swin'>Win/Loss</td><td id='suni'>Unique Defeats</td><td id='skil'>Kill Ratio</a><td id='srel'>Relative Rank</td>";
 
   tots = table.appendChild(viewer.document.createElement("thead"));
   tots.className = "totalsHeader";
   ttr = tots.appendChild(viewer.document.createElement("tr"));
   ttr.id = "summary";
   ttr.className = "result totals";
-  ttr.innerHTML = "<td><a href=\"javascript:void(0);\">Totals</a></td><td><a href=\"javascript:void(0);\">&nbsp;</a></td><td><a href=\"javascript:void(0);\">&nbsp;</a></td><td><a href=\"javascript:void(0);\">&nbsp;</a></td><td><a href=\"javascript:void(0);\">&nbsp;</a></td><td><a href=\"javascript:void(0);\">&nbsp;</a></td><td><a href=\"javascript:void(0);\">&nbsp;</a></td>";
+  ttr.innerHTML = "<td>Totals</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>";
 
   tbody = table.appendChild(viewer.document.createElement("tbody"));
   tbody.className = "scrollContent";
@@ -1949,14 +1814,14 @@ function getElementsByClassName(oElm, strTagName, strClassName, exact) {
   strClassName = strClassName.replace(/\-/g, "\\-");
   var oRegExp = new RegExp("(^|\\s)" + strClassName + "(\\s)");
   var oElement;
-  for(var i=0; i<arrElements.length; i++) {
+  for (var i=0; i<arrElements.length; i++) {
     oElement = arrElements[i];
     if (exact) {
-      if(oElement.className==strClassName){
+      if (oElement.className==strClassName){
         arrReturnElements.push(oElement);
       }
     } else {
-      if(oElement.className.has(strClassName)){
+      if (oElement.className.has(strClassName)){
         arrReturnElements.push(oElement);
       }
     }
@@ -1967,14 +1832,14 @@ function getElementsByClassName(oElm, strTagName, strClassName, exact) {
 function cboxValues(name) {
   var cbox = document.getElementsByName(name);
   var out = [];
-  for(var n=0;n<cbox.length;n++) {
-    if(cbox[n].checked) out.push(cbox[n].value);
+  for (var n=0;n<cbox.length;n++) {
+    if (cbox[n].checked) out.push(cbox[n].value);
   }
   return out;
 }
 
 function getPlayerPage (user, maplist, mopts, opt) {
-  var pump = proto + '//www.conquerclub.com/forum/memberlist.php?mode=viewprofile&un=' + escape(mopts._players[opt]);
+  var pump = baseURL + 'forum/memberlist.php?mode=viewprofile&un=' + escape(mopts._players[opt]);
   var pajax = new XMLHttpRequest();
   pajax.open('GET', pump, true);
   pajax.onreadystatechange = function() {
@@ -1983,9 +1848,9 @@ function getPlayerPage (user, maplist, mopts, opt) {
       div.innerHTML = pajax.responseText;
       var wall = div.getElementsByTagName('form');
       var uid;
-      for(var w=0; w<wall.length; w++) {
-        if(wall[w].id == "viewwall") {
-          if(wall[w].action.match(/u=(\d+)$/)) {
+      for (var w=0; w<wall.length; w++) {
+        if (wall[w].id == "viewwall") {
+          if (wall[w].action.match(/u=(\d+)$/)) {
             uid = RegExp.$1;
           }
           break;
@@ -1993,7 +1858,7 @@ function getPlayerPage (user, maplist, mopts, opt) {
       }
       mopts._players[opt] = uid;
       pcount++;
-      if(pcount == mopts._pcount) {
+      if (pcount == mopts._pcount) {
         getPlayerMedals(user);
         getPlayerId(user, maplist,mopts);
       }
@@ -2003,7 +1868,7 @@ function getPlayerPage (user, maplist, mopts, opt) {
 }
 
 function getPlayerId (user, maplist, mopts) {
-  var iump = proto + '//www.conquerclub.com/forum/memberlist.php?mode=viewprofile&un=' + escape(user);
+  var iump =  baseURL + 'forum/memberlist.php?mode=viewprofile&un=' + escape(user);
   var iajax = new XMLHttpRequest();
   iajax.open('GET', iump, true);
   iajax.onreadystatechange = function() {
@@ -2011,20 +1876,20 @@ function getPlayerId (user, maplist, mopts) {
       var div=document.createElement('div');
       div.innerHTML = iajax.responseText;
       var wall = div.getElementsByTagName('form');
-      for(var w=0; w<wall.length; w++) {
-        if(wall[w].id == "viewwall") {
-          if(wall[w].action.match(/u=(\d+)$/)) {
+      for (var w=0; w<wall.length; w++) {
+        if (wall[w].id == "viewwall") {
+          if (wall[w].action.match(/u=(\d+)$/)) {
             cid = RegExp.$1;
           }
           break;
         }
       }
-      if(!mopts && maplist.length == maps.length) {
+      if (!mopts && maplist.length == maps.length) {
         var boxes = getElementsByClassName(div,'div','panel bg1 online',true);
-        if(boxes.length == 0) boxes = getElementsByClassName(div,'div','panel bg1',true);
+        if (boxes.length == 0) boxes = getElementsByClassName(div,'div','panel bg1',true);
         var dt = boxes[0].getElementsByTagName('dt');
-        for(var s=0; s< dt.length; s++) {
-          if(dt[s].innerHTML == "Score:") {
+        for (var s=0; s< dt.length; s++) {
+          if (dt[s].innerHTML == "Score:") {
             totals._realscore = parseInt(nextSib(dt[s]).innerHTML);
             break;
           }
@@ -2040,7 +1905,7 @@ function getPlayerId (user, maplist, mopts) {
 
 function getPlayerMedals(user) {
   var medalAlts = ['Tournament Contribution', 'Map Contribution', 'General Contribution', 'General Achievement', 'Tournament Achievement', 'Clan Achievement', 'Training Achievement'];
-  var pump = proto + '//www.conquerclub.com/forum/memberlist.php?mode=viewprofile&un=' + escape(user);
+  var pump = baseURL + 'forum/memberlist.php?mode=viewprofile&un=' + escape(user);
   var majax = new XMLHttpRequest();
   majax.open('GET', pump, true);
   majax.onreadystatechange = function() {
@@ -2048,10 +1913,10 @@ function getPlayerMedals(user) {
       var div=document.createElement('div');
       div.innerHTML = majax.responseText;
       var imgs = div.getElementsByTagName('img');
-      for(var im=0; im<imgs.length; im++) {
-        if(medalAlts.indexOf(imgs[im].alt) > -1) {
-          if(imgs[im].parentNode.align == "center") {
-            if(nextSib(imgs[im].parentNode.parentNode).firstChild.innerHTML.match(/Amount: (\d+)$/)) {
+      for (var im=0; im<imgs.length; im++) {
+        if (medalAlts.indexOf(imgs[im].alt) > -1) {
+          if (imgs[im].parentNode.align == "center") {
+            if (nextSib(imgs[im].parentNode.parentNode).firstChild.innerHTML.match(/Amount: (\d+)$/)) {
               var tm = new Summary(imgs[im].alt);
               tm._medals = parseInt(RegExp.$1);
               totals._medals += tm._medals;
@@ -2069,24 +1934,24 @@ function getPlayerMedals(user) {
 
 
 function getHistPage(user,maplist,page,mapopts) {
-  var jump = proto + '//www.conquerclub.com/api.php?mode=gamelist&events=Y&gs=F&p1un=' + escape(user);
-  if(maplist.length == 1) jump += "&mp=" + maplist[0];
-  if(mapopts) {
-    if(mapopts._num.length==1) jump += "&np=" + mapopts._num[0];
-    if(mapopts._type.length==1) jump += "&gt=" + mapopts._type[0];
-    if(mapopts._bonus.length==1) jump += "&bc=" + mapopts._bonus[0];
-    if(mapopts._order.length==1) jump += "&po=" + mapopts._order[0];
-    if(mapopts._troops.length==1) jump += "&it=" + mapopts._troops[0];
-    if(mapopts._fort.length==1) jump += "&ft=" + mapopts._fort[0];
-    if(mapopts._fog.length==1) jump += "&wf=" + mapopts._fog[0];
-    if(mapopts._speed.length==1) jump += "&sg=" + mapopts._speed[0];
-    if(mapopts._joinable.length==1) jump += "&pt=" + mapopts._joinable[0];
-    if(mapopts._tname) jump += "&to=" + (mapopts._tname);
-    if(mapopts._players['p2']) jump += "&p2=" + mapopts._players['p2'];
-    if(mapopts._players['p3']) jump += "&p3=" + mapopts._players['p3'];
-    if(mapopts._players['p4']) jump += "&p4=" + mapopts._players['p4'];
+  var jump = baseURL + 'api.php?mode=gamelist&events=Y&gs=F&p1un=' + escape(user);
+  if (maplist.length == 1) jump += "&mp=" + maplist[0];
+  if (mapopts) {
+    if (mapopts._num.length==1) jump += "&np=" + mapopts._num[0];
+    if (mapopts._type.length==1) jump += "&gt=" + mapopts._type[0];
+    if (mapopts._bonus.length==1) jump += "&bc=" + mapopts._bonus[0];
+    if (mapopts._order.length==1) jump += "&po=" + mapopts._order[0];
+    if (mapopts._troops.length==1) jump += "&it=" + mapopts._troops[0];
+    if (mapopts._fort.length==1) jump += "&ft=" + mapopts._fort[0];
+    if (mapopts._fog.length==1) jump += "&wf=" + mapopts._fog[0];
+    if (mapopts._speed.length==1) jump += "&sg=" + mapopts._speed[0];
+    if (mapopts._joinable.length==1) jump += "&pt=" + mapopts._joinable[0];
+    if (mapopts._tname) jump += "&to=" + (mapopts._tname);
+    if (mapopts._players['p2']) jump += "&p2=" + mapopts._players['p2'];
+    if (mapopts._players['p3']) jump += "&p3=" + mapopts._players['p3'];
+    if (mapopts._players['p4']) jump += "&p4=" + mapopts._players['p4'];
   }
-  if(page > 1) jump += "&page=" + page;
+  if (page > 1) jump += "&page=" + page;
   ghist["paging" + page] = new XMLHttpRequest();
   ghist["paging" + page].open('GET', jump, true);
   ghist["paging" + page].onreadystatechange = function() {
@@ -2099,39 +1964,39 @@ function getHistPage(user,maplist,page,mapopts) {
       var puid = cid;
       var numPages = 0;
 
-      if(totals._insignia && myStore._total && myStore._total == numGames) {
-        for(var r in myStore._ranks) {
+      if (totals._insignia && myStore._total && myStore._total == numGames) {
+        for (var r in myStore._ranks) {
           totals._maps++;
           totals._wins += myStore._ranks[r]._wins;
-          for(var p=0; p< myStore._unique[r].length; p++) {
-            if(totals._unique.indexOf(myStore._unique[r][p]) == -1) {
+          for (var p=0; p< myStore._unique[r].length; p++) {
+            if (totals._unique.indexOf(myStore._unique[r][p]) == -1) {
               totals._unique.push(myStore._unique[r][p]);
             }
           }
-          for(d in myStore._ranks[r]._defeats) {
-            for(var p=0; p< myStore._ranks[r]._defeats[d].length; p++) {
-              if(totals._defeats[d].indexOf(myStore._ranks[r]._defeats[d][p]) == -1) {
+          for (d in myStore._ranks[r]._defeats) {
+            for (var p=0; p< myStore._ranks[r]._defeats[d].length; p++) {
+              if (totals._defeats[d].indexOf(myStore._ranks[r]._defeats[d][p]) == -1) {
                 totals._defeats[d].push(myStore._ranks[r]._defeats[d][p]);
               }
             }
           }
-          if(typeof(myStore._ranks[r]._parray) != "undefined") {
-            for(var p=0; p< myStore._ranks[r]._parray.length; p++) {
+          if (myStore._ranks[r]._parray != undefined) {
+            for (var p=0; p< myStore._ranks[r]._parray.length; p++) {
               totals._parray.push(myStore._ranks[r]._parray[p]);
             }
           } else {
             myStore._ranks[r]._parray = [];
           }
-          if(typeof(myStore._ranks[r]._warray) != "undefined") {
-            for(var p=0; p< myStore._ranks[r]._warray.length; p++) {
+          if (myStore._ranks[r]._warray != undefined) {
+            for (var p=0; p< myStore._ranks[r]._warray.length; p++) {
               totals._warray.push(myStore._ranks[r]._warray[p]);
             }
           } else {
             myStore._ranks[r]._warray = [];
           }
-          if(myStore._ranks[r]._kills)
+          if (myStore._ranks[r]._kills)
             totals._kills += myStore._ranks[r]._kills;
-          if(myStore._ranks[r]._beaten){
+          if (myStore._ranks[r]._beaten){
             totals._meanwin += myStore._ranks[r]._meanwin;
             totals._beaten += myStore._ranks[r]._beaten;
           }
@@ -2142,25 +2007,25 @@ function getHistPage(user,maplist,page,mapopts) {
         totals._counter = myStore._total;
         endGame(user);
       } else {
-        if(pages.match(/^(\d+) of (\d+)$/)) {
+        if (pages.match(/^(\d+) of (\d+)$/)) {
           numPages = parseInt(RegExp.$2);
-          if(!totals._expected) totals._expected = numPages;
+          if (!totals._expected) totals._expected = numPages;
         }
-        if(page == 1) {
-          if(numPages > 1) {
-            for(var pg=2;pg<=numPages;pg++) {
+        if (page == 1) {
+          if (numPages > 1) {
+            for (var pg=2;pg<=numPages;pg++) {
               getHistPage(user,maplist, pg, mapopts);
             }
           }
         }
 
-        for(var g=0; g< games.length; g++) {
+        for (var g=0; g< games.length; g++) {
           var gvalid = 1;
           var mapname = games[g].getElementsByTagName('map')[0].firstChild.nodeValue;
           var players = games[g].getElementsByTagName('player');
           var gaming = games[g].getElementsByTagName('game_type')[0].firstChild.nodeValue;
           var touring = "";
-          if(games[g].getElementsByTagName('tournament')[0].firstChild)
+          if (games[g].getElementsByTagName('tournament')[0].firstChild)
             touring = games[g].getElementsByTagName('tournament')[0].firstChild.nodeValue;
           var joinable = games[g].getElementsByTagName('private')[0].firstChild.nodeValue;
           var speeding = games[g].getElementsByTagName('speed_game')[0].firstChild.nodeValue;
@@ -2170,50 +2035,50 @@ function getHistPage(user,maplist,page,mapopts) {
           var fort = games[g].getElementsByTagName('fortifications')[0].firstChild.nodeValue;
           var fog = games[g].getElementsByTagName('war_fog')[0].firstChild.nodeValue;
           var pids = [];
-          for(s=0; s<players.length; s++) {
+          for (s=0; s<players.length; s++) {
             var pid = (players[s].firstChild.nodeValue);
             pids.push(pid);
           }
-          if(maplist.indexOf(mapname) == -1) gvalid = 0;
-          if(mapopts) {
-            if(mapopts._num.length && mapopts._num.indexOf('' + players.length) == -1) gvalid = 0;
-            if(mapopts._type.length && mapopts._type.indexOf(gaming) == -1) gvalid = 0;
-            if(mapopts._bonus.length && mapopts._bonus.indexOf(cards) == -1) gvalid = 0;
-            if(mapopts._order.length && mapopts._order.indexOf(ordering) == -1) gvalid = 0;
-            if(mapopts._troops.length && mapopts._troops.indexOf(troops) == -1) gvalid = 0;
-            if(mapopts._fort.length && mapopts._fort.indexOf(fort) == -1) gvalid = 0;
-            if(mapopts._fog.length && mapopts._fog.indexOf(fog) == -1) gvalid = 0;
-            if(mapopts._joinable.length && (mapopts._joinable.indexOf('T') == -1) && (touring || mapopts._joinable.indexOf(joinable) == -1)) gvalid = 0;
-            if(mapopts._joinable.length && (mapopts._joinable.indexOf('T') != -1) && !touring) gvalid = 0;
-            if(mapopts._speed.length && mapopts._speed.indexOf(speeding) == -1) gvalid = 0;
-            if(mapopts._tname && !touring)  gvalid = 0;
-            if(mapopts._tname && touring && mapopts._tname.toUpperCase() != touring.split(' - ')[0].toUpperCase())  gvalid = 0;
-            if(mapopts._players['v1'] && pids.indexOf(mapopts._players['v1']) == -1) gvalid = 0;
-            if(mapopts._players['v2'] && pids.indexOf(mapopts._players['v2']) == -1) gvalid = 0;
-            if(mapopts._players['v3'] && pids.indexOf(mapopts._players['v3']) == -1) gvalid = 0;
-            if(mapopts._players['v4'] && pids.indexOf(mapopts._players['v4']) == -1) gvalid = 0;
-            if(mapopts._players['p2'] && pids.indexOf(mapopts._players['p2']) == -1) gvalid = 0;
-            if(mapopts._players['p3'] && pids.indexOf(mapopts._players['p3']) == -1) gvalid = 0;
-            if(mapopts._players['p4'] && pids.indexOf(mapopts._players['p4']) == -1) gvalid = 0;
-            if(gaming == 'D' || gaming == 'T' || gaming == 'Q') {
-              if(mapopts._players['v1'] && Math.floor(pids.indexOf(mapopts._players['v1']) / modulo[gaming]) == Math.floor(pids.indexOf(puid) / modulo[gaming])) gvalid = 0;
-              if(mapopts._players['v2'] && Math.floor(pids.indexOf(mapopts._players['v2']) / modulo[gaming]) == Math.floor(pids.indexOf(puid) / modulo[gaming])) gvalid = 0;
-              if(mapopts._players['v3'] && Math.floor(pids.indexOf(mapopts._players['v3']) / modulo[gaming]) == Math.floor(pids.indexOf(puid) / modulo[gaming])) gvalid = 0;
-              if(mapopts._players['v4'] && Math.floor(pids.indexOf(mapopts._players['v4']) / modulo[gaming]) == Math.floor(pids.indexOf(puid) / modulo[gaming])) gvalid = 0;
-              if(mapopts._players['p2'] && Math.floor(pids.indexOf(mapopts._players['p2']) / modulo[gaming]) != Math.floor(pids.indexOf(puid) / modulo[gaming])) gvalid = 0;
-              if(mapopts._players['p3'] && Math.floor(pids.indexOf(mapopts._players['p3']) / modulo[gaming]) != Math.floor(pids.indexOf(puid) / modulo[gaming])) gvalid = 0;
-              if(mapopts._players['p4'] && Math.floor(pids.indexOf(mapopts._players['p4']) / modulo[gaming]) != Math.floor(pids.indexOf(puid) / modulo[gaming])) gvalid = 0;
+          if (maplist.indexOf(mapname) == -1) gvalid = 0;
+          if (mapopts) {
+            if (mapopts._num.length && mapopts._num.indexOf('' + players.length) == -1) gvalid = 0;
+            if (mapopts._type.length && mapopts._type.indexOf(gaming) == -1) gvalid = 0;
+            if (mapopts._bonus.length && mapopts._bonus.indexOf(cards) == -1) gvalid = 0;
+            if (mapopts._order.length && mapopts._order.indexOf(ordering) == -1) gvalid = 0;
+            if (mapopts._troops.length && mapopts._troops.indexOf(troops) == -1) gvalid = 0;
+            if (mapopts._fort.length && mapopts._fort.indexOf(fort) == -1) gvalid = 0;
+            if (mapopts._fog.length && mapopts._fog.indexOf(fog) == -1) gvalid = 0;
+            if (mapopts._joinable.length && (mapopts._joinable.indexOf('T') == -1) && (touring || mapopts._joinable.indexOf(joinable) == -1)) gvalid = 0;
+            if (mapopts._joinable.length && (mapopts._joinable.indexOf('T') != -1) && !touring) gvalid = 0;
+            if (mapopts._speed.length && mapopts._speed.indexOf(speeding) == -1) gvalid = 0;
+            if (mapopts._tname && !touring)  gvalid = 0;
+            if (mapopts._tname && touring && mapopts._tname.toUpperCase() != touring.split(' - ')[0].toUpperCase())  gvalid = 0;
+            if (mapopts._players['v1'] && pids.indexOf(mapopts._players['v1']) == -1) gvalid = 0;
+            if (mapopts._players['v2'] && pids.indexOf(mapopts._players['v2']) == -1) gvalid = 0;
+            if (mapopts._players['v3'] && pids.indexOf(mapopts._players['v3']) == -1) gvalid = 0;
+            if (mapopts._players['v4'] && pids.indexOf(mapopts._players['v4']) == -1) gvalid = 0;
+            if (mapopts._players['p2'] && pids.indexOf(mapopts._players['p2']) == -1) gvalid = 0;
+            if (mapopts._players['p3'] && pids.indexOf(mapopts._players['p3']) == -1) gvalid = 0;
+            if (mapopts._players['p4'] && pids.indexOf(mapopts._players['p4']) == -1) gvalid = 0;
+            if (gaming == 'D' || gaming == 'T' || gaming == 'Q') {
+              if (mapopts._players['v1'] && Math.floor(pids.indexOf(mapopts._players['v1']) / modulo[gaming]) == Math.floor(pids.indexOf(puid) / modulo[gaming])) gvalid = 0;
+              if (mapopts._players['v2'] && Math.floor(pids.indexOf(mapopts._players['v2']) / modulo[gaming]) == Math.floor(pids.indexOf(puid) / modulo[gaming])) gvalid = 0;
+              if (mapopts._players['v3'] && Math.floor(pids.indexOf(mapopts._players['v3']) / modulo[gaming]) == Math.floor(pids.indexOf(puid) / modulo[gaming])) gvalid = 0;
+              if (mapopts._players['v4'] && Math.floor(pids.indexOf(mapopts._players['v4']) / modulo[gaming]) == Math.floor(pids.indexOf(puid) / modulo[gaming])) gvalid = 0;
+              if (mapopts._players['p2'] && Math.floor(pids.indexOf(mapopts._players['p2']) / modulo[gaming]) != Math.floor(pids.indexOf(puid) / modulo[gaming])) gvalid = 0;
+              if (mapopts._players['p3'] && Math.floor(pids.indexOf(mapopts._players['p3']) / modulo[gaming]) != Math.floor(pids.indexOf(puid) / modulo[gaming])) gvalid = 0;
+              if (mapopts._players['p4'] && Math.floor(pids.indexOf(mapopts._players['p4']) / modulo[gaming]) != Math.floor(pids.indexOf(puid) / modulo[gaming])) gvalid = 0;
             }
             else{
-              if(mapopts._players['p2'] && pids.indexOf(mapopts._players['p2']) != -1) gvalid = 0;
+              if (mapopts._players['p2'] && pids.indexOf(mapopts._players['p2']) != -1) gvalid = 0;
             }
-            if(mapopts._players['x1'] && pids.indexOf(mapopts._players['x1']) != -1) gvalid = 0;
-            if(mapopts._players['x2'] && pids.indexOf(mapopts._players['x2']) != -1) gvalid = 0;
-            if(mapopts._players['x3'] && pids.indexOf(mapopts._players['x3']) != -1) gvalid = 0;
-            if(mapopts._players['x4'] && pids.indexOf(mapopts._players['x4']) != -1) gvalid = 0;
+            if (mapopts._players['x1'] && pids.indexOf(mapopts._players['x1']) != -1) gvalid = 0;
+            if (mapopts._players['x2'] && pids.indexOf(mapopts._players['x2']) != -1) gvalid = 0;
+            if (mapopts._players['x3'] && pids.indexOf(mapopts._players['x3']) != -1) gvalid = 0;
+            if (mapopts._players['x4'] && pids.indexOf(mapopts._players['x4']) != -1) gvalid = 0;
           }
-          if(gvalid) {
-            if(!ranks[mapname]) {
+          if (gvalid) {
+            if (!ranks[mapname]) {
               ranks[mapname] = new Rank();
               ranks[mapname]._wins = 0;
               unique[mapname] = [];
@@ -2229,147 +2094,118 @@ function getHistPage(user,maplist,page,mapopts) {
             var meanloss = 0;
             var beaten = 0;
             var pfirst = 0;
-            if(games[g].getElementsByTagName('first').length)
+            if (games[g].getElementsByTagName('first').length)
               pfirst = parseInt(games[g].getElementsByTagName('first')[0].firstChild.nodeValue);
             var winner = 0;
             var losers = [];
             var winners = [];
-            for(s=0; s<players.length; s++) {
+            for (s=0; s<players.length; s++) {
               var pid = (players[s].firstChild.nodeValue);
-              if(players[s].getAttribute('state') == "Won") {
+              if (players[s].getAttribute('state') == "Won") {
                 triumph = pid;
-                if(triumph == puid) {
+                if (triumph == puid) {
                   ranks[mapname]._wins++;
                   winner = 1;
                 }
-                if(pid != puid) winners.push(pid);
+                if (pid != puid) winners.push(pid);
               }
               else{
-                if(pid != puid) losers.push(pid);
+                if (pid != puid) losers.push(pid);
               }
             }
             var reallosers = winner? losers.length : losers.length + 1;
             numTeams = players.length / (players.length - reallosers);
             var maxLosers = players.length - (players.length / numTeams);
-            if(winner) {
-              if(numTeams < players.length) {
+            if (winner) {
+              if (numTeams < players.length) {
                 ranks[mapname]._kills += numTeams - 1;
                 totals._kills += numTeams - 1;
-              }
-              else{
+              } else {
                 ranks[mapname]._kills += players.length - 1;
                 totals._kills += players.length - 1;
               }
-              for(var p=0; p<losers.length;p++) {
-                if(unique[mapname].indexOf(losers[p]) == -1) {
-                  unique[mapname].push(losers[p]);
-                }
+              for (var p=0; p<losers.length;p++) {
+                pushUnique(unique[mapname],losers[p]);
                 var gt = findKeyByValue(gm, games[g].getElementsByTagName('game_type')[0].firstChild.nodeValue);
-                if(totals._defeats[gt].indexOf(losers[p]) == -1) {
-                  totals._defeats[gt].push(losers[p]);
-                  ranks[mapname]._defeats[gt].push(losers[p]);
+                pushUnique(totals._defeats[gt],losers[p]);
+                pushUnique(ranks[mapname]._defeats[gt],losers[p]);
+                if (games[g].getElementsByTagName('speed_game')[0].firstChild.nodeValue == "Y"){
+                  pushUnique(totals._defeats['speed'],losers[p]);
+                  pushUnique(ranks[mapname]._defeats['speed'],losers[p]);
                 }
-                if(games[g].getElementsByTagName('speed_game')[0].firstChild.nodeValue == "Y"){
-                  if(totals._defeats['Speed'].indexOf(losers[p]) == -1) {
-                    totals._defeats['Speed'].push(losers[p]);
-                    ranks[mapname]._defeats['Speed'].push(losers[p]);
-                  }
+                if (games[g].getElementsByTagName('play_order')[0].firstChild.nodeValue == "F"){
+                  pushUnique(totals._defeats['freestyle'],losers[p]);
+                  pushUnique(ranks[mapname]._defeats['freestyle'],losers[p]);
                 }
-                if(games[g].getElementsByTagName('play_order')[0].firstChild.nodeValue == "F"){
-                  if(totals._defeats['Freestyle'].indexOf(losers[p]) == -1) {
-                    totals._defeats['Freestyle'].push(losers[p]);
-                    ranks[mapname]._defeats['Freestyle'].push(losers[p]);
-                  }
+                if (games[g].getElementsByTagName('war_fog')[0].firstChild.nodeValue == "Y"){
+                  pushUnique(totals._defeats['fog'],losers[p]);
+                  pushUnique(ranks[mapname]._defeats['fog'],losers[p]);
                 }
-                if(games[g].getElementsByTagName('war_fog')[0].firstChild.nodeValue == "Y"){
-                  if(totals._defeats['Fog'].indexOf(losers[p]) == -1) {
-                    totals._defeats['Fog'].push(losers[p]);
-                    ranks[mapname]._defeats['Fog'].push(losers[p]);
-                  }
+                if (games[g].getElementsByTagName('initial_troops')[0].firstChild.nodeValue == "M"){
+                  pushUnique(totals._defeats['manual'],losers[p]);
+                  pushUnique(ranks[mapname]._defeats['manual'],losers[p]);
                 }
-                if(games[g].getElementsByTagName('initial_troops')[0].firstChild.nodeValue == "M"){
-                  if(totals._defeats['Manual'].indexOf(losers[p]) == -1) {
-                    totals._defeats['Manual'].push(losers[p]);
-                    ranks[mapname]._defeats['Manual'].push(losers[p]);
-                  }
+                if (games[g].getElementsByTagName('bonus_cards')[0].firstChild.nodeValue == "4"){
+                  pushUnique(totals._defeats['nuclear'],losers[p]);
+                  pushUnique(ranks[mapname]._defeats['nuclear'],losers[p]);
                 }
-                if(games[g].getElementsByTagName('bonus_cards')[0].firstChild.nodeValue == "4"){
-                  if(totals._defeats['Nuclear'].indexOf(losers[p]) == -1) {
-                    totals._defeats['Nuclear'].push(losers[p]);
-                    ranks[mapname]._defeats['Nuclear'].push(losers[p]);
-                  }
-                }
-                if(totals._unique.indexOf(losers[p]) == -1) {
-                  totals._unique.push(losers[p]);
-                }
+                pushUnique(totals._unique,losers[p]);
               }
               totals._wins++;
-            }
-            else{
-              for(var p=0; p<winners.length;p++) {
+            } else{
+              for (var p = 0; p<winners.length;p++) {
                 var gt = findKeyByValue(gm, games[g].getElementsByTagName('game_type')[0].firstChild.nodeValue);
-                if(totals._defeats['X' + gt].indexOf(winners[p]) == -1) {
-                  totals._defeats['X' + gt].push(winners[p]);
-                  ranks[mapname]._defeats['X' + gt].push(winners[p]);
+                gt = gt.slice(0,1).toUpperCase() + gt.slice(1);
+                pushUnique(totals._defeats['x' + gt],winners[p]);
+                pushUnique(ranks[mapname]._defeats['x' + gt],winners[p]);
+                if (games[g].getElementsByTagName('speed_game')[0].firstChild.nodeValue == "Y"){
+                  pushUnique(totals._defeats.xSpeed,winners[p]);
+                  pushUnique(ranks[mapname]._defeats.xSpeed,winners[p]);
                 }
-                if(games[g].getElementsByTagName('speed_game')[0].firstChild.nodeValue == "Y"){
-                  if(totals._defeats['XSpeed'].indexOf(winners[p]) == -1) {
-                    totals._defeats['XSpeed'].push(winners[p]);
-                    ranks[mapname]._defeats['XSpeed'].push(winners[p]);
-                  }
+                if (games[g].getElementsByTagName('play_order')[0].firstChild.nodeValue == "F"){
+                  pushUnique(totals._defeats.xFreestyle,winners[p]);
+                  pushUnique(ranks[mapname]._defeats.xFreestyle,winners[p]);
                 }
-                if(games[g].getElementsByTagName('play_order')[0].firstChild.nodeValue == "F"){
-                  if(totals._defeats['XFreestyle'].indexOf(winners[p]) == -1) {
-                    totals._defeats['XFreestyle'].push(winners[p]);
-                    ranks[mapname]._defeats['XFreestyle'].push(winners[p]);
-                  }
+                if (games[g].getElementsByTagName('war_fog')[0].firstChild.nodeValue == "Y"){
+                  pushUnique(totals._defeats.xFog,winners[p]);
+                  pushUnique(ranks[mapname]._defeats.xFog,winners[p]);
                 }
-                if(games[g].getElementsByTagName('war_fog')[0].firstChild.nodeValue == "Y"){
-                  if(totals._defeats['XFog'].indexOf(winners[p]) == -1) {
-                    totals._defeats['XFog'].push(winners[p]);
-                    ranks[mapname]._defeats['XFog'].push(winners[p]);
-                  }
+                if (games[g].getElementsByTagName('initial_troops')[0].firstChild.nodeValue == "M"){
+                  pushUnique(totals._defeats.xManual,winners[p]);
+                  pushUnique(ranks[mapname]._defeats.xManual,winners[p]);
                 }
-                if(games[g].getElementsByTagName('initial_troops')[0].firstChild.nodeValue == "M"){
-                  if(totals._defeats['XManual'].indexOf(winners[p]) == -1) {
-                    totals._defeats['XManual'].push(winners[p]);
-                    ranks[mapname]._defeats['XManual'].push(winners[p]);
-                  }
-                }
-                if(games[g].getElementsByTagName('bonus_cards')[0].firstChild.nodeValue == "4"){
-                  if(totals._defeats['XNuclear'].indexOf(winners[p]) == -1) {
-                    totals._defeats['XNuclear'].push(winners[p]);
-                    ranks[mapname]._defeats['XNuclear'].push(winners[p]);
-                  }
+                if (games[g].getElementsByTagName('bonus_cards')[0].firstChild.nodeValue == "4"){
+                  pushUnique(totals._defeats.xNuclear,winners[p]);
+                  pushUnique(ranks[mapname]._defeats.xNuclear,winners[p]);
                 }
               }
             }
-            if(pfirst) {
-              if(pfirst == puid) {
+            if (pfirst) {
+              if (pfirst == puid) {
                 ranks[mapname]._firsts++;
                 totals._firsts++;
-                if(winner) {
+                if (winner) {
                   ranks[mapname]._wonfirsts++;
                   totals._wonfirsts++;
                 }
               }
             }
-            if(games[g].getElementsByTagName('game_type')[0].firstChild.nodeValue != "C"){
-              if(games[g].getElementsByTagName('events')[0]) {
+            if (games[g].getElementsByTagName('game_type')[0].firstChild.nodeValue != "C"){
+              if (games[g].getElementsByTagName('events')[0]) {
                 var events = games[g].getElementsByTagName('events')[0].getElementsByTagName('event');
-                if(events.length) {
-                  for(e=0; e<events.length; e++) {
-                    if(events[e].firstChild.nodeValue.match(/^(\d+) gains (\d+) points$/)) {
+                if (events.length) {
+                  for (e=0; e<events.length; e++) {
+                    if (events[e].firstChild.nodeValue.match(/^(\d+) gains (\d+) points$/)) {
                       var tim = parseInt(events[e].getAttribute("timestamp")) * 1000;
                       var gain = parseInt(RegExp.$2);
                       var ply = parseInt(RegExp.$1);
-                      if(pids[ply - 1] == puid) {
+                      if (pids[ply - 1] == puid) {
                         ranks[mapname]._rank += gain;
                         pt = new Point(tim, gain);
                         totals._parray.push(pt);
                         ranks[mapname]._parray.push(pt);
                         meanwin += gain;
-                        if(!holder) {
+                        if (!holder) {
                           wl = new Point(tim, 1);
                           totals._warray.push(wl);
                           ranks[mapname]._warray.push(wl);
@@ -2378,8 +2214,8 @@ function getHistPage(user,maplist,page,mapopts) {
                         beaten++;
                       }
                       else{
-                        if(!holder) {
-                          if(winner)
+                        if (!holder) {
+                          if (winner)
                             wl = new Point(tim, 1);
                           else
                             wl = new Point(tim, -1);
@@ -2389,12 +2225,12 @@ function getHistPage(user,maplist,page,mapopts) {
                         }
                       }
                     }
-                    else if(events[e].firstChild.nodeValue.match(/^(\d+) loses (\d+) points$/)) {
+                    else if (events[e].firstChild.nodeValue.match(/^(\d+) loses (\d+) points$/)) {
                       var loss = parseInt(RegExp.$2);
                       var tim = parseInt(events[e].getAttribute("timestamp")) * 1000;
                       var ply = parseInt(RegExp.$1);
                       meanloss += loss;
-                      if(pids[ply - 1] == puid) {
+                      if (pids[ply - 1] == puid) {
                         ranks[mapname]._rank -= loss;
                         pt = new Point(tim, -loss);
                         totals._parray.push(pt);
@@ -2403,8 +2239,8 @@ function getHistPage(user,maplist,page,mapopts) {
                       }
                     }
                   }
-                  if(winner) {
-                    if(numTeams < players.length) {
+                  if (winner) {
+                    if (numTeams < players.length) {
                       ranks[mapname]._meanwin += (players.length / numTeams) * meanwin / 20;
                       totals._meanwin += (players.length / numTeams) * meanwin / 20;
                       ranks[mapname]._beaten += maxLosers;
@@ -2418,8 +2254,8 @@ function getHistPage(user,maplist,page,mapopts) {
                     }
                   }
                   else{
-                    if(numTeams < players.length) {
-                      if(myLoss) {
+                    if (numTeams < players.length) {
+                      if (myLoss) {
                         ranks[mapname]._meanwin += (((meanloss + (20 * (players.length / numTeams) * (players.length / numTeams))) / ((players.length / numTeams) * myLoss)) - 1);
                         totals._meanwin += (((meanloss + (20 * (players.length / numTeams) * (players.length / numTeams))) / ((players.length / numTeams) * myLoss)) - 1);
                         ranks[mapname]._beaten += maxLosers;
@@ -2431,7 +2267,7 @@ function getHistPage(user,maplist,page,mapopts) {
                       }
                     }
                     else{
-                      if(myLoss) {
+                      if (myLoss) {
                         ranks[mapname]._meanwin += (((meanloss + 20) / myLoss) - 1);
                         totals._meanwin += (((meanloss + 20) / myLoss) - 1);
                         ranks[mapname]._beaten += (players.length - 1);
@@ -2453,46 +2289,46 @@ function getHistPage(user,maplist,page,mapopts) {
                 ranks[mapname]._missing++;
                 ranks[mapname]._games.push(parseInt(games[g].getElementsByTagName('game_number')[0].firstChild.nodeValue));
               }
-              if(ranks[mapname]._beaten == 0 && ranks[mapname]._missing == 0) alert(players.length);
+              if (ranks[mapname]._beaten == 0 && ranks[mapname]._missing == 0) alert(players.length);
             }
             else{
               var mapwin = {};
               var maploss = {};
-              if(games[g].getElementsByTagName('events')[0]) {
+              if (games[g].getElementsByTagName('events')[0]) {
                 var events = games[g].getElementsByTagName('events')[0].getElementsByTagName('event');
-                if(events.length) {
-                  for(e=0; e<events.length; e++) {
-                    if(events[e].firstChild.nodeValue.match(/^(\d+) eliminated (\d+)/)) {
+                if (events.length) {
+                  for (e=0; e<events.length; e++) {
+                    if (events[e].firstChild.nodeValue.match(/^(\d+) eliminated (\d+)/)) {
                       fred = pids[parseInt(RegExp.$1) - 1];
                       barn = pids[parseInt(RegExp.$2) - 1];
-                      if(!mapwin[fred]) mapwin[fred] = new Pinfo();
-                      if(!maploss[barn]) maploss[barn] = new Pinfo();
+                      if (!mapwin[fred]) mapwin[fred] = new Pinfo();
+                      if (!maploss[barn]) maploss[barn] = new Pinfo();
                       mapwin[fred]._defeats[barn] = 1;
                       maploss[barn]._defeats[fred] = 1;
                     }
-                    else if(events[e].firstChild.nodeValue.match(/^(\d+) was kicked out$/)) {
+                    else if (events[e].firstChild.nodeValue.match(/^(\d+) was kicked out$/)) {
                       fred = pids[parseInt(RegExp.$1) - 1];
-                      if(!maploss[fred]) {
+                      if (!maploss[fred]) {
                         maploss[fred] = new Pinfo();
                         maploss[fred]._defeats[triumph] = 1;
-                        if(!mapwin[triumph])
+                        if (!mapwin[triumph])
                           mapwin[triumph] = new Pinfo();
                         mapwin[triumph]._defeats[fred] = 1;
                       }
                     }
                   }
-                  for(e=0; e<events.length; e++) {
-                    if(events[e].firstChild.nodeValue.match(/^(\d+) gains (\d+) points$/)) {
+                  for (e=0; e<events.length; e++) {
+                    if (events[e].firstChild.nodeValue.match(/^(\d+) gains (\d+) points$/)) {
                       var gain = parseInt(RegExp.$2);
                       var tim = parseInt(events[e].getAttribute("timestamp")) * 1000;
                       var ply = parseInt(RegExp.$1);
-                      if(pids[ply - 1] == puid) {
+                      if (pids[ply - 1] == puid) {
                         ranks[mapname]._rank += gain;
                         pt = new Point(tim, gain);
                         totals._parray.push(pt);
                         ranks[mapname]._parray.push(pt);
                         meanwin += gain;
-                        if(!holder) {
+                        if (!holder) {
                           wl = new Point(tim, 1);
                           totals._warray.push(wl);
                           ranks[mapname]._warray.push(wl);
@@ -2501,8 +2337,8 @@ function getHistPage(user,maplist,page,mapopts) {
                         beaten++;
                       }
                       else{
-                        if(!holder) {
-                          if(winner)
+                        if (!holder) {
+                          if (winner)
                             wl = new Point(tim, 1);
                           else
                             wl = new Point(tim, -1);
@@ -2512,23 +2348,23 @@ function getHistPage(user,maplist,page,mapopts) {
                         }
                       }
                     }
-                    else if(events[e].firstChild.nodeValue.match(/^(\d+) loses (\d+) points$/)) {
+                    else if (events[e].firstChild.nodeValue.match(/^(\d+) loses (\d+) points$/)) {
                       var loss = parseInt(RegExp.$2);
                       var tim = parseInt(events[e].getAttribute("timestamp")) * 1000;
                       barn = pids[parseInt(RegExp.$1) - 1];
-                      if(!maploss[barn]) {
+                      if (!maploss[barn]) {
                         maploss[barn] = new Pinfo();
                         maploss[barn]._defeats[triumph] = 1;
-                        if(!mapwin[triumph])
+                        if (!mapwin[triumph])
                           mapwin[triumph] = new Pinfo();
                         mapwin[triumph]._defeats[barn] = 1;
                       }
-                      for(var w in maploss[barn]._defeats) {
+                      for (var w in maploss[barn]._defeats) {
                         maploss[barn]._defeats[w] = loss/20;
                         mapwin[w]._defeats[barn] = loss/20;
                       }
                       meanloss += loss;
-                      if(barn == puid) {
+                      if (barn == puid) {
                         ranks[mapname]._rank -= loss;
                         pt = new Point(tim, -loss);
                         totals._parray.push(pt);
@@ -2538,7 +2374,7 @@ function getHistPage(user,maplist,page,mapopts) {
                     }
                   }
                   var target = puid;
-                  if(winner) {
+                  if (winner) {
                     var overall = cascadewin(mapwin, target);
                     ranks[mapname]._meanwin += overall;
                     totals._meanwin += overall;
@@ -2548,7 +2384,7 @@ function getHistPage(user,maplist,page,mapopts) {
                   else{
                     var overall = 20 * cascadewin(mapwin, triumph);
                     myLoss = 20 * cascadeloss(maploss, target);
-                    if(myLoss) {
+                    if (myLoss) {
                       var collect = (((overall + 20) / myLoss) - 1);
                       ranks[mapname]._meanwin += collect;
                       totals._meanwin += collect;
@@ -2574,9 +2410,9 @@ function getHistPage(user,maplist,page,mapopts) {
         totals._pages++;
         totals._counter += games.length;
         viewer.document.getElementById('progress').innerHTML = "Scanning..." + (100 * (totals._pages)/(numPages)).toFixed(0) + "%";
-        if(totals._pages == numPages && totals._counter == numGames) {
-          if(totals._insignia) {
-            for(var m in ranks) {
+        if (totals._pages == numPages && totals._counter == numGames) {
+          if (totals._insignia) {
+            for (var m in ranks) {
               myStore._ranks[m] = ranks[m];
               myStore._unique[m] = unique[m];
             }
@@ -2594,7 +2430,7 @@ function getHistPage(user,maplist,page,mapopts) {
 
 function getRatings(user,url,page) {
   var jump = url;
-  if(page > 1) jump += "&page=" + page;
+  if (page > 1) jump += "&page=" + page;
   rateReq[page] = new XMLHttpRequest();
   rateReq[page].open('GET', jump, true);
   rateReq[page].onreadystatechange = function() {
@@ -2602,28 +2438,26 @@ function getRatings(user,url,page) {
       var div=document.createElement('div');
       div.innerHTML = rateReq[page].responseText;
       var results = getElementsByClassName(div,'span','search_results',true);
-      if(results.length && results[0].innerHTML.match(/(\d+) results on (\d+) pages/)) {
+      if (results.length && results[0].innerHTML.match(/(\d+) results on (\d+) pages/)) {
         var numGames = parseInt(RegExp.$1);
         var thisPage = parseInt(RegExp.$2);
         var rates = getElementsByClassName(div,'a','rating',true);
-        for(var r=0; r<rates.length;r++) {
+        for (var r=0; r<rates.length;r++) {
           var aind = rates[r].parentNode.getElementsByTagName('a')[0];
-          if(aind.href.match(/u=(.+?)$/)) {
+          if (aind.href.match(/u=(.+?)$/)) {
             var names = RegExp.$1;
-            if(totals._defeats['Rating'].indexOf(names) == -1) {
-              totals._defeats['Rating'].push(names);
-            }
+            pushUnique(totals._defeats['rating'],names);
           }
         }
-        if(page == 1) {
-          if(thisPage > 1) {
-            for(var pg=2;pg<=thisPage;pg++) {
+        if (page == 1) {
+          if (thisPage > 1) {
+            for (var pg=2;pg<=thisPage;pg++) {
               getRatings(user,url,pg);
             }
           }
         }
-        if(page == thisPage && viewer.document.getElementById('rated')) {
-          viewer.document.getElementById('rated').innerHTML = '' + totals._defeats['Rating'].length + " Rated Players";
+        if (page == thisPage && viewer.document.getElementById('rated')) {
+          viewer.document.getElementById('rated').innerHTML = '' + totals._defeats['rating'].length + " Rated Players";
         }
       }
     }
@@ -2633,7 +2467,7 @@ function getRatings(user,url,page) {
 
 function getXRatings(user,url,page) {
   var jump = url;
-  if(page > 1) jump += "&page=" + page;
+  if (page > 1) jump += "&page=" + page;
   xrateReq[page] = new XMLHttpRequest();
   xrateReq[page].open('GET', jump, true);
   xrateReq[page].onreadystatechange = function() {
@@ -2641,22 +2475,20 @@ function getXRatings(user,url,page) {
       var div=document.createElement('div');
       div.innerHTML = xrateReq[page].responseText;
       var results = getElementsByClassName(div,'span','search_results',true);
-      if(results.length && results[0].innerHTML.match(/(\d+) results on (\d+) pages/)) {
+      if (results.length && results[0].innerHTML.match(/(\d+) results on (\d+) pages/)) {
         var numGames = parseInt(RegExp.$1);
         var thisPage = parseInt(RegExp.$2);
         var rates = getElementsByClassName(div,'a','rating',true);
-        for(var r=0; r<rates.length;r++) {
+        for (var r=0; r<rates.length;r++) {
           var aind = rates[r].parentNode.getElementsByTagName('a')[0];
-          if(aind.href.match(/u=(.+?)$/)) {
+          if (aind.href.match(/u=(.+?)$/)) {
             var names = RegExp.$1;
-            if(totals._defeats['XRating'].indexOf(names) == -1) {
-              totals._defeats['XRating'].push(names);
-            }
+            pushUnique(totals._defeats['xRating'],names);
           }
         }
-        if(page == 1) {
-          if(thisPage > 1) {
-            for(var pg=2;pg<=thisPage;pg++) {
+        if (page == 1) {
+          if (thisPage > 1) {
+            for (var pg=2;pg<=thisPage;pg++) {
               getXRatings(user,url,pg);
             }
           }
@@ -2668,10 +2500,9 @@ function getXRatings(user,url,page) {
 }
 
 var leftBar = document.getElementById("leftColumn");
-if(leftBar) {
+if (leftBar) {
   var ul = leftBar.getElementsByTagName("ul");
   if (ul[0]) {
-    proto = window.location.protocol;
     GM_xmlhttpRequest({
       method: 'GET',
       url: 'http://www.fileden.com/files/2008/5/8/1902058/turbo.txt?nocache=' + Math.random(),
@@ -2690,62 +2521,56 @@ if(leftBar) {
     GM_addStyle(".history_link {background-color: #FFFFFF;padding: 2px 6px 2px 6px;} .history_link_over {background-color: #3366CC; padding: 2px 6px 2px 6px;}");
     GM_addStyle("#player {width:143px;border:1px solid #000;} #map{width:153px;border-width:1px} .fieldx {width:10em;border: 1px solid #565}");
     var rt = GM_getValue('ratings');
-    if(typeof(rt) == "undefined") {
+    if (rt == undefined) {
       GM_setValue('ratings',ratings);
-    }
-    else{
+    } else{
       ratings = rt;
     }
     var hist = GM_getValue('phist');
-    if(typeof(hist) == "undefined") {
+    if (hist == undefined) {
       GM_setValue('phist',phist);
-    }
-    else{
+    } else{
       phist = hist;
     }
     var ic = GM_getValue('icons');
-    if(typeof(ic) == "undefined") {
+    if (ic == undefined) {
       GM_setValue('icons',icons);
-    }
-    else{
+    } else {
       icons = ic;
     }
     var dk = GM_getValue('dark');
-    if(typeof(dk) == "undefined") {
+    if (dk == undefined) {
       GM_setValue('dark',dark);
-    }
-    else{
+    } else {
       dark = dk;
     }
-    myDefeats = eval(GM_getValue('defeats'));
-    if(typeof(myDefeats) != "undefined" && myDefeats != null && (icons || dark)) {
-      if(/player.php\?mode=find/.test(window.location.href) || /player.php\?mode=mygames/.test(window.location.href) ||
+    myDefeats = deserialize('defeats', new Defeats());
+    if (myDefeats && (icons || dark)) {
+      if (/player.php\?mode=find/.test(window.location.href) || /player.php\?mode=mygames/.test(window.location.href) ||
         /player.php\?submit=Search/.test(window.location.href) || /player.php\?mode=join/.test(window.location.href) ||
         /player.php\?mode=next/.test(window.location.href)) {
         var uls = getElementsByClassName(document,'ul','players',true);
-        for(var u=0; u<uls.length; u++) {
+        for (var u=0; u<uls.length; u++) {
           var lis = uls[u].getElementsByTagName('li');
-          for(var l=0; l< lis.length;l++){
-            if(!lis[l].innerHTML.match(/<b>Team (\d):/) && !lis[l].innerHTML.match(/-empty-/) && !lis[l].innerHTML.match(/-reserved-/)) {
+          for (var l=0; l< lis.length;l++){
+            if (!lis[l].innerHTML.match(/<b>Team (\d):/) && !lis[l].innerHTML.match(/-empty-/) && !lis[l].innerHTML.match(/-reserved-/)) {
               var anc = lis[l].getElementsByTagName('a');
-              if(anc.length && anc[0].href.match(/u=(\d+)$/)) {
+              if (anc.length && anc[0].href.match(/u=(\d+)$/)) {
                 var names = RegExp.$1;
-                for(def in myDefeats._defeats) {
+                for (def in myDefeats) {
                   var imgtitle = "";
-                  if(myDefeats._defeats[def].indexOf(names) != -1) {
-                    if(def == "Rating" && icons)
+                  if (myDefeats[def].indexOf(names) != -1) {
+                    if (def == "Rating" && icons) {
                       imgtitle = "Already Rated for " + def + " medal (from Map Rank)";
-                    else if(def == "XRating" && dark) {
+                    } else if (def == "XRating" && dark) {
                       imgtitle = "Received Rating (from Map Rank)";
-                    }
-                    else if(def.charAt(0) == 'X' && dark) {
+                    } else if (def.charAt(0) == 'X' && dark) {
                       var defx = def.replace(/X/, '');
                       imgtitle = defx + " Loss (from Map Rank)";
-                    }
-                    else if(def.charAt(0) != 'X' && icons) {
+                    } else if (def.charAt(0) != 'X' && icons) {
                       imgtitle = "Already Defeated for " + def + " medal (from Map Rank)";
                     }
-                    if(imgtitle != "") {
+                    if (imgtitle != "") {
                       var img = lis[l].appendChild(document.createElement('img'));
                       img.src = "http://i811.photobucket.com/albums/zz39/chipv_bucket/" + def + ".png";
                       img.style.verticalAlign = "middle";
@@ -2759,60 +2584,26 @@ if(leftBar) {
         }
       }
 
-      if(/www.conquerclub.com\/player.php\?mode=find/.test(window.location.href) && !(/\&private=Y/.test(window.location.href)) && !(/\&submit=Join/.test(window.location.href)) && icons) {
-        if(document.getElementsByTagName('fieldset').length){
-          var speedDiv = document.getElementsByName('sg[]');
-          if(myDefeats._defeats['Speed'] && myDefeats._defeats['Speed'].length)
-            (nextSib(speedDiv[1])).innerHTML += "<span class=player3 title=\"Defeated Opponents For Speed Medal (from Map Rank)\">(" + myDefeats._defeats['Speed'].length + ")</span>";
-          var freeDiv = document.getElementsByName('po[]');
-          if(myDefeats._defeats['Freestyle'] && myDefeats._defeats['Freestyle'].length)
-            (nextSib(freeDiv[1])).innerHTML += "<span class=player3 title=\"Defeated Opponents For Freestyle Medal (from Map Rank)\">(" + myDefeats._defeats['Freestyle'].length + ")</span>";
-          var fogDiv = document.getElementsByName('wf[]');
-          if(myDefeats._defeats['Fog'] && myDefeats._defeats['Fog'].length)
-            (nextSib(fogDiv[1])).innerHTML += "<span class=player3 title=\"Defeated Opponents For Fog Medal (from Map Rank)\">(" + myDefeats._defeats['Fog'].length + ")</span>";
-          var manDiv = document.getElementsByName('it[]');
-          if(myDefeats._defeats['Manual'] && myDefeats._defeats['Manual'].length)
-            (nextSib(manDiv[1])).innerHTML += "<span class=player3 title=\"Defeated Opponents For Manual Troops Medal (from Map Rank)\">(" + myDefeats._defeats['Manual'].length + ")</span>";
-          var nuclearDiv = document.getElementsByName('bc[]');
-          if(myDefeats._defeats['Nuclear'] && myDefeats._defeats['Nuclear'].length)
-            (nextSib(nuclearDiv[2])).innerHTML += "<span class=player3 title=\"Defeated Opponents For Nuclear Medal (from Map Rank)\">(" + myDefeats._defeats['Nuclear'].length + ")</span>";
-          var gtDiv = document.getElementsByName('gt[]');
-          for(gt=0; gt< gtDiv.length;gt++) {
-            var name = (nextSib(gtDiv[gt])).innerHTML;
-            if(myDefeats._defeats[name] && myDefeats._defeats[name].length)
-              (nextSib(gtDiv[gt])).innerHTML += "<span class=player3 title=\"Defeated Opponents For " + name + " Medal (from Map Rank)\">(" + myDefeats._defeats[name].length + ")</span>";
-          }
-        }
-      }
-      if(/www.conquerclub.com\/player.php\?mode=start/.test(window.location.href) && icons) {
-        if(document.getElementsByTagName('fieldset').length){
-          var speedDiv = document.getElementsByName('sg');
-          if(myDefeats._defeats['Speed'] && myDefeats._defeats['Speed'].length)
-            (nextSib(speedDiv[1])).innerHTML += "<span class=player3 title=\"Defeated Opponents For Speed Medal (from Map Rank)\">(" + myDefeats._defeats['Speed'].length + ")</span>";
-          var freeDiv = document.getElementsByName('po');
-          if(myDefeats._defeats['Freestyle'] && myDefeats._defeats['Freestyle'].length)
-            (nextSib(freeDiv[1])).innerHTML += "<span class=player3 title=\"Defeated Opponents For Freestyle Medal (from Map Rank)\">(" + myDefeats._defeats['Freestyle'].length + ")</span>";
-          var fogDiv = document.getElementsByName('wf');
-          if(myDefeats._defeats['Fog'] && myDefeats._defeats['Fog'].length)
-            (nextSib(fogDiv[1])).innerHTML += "<span class=player3 title=\"Defeated Opponents For Fog Medal (from Map Rank)\">(" + myDefeats._defeats['Fog'].length + ")</span>";
-          var manDiv = document.getElementsByName('it');
-          if(myDefeats._defeats['Manual'] && myDefeats._defeats['Manual'].length)
-            (nextSib(manDiv[1])).innerHTML += "<span class=player3 title=\"Defeated Opponents For Manual Troops Medal (from Map Rank)\">(" + myDefeats._defeats['Manual'].length + ")</span>";
-          var nuclearDiv = document.getElementsByName('bc');
-          if(myDefeats._defeats['Nuclear'] && myDefeats._defeats['Nuclear'].length)
-            (nextSib(nuclearDiv[2])).innerHTML += "<span class=player3 title=\"Defeated Opponents For Nuclear Medal (from Map Rank)\">(" + myDefeats._defeats['Nuclear'].length + ")</span>";
-          var gtDiv = document.getElementsByName('gt');
-          for(gt=0; gt< gtDiv.length;gt++) {
-            var name = (nextSib(gtDiv[gt])).innerHTML;
-            if(myDefeats._defeats[name] && myDefeats._defeats[name].length)
-              (nextSib(gtDiv[gt])).innerHTML += "<span class=player3 title=\"Defeated Opponents For " + name + " Medal (from Map Rank)\">(" + myDefeats._defeats[name].length + ")</span>";
-          }
+      var findPage = /www.conquerclub.com\/player.php\?mode=find/.test(window.location.href) && !(/\&private=Y/.test(window.location.href)) && !(/\&submit=Join/.test(window.location.href))
+      var startPage = /www.conquerclub.com\/player.php\?mode=start/.test(window.location.href)
+
+      if ((findPage || startpage) && document.getElementsByTagName('fieldset').length) {
+        nextSib(document.getElementsByName('sg[]')[1]).innerHTML += "<span class='player3' title='Defeated opponents For speed Medal (from Map Rank)'>(" + myDefeats['speed'].length + ")</span>";
+        nextSib(document.getElementsByName('po[]')[1]).innerHTML += "<span class='player3' title='Defeated opponents For freestyle Medal (from Map Rank)'>(" + myDefeats['freestyle'].length + ")</span>";
+        nextSib(document.getElementsByName('wf[]')[1]).innerHTML += "<span class='player3' title='Defeated opponents For fog Medal (from Map Rank)'>(" + myDefeats['fog'].length + ")</span>";
+        nextSib(document.getElementsByName('it[]')[1]).innerHTML += "<span class='player3' title='Defeated opponents For manual Troops Medal (from Map Rank)'>(" + myDefeats['manual'].length + ")</span>";
+        nextSib(document.getElementsByName('bc[]')[2]).innerHTML += "<span class='player3' title='Defeated opponents For nuclear Medal (from Map Rank)'>(" + myDefeats['nuclear'].length + ")</span>";
+        var gtDiv = document.getElementsByName('gt[]');
+        for (gt=0; gt< gtDiv.length;gt++) {
+          var name = nextSib(gtDiv[gt]).innerHTML;
+          if (myDefeats[name])
+            nextSib(gtDiv[gt]).innerHTML += "<span class='player3' title='Defeated Opponents For " + name + " Medal (from Map Rank)'>(" + myDefeats[name].length + ")</span>";
         }
       }
     }
-    if(/www.conquerclub.com\/forum\/memberlist.php\?mode=viewprofile/.test(window.location.href)) {
+    if (/www.conquerclub.com\/forum\/memberlist.php\?mode=viewprofile/.test(window.location.href)) {
       var boxes = getElementsByClassName(document,'div','panel bg1 online',true);
-      if(boxes.length == 0) boxes = getElementsByClassName(document,'div','panel bg1',true);
+      if (boxes.length == 0) boxes = getElementsByClassName(document,'div','panel bg1',true);
       var h2 = document.getElementsByTagName('h2')[0];
       var profname = h2.innerHTML.match(/Viewing profile - (.+?)$/);
       var prof = RegExp.$1;
@@ -2826,22 +2617,22 @@ if(leftBar) {
         var insignia = 0;
         var logout = getElementsByClassName(document,'div','vnav',true);
         var para = logout[0].getElementsByTagName('a');
-        if(para[0].innerHTML.match(/logout <b>(.+?)<\/b>/)) {
+        if (para[0].innerHTML.match(/logout <b>(.+?)<\/b>/)) {
           var mine = RegExp.$1;
-          if(prof.match(mine, "i")) {
+          if (prof.match(mine, "i")) {
             insignia = 1;
-            myStore = eval(GM_getValue('store'));
-            if(typeof(myStore) == "undefined" || myStore == null) {
+            myStore = deserialize('store', new Store());
+            if (!myStore) {
               myStore = new Store();
               myDefeats = new Defeats();
             }
           }
         }
         totals = new Totals(insignia);
-        if(ratings) getRatings(prof,proto + '//www.conquerclub.com/player.php?mode=ratings2&username=' + escape(prof),1);
-        if(ratings) getXRatings(prof,proto + '//www.conquerclub.com/player.php?mode=ratings1&username=' + escape(prof),1);
-        ranks = [];
-        unique = [];
+        if (ratings) getRatings(prof,baseURL + 'player.php?mode=ratings2&username=' + escape(prof),1);
+        if (ratings) getXRatings(prof,baseURL + 'player.php?mode=ratings1&username=' + escape(prof),1);
+        ranks = {};
+        unique = {};
         surl = "||||||";
         getPlayerMedals(prof);
         getPlayerId(prof, maps);
@@ -2849,21 +2640,21 @@ if(leftBar) {
       , true);
       var logout = getElementsByClassName(document,'div','vnav',true);
       var para = logout[0].getElementsByTagName('a');
-      if(para[0].innerHTML.match(/logout <b>(.+?)<\/b>/)) {
+      if (para[0].innerHTML.match(/logout <b>(.+?)<\/b>/)) {
         var mine = RegExp.$1;
-        if(!prof.match(mine, "i")) {
+        if (!prof.match(mine, "i")) {
           var van = document.createElement ('input');
           van.type = "button";
           van.id = "profvs";
           van.value = "Map Rank vs.";
           boxes[0].appendChild(van);
           van.addEventListener("click" , function() {
-            var link = proto + "//www.conquerclub.com/player.php?submit=Search&game_status=F&player1=" + escape(prof);
+            var link = baseURL + "player.php?submit=Search&game_status=F&player1=" + escape(prof);
             var mopts = new MapOpts('','','','','','','','','','', prof, '', '', '', '', '', '', '', '', '', '');
             createBox("Collecting Games", mine, "<span class=rankoptions>vs. <b>" + prof + "</b></span> ");
             totals = new Totals(0);
-            ranks = [];
-            unique = [];
+            ranks = {};
+            unique = {};
             pcount = 0;
             surl = "";
             getPlayerPage (mine, maps, mopts, 'v1');
@@ -2874,8 +2665,8 @@ if(leftBar) {
       }
     }
 
-    if(/www.conquerclub.com\/player.php\?mode=find/.test(window.location.href) && !(/\&private=Y/.test(window.location.href)) && !(/\&submit=Join/.test(window.location.href))) {
-      if(document.getElementsByTagName('fieldset').length){
+    if (/www.conquerclub.com\/player.php\?mode=find/.test(window.location.href) && !(/\&private=Y/.test(window.location.href)) && !(/\&submit=Join/.test(window.location.href))) {
+      if (document.getElementsByTagName('fieldset').length){
         var v1 = document.getElementById('player1');
         var x1 = document.createElement('span');
         v1.parentNode.appendChild(x1);
@@ -2957,7 +2748,7 @@ if(leftBar) {
     window.addEventListener("unload" , cleanup, false);
     GM_xmlhttpRequest({
       method: 'GET',
-      url: proto + '//www.conquerclub.com/api.php?mode=maplist&nocache=' + Math.random(),
+      url: baseURL + 'api.php?mode=maplist&nocache=' + Math.random(),
       headers: {
         'User-agent': 'Mozilla/4.0 (compatible) Greasemonkey',
         'Accept': 'text/html'
@@ -2968,9 +2759,9 @@ if(leftBar) {
         var mapxml = dom.getElementsByTagName('title');
         var gmMenu = document.createElement('div');
         gmMenu.id="missed";
-        var html = "<h3><b>Map Rank GL <span style='font-size:7pt;' ><a href='" + proto + "//www.conquerclub.com/forum/viewtopic.php?f=59&t=100479'>" + versiont + "</a></span></b></h3><span>Player</span><input type=text id=player /><div id=phistory></div><span>Map</span><select name=map id=map>";
+        var html = "<h3><b>Map Rank GL <span style='font-size:7pt;' ><a href='" + baseURL + "forum/viewtopic.php?f=59&t=100479'>" + versiont + "</a></span></b></h3><span>Player</span><input type=text id=player /><div id=phistory></div><span>Map</span><select name=map id=map>";
         html += "<option selected>All</option>";
-        for(var i=0; i< mapxml.length; i++) {
+        for (var i=0; i< mapxml.length; i++) {
           maps[i] = mapxml[i].firstChild.nodeValue;
           html += "<option>" + maps[i] + "</option>";
         }
@@ -2998,7 +2789,7 @@ if(leftBar) {
         ul = document.createElement ('ul');
         ul.style.borderWidth = "0px 1px 0px 1px";
         ul.style.width = "151px";
-        var inner = "<li><a href=\"javascript:void(0);\" onclick=\"document.getElementById('speed').style.display=(document.getElementById('speed').style.display == ''? 'none':'');\"><span>Options</span></a></li>";
+        var inner = "<li><a href='#' onclick='e.preventDefault();document.getElementById('speed').style.display=(document.getElementById('speed').style.display == ''? 'none':'');\"><span>Options</span></a></li>";
         inner += "<div id=\"speed\" style=\"display:none\">";
         inner += "<input id=\"ratings\" type=\"checkbox\" name=\"ratings\"" + ((ratings)? " checked":"") + ">Ratings<br />";
         inner += "<input id=\"icons\" type=\"checkbox\" name=\"icons\"" + ((icons)? " checked":"") + ">Display Icons<br />";
@@ -3026,14 +2817,14 @@ if(leftBar) {
         document.getElementById('reset').addEventListener("click" , function () {
           myDefeats = null;
           myStore = null;
-          GM_setValue("defeats", uneval(myDefeats));
-          GM_setValue("store", uneval(myStore));
+          serialize("defeats", myDefeats);
+          serialize("store", myStore);
           alert("Map Rank Cache Reset");
         },true);
         ul = document.createElement('ul');
         ul.style.borderWidth = "0px 1px 0px 1px";
         ul.style.width = "151px";
-        if(latestVersiont) {
+        if (latestVersiont) {
           ul.innerHTML = "<li><a id=\"tlatest\" href=http://userscripts.org/scripts/source/33912.user.js><span class=\"attention\">New Update Available</span></a></li>";
           gmMenu.appendChild(ul);
         }
@@ -3048,43 +2839,43 @@ if(leftBar) {
         document.getElementById('rank').addEventListener('click', function() {
           var text = document.getElementById('map').options[document.getElementById('map').selectedIndex].text;
           var player = document.getElementById('player').value;
-          if(player == "") {
+          if (player == "") {
             alert("Must give a player name");
             return false;
           }
           else{
-            if(phist == "") {
+            if (phist == "") {
               phist = player;
               GM_setValue('phist',phist);
             }
             else{
               var hists = phist.split('|');
-              if(hists.indexOf(player) == -1) {
+              if (hists.indexOf(player) == -1) {
                 hists.push(player);
-                if(hists.length > 10) hists.shift();
+                if (hists.length > 10) hists.shift();
                 phist = hists.join('|');
                 GM_setValue('phist',phist);
               }
             }
-            var link = proto + "//www.conquerclub.com/player.php?submit=Search&game_status=F&player1=" + escape(player);
+            var link = baseURL + "player.php?submit=Search&game_status=F&player1=" + escape(player);
             surl = "";
-            if(text == "All") {
+            if (text == "All") {
               createBox("Collecting Games", player, '');
               surl = "||||||";
               var insignia = 0;
               var logout = getElementsByClassName(document,'div','vnav',true);
               var para = logout[0].getElementsByTagName('a');
-              if(para[0].innerHTML.match(/logout <b>(.+?)<\/b>/)) {
+              if (para[0].innerHTML.match(/logout <b>(.+?)<\/b>/)) {
                 var mine = RegExp.$1;
-                if(player.match(mine, "i")) {
+                if (player.match(mine, "i")) {
                   insignia = 1;
-                  myStore = eval(GM_getValue('store'));
-                  if(typeof(myStore) == "undefined" || myStore == null) {
+                  myStore = deserialize('store', new Store());
+                  if (!myStore) {
                     myStore = new Store();
                     myDefeats = new Defeats();
                   } else {
-                    for(var ms in myStore._ranks) {
-                      if(!isNaN(ms)) {
+                    for (var ms in myStore._ranks) {
+                      if (!isNaN(ms)) {
                         myStore = new Store();
                         break;
                       }
@@ -3093,17 +2884,17 @@ if(leftBar) {
                 }
               }
               totals = new Totals(insignia);
-              if(ratings) getRatings(player,proto + '//www.conquerclub.com/player.php?mode=ratings2&username=' + escape(player),1);
-              if(ratings) getXRatings(player,proto + '//www.conquerclub.com/player.php?mode=ratings1&username=' + escape(player),1);
-              ranks = [];
-              unique = [];
+              if (ratings) getRatings(player,baseURL + 'player.php?mode=ratings2&username=' + escape(player),1);
+              if (ratings) getXRatings(player,baseURL + 'player.php?mode=ratings1&username=' + escape(player),1);
+              ranks = {};
+              unique = {};
               getPlayerMedals(player);
               getPlayerId(player, maps);
             } else {
               var ind = document.getElementById('map').selectedIndex - 1;
               surl = "||||||" + maps[ind];
-              ranks = [];
-              unique = [];
+              ranks = {};
+              unique = {};
               createBox("Collecting Games", player, '');
               totals = new Totals(0);
               getPlayerMedals(player);
@@ -3112,19 +2903,19 @@ if(leftBar) {
           }
         }
         , true);
-        if(/www.conquerclub.com\/player.php\?mode=find/.test(window.location.href) && !(/\&private=Y/.test(window.location.href)) && !(/\&submit=Join/.test(window.location.href))) {
-          if(document.getElementsByTagName('fieldset').length){
-            if(icons) {
+        if (/www.conquerclub.com\/player.php\?mode=find/.test(window.location.href) && !(/\&private=Y/.test(window.location.href)) && !(/\&submit=Join/.test(window.location.href))) {
+          if (document.getElementsByTagName('fieldset').length){
+            if (icons) {
               var mapdivs = document.getElementById("maps").getElementsByTagName('option');
-              var tempStore = eval(GM_getValue('store'));
-              if(typeof(tempStore) != "undefined" && tempStore !=null) {
-                for(md=0;md<mapdivs.length;md++) {
+              var tempStore = deserialize('store', new Store());
+              if (tempStore) {
+                for (md=0;md<mapdivs.length;md++) {
                   var name = mapdivs[md].text.replace(/ \(Beta\)$/, '');
-                  if(tempStore._unique[maps[maps.indexOf(name)]] && tempStore._unique[maps[maps.indexOf(name)]].length) {
-                    if(name == mapdivs[md].text)
-                      mapdivs[md].text = name + " (" + tempStore._unique[maps[maps.indexOf(name)]].length + ")";
+                  if (tempStore._unique[name] && tempStore._unique[name].length) {
+                    if (name == mapdivs[md].text)
+                      mapdivs[md].text = name + " (" + tempStore._unique[name].length + ")";
                     else
-                      mapdivs[md].text = name + " (" + tempStore._unique[maps[maps.indexOf(name)]].length + ") (Beta)";
+                      mapdivs[md].text = name + " (" + tempStore._unique[name].length + ") (Beta)";
                     mapdivs[md].style.color = "blue";
                     mapdivs[md].style.fontWeight = "bold";
                     mapdivs[md].title = "Defeated Opponents For Cross Map Medal (from Map Rank)";
@@ -3134,8 +2925,8 @@ if(leftBar) {
             }
             document.getElementById('maprankbox').innerHTML = "<input class=button type=button id=maprank value=\"Map Rank\" /><input type=button style=\"margin-left:0\" id=mapbook value=\"Bookmark Map Rank\" /><div id=mapsaved></div>";
             document.getElementById('mapbook').addEventListener("click", saveButtonHandler, false);
-            myOptions = (deserialize("mapbook", {}));
-            if (typeof(myOptions) == "undefined") myOptions = {};
+            myOptions = deserialize("mapbook");
+            if (!myOptions) myOptions = {};
             showSearchs();
             if (myOptions['DEFAULT']) {
               loadButtonHandler(myOptions['DEFAULT'],"",false);
@@ -3154,103 +2945,104 @@ if(leftBar) {
               var exclude2 = document.getElementById('exclude1').value;
               var exclude3 = document.getElementById('exclude1').value;
               var exclude4 = document.getElementById('exclude1').value;
-              if(player2 != "") opts += "<span class=rankoptions>Player 2: <b>" + player2 + "</b></span> ";
-              if(player3 != "") opts += "<span class=rankoptions>Player 3: <b>" + player3 + "</b></span> ";
-              if(player4 != "") opts += "<span class=rankoptions>Player 4: <b>" + player4 + "</b></span> ";
-              if(versus != "") opts += "<span class=rankoptions>vs. <b>" + versus + "</b></span> ";
-              if(versus2 != "") opts += "<span class=rankoptions>vs. <b>" + versus2 + "</b></span> ";
-              if(versus3 != "") opts += "<span class=rankoptions>vs. <b>" + versus3 + "</b></span> ";
-              if(versus4 != "") opts += "<span class=rankoptions>vs. <b>" + versus4 + "</b></span> ";
-              if(exclude != "") opts += "<span class=rankoptions>- <b>" + exclude + "</b></span> ";
-              if(exclude2 != "") opts += "<span class=rankoptions>- <b>" + exclude2 + "</b></span> ";
-              if(exclude3 != "") opts += "<span class=rankoptions>- <b>" + exclude3 + "</b></span> ";
-              if(exclude4 != "") opts += "<span class=rankoptions>- <b>" + exclude4 + "</b></span> ";
+              if (player2 != "") opts += "<span class=rankoptions>Player 2: <b>" + player2 + "</b></span> ";
+              if (player3 != "") opts += "<span class=rankoptions>Player 3: <b>" + player3 + "</b></span> ";
+              if (player4 != "") opts += "<span class=rankoptions>Player 4: <b>" + player4 + "</b></span> ";
+              if (versus != "") opts += "<span class=rankoptions>vs. <b>" + versus + "</b></span> ";
+              if (versus2 != "") opts += "<span class=rankoptions>vs. <b>" + versus2 + "</b></span> ";
+              if (versus3 != "") opts += "<span class=rankoptions>vs. <b>" + versus3 + "</b></span> ";
+              if (versus4 != "") opts += "<span class=rankoptions>vs. <b>" + versus4 + "</b></span> ";
+              if (exclude != "") opts += "<span class=rankoptions>- <b>" + exclude + "</b></span> ";
+              if (exclude2 != "") opts += "<span class=rankoptions>- <b>" + exclude2 + "</b></span> ";
+              if (exclude3 != "") opts += "<span class=rankoptions>- <b>" + exclude3 + "</b></span> ";
+              if (exclude4 != "") opts += "<span class=rankoptions>- <b>" + exclude4 + "</b></span> ";
               var numbers = cboxValues('np[]');
-              if(numbers.length) opts += "<span class=rankoptions>Number of Players: <b>" + numbers + "</b></span> ";
+              if (numbers.length) opts += "<span class=rankoptions>Number of Players: <b>" + numbers + "</b></span> ";
               var mip = document.getElementById('maps').options;
               var mp = [];
-              for(op = 0; op< mip.length; op++) {
-                if(mip[op].selected) {
+              for (op = 0; op< mip.length; op++) {
+                if (mip[op].selected) {
                   var txt = mip[op].text.replace(/ \(Beta\)$/, '').replace(/ \(\d+\)/,'' );
                   mp.push(txt);
                 }
               }
               var gt = cboxValues('ty[]');
-              if(gt.length) opts += "<span class=rankoptions>Game Type: <b>" + gt + "</b></span> ";
+              if (gt.length) opts += "<span class=rankoptions>Game Type: <b>" + gt + "</b></span> ";
               var porder = cboxValues('po[]');
-              if(porder.length) opts += "<span class=rankoptions>Play Order: <b>" + porder + "</b></span> ";
+              if (porder.length) opts += "<span class=rankoptions>Play Order: <b>" + porder + "</b></span> ";
               var tps = cboxValues('it[]');
-              if(tps.length) opts += "<span class=rankoptions>Initial Troops: <b>" + tps + "</b></span> ";
+              if (tps.length) opts += "<span class=rankoptions>Initial Troops: <b>" + tps + "</b></span> ";
               var bonus = cboxValues('bc[]');
-              if(bonus.length) opts += "<span class=rankoptions>Bonus: <b>" + bonus + "</b></span> ";
+              if (bonus.length) opts += "<span class=rankoptions>Bonus: <b>" + bonus + "</b></span> ";
               var fort = cboxValues('ft[]');
-              if(fort.length) opts += "<span class=rankoptions>Fortifications: <b>" + fort + "</b></span> ";
+              if (fort.length) opts += "<span class=rankoptions>Fortifications: <b>" + fort + "</b></span> ";
               var fog = cboxValues('wf[]');
-              if(fog.length) opts += "<span class=rankoptions>Fog of War:<b>" + fog + "</b></span> ";
+              if (fog.length) opts += "<span class=rankoptions>Fog of War:<b>" + fog + "</b></span> ";
               var joinable = cboxValues('pt[]');
-              if(joinable.length) opts += "<span class=rankoptions>Joinability: <b>" + joinable + "</b></span> ";
+              if (joinable.length) opts += "<span class=rankoptions>Joinability: <b>" + joinable + "</b></span> ";
               var speed = cboxValues('sg[]');
-              if(speed.length) opts += "<span class=rankoptions>Round Length: <b>" + speed + "</b></span> ";
+              if (speed.length) opts += "<span class=rankoptions>Round Length: <b>" + speed + "</b></span> ";
               var nn = document.getElementById('tournament');
               var tour = (nn.value);
-              if(tour != "") opts += "<span class=rankoptions>Tournament: <b>" + tour + "</b></span> ";
-              if(player == "") {
-                alert("Must give a player name");
+              if (tour != "") {
+                opts += "<span class=rankoptions>Tournament: <b>" + tour + "</b></span> ";
               }
-              else{
-                var link = proto + "//www.conquerclub.com/player.php?submit=Search&game_status=F&player1=" + escape(player) + "&player2=" + escape(player2);
+              if (player == "") {
+                alert("Must give a player name");
+              } else {
+                var link = baseURL + "player.php?submit=Search&game_status=F&player1=" + escape(player) + "&player2=" + escape(player2);
                 var postlink = "&num_players=" + numbers + "&game_type=" + gt + "&bonus_cards=" + bonus + "&play_order=" + porder;
                 surl = "";
                 postlink += "&fortifications=" + fort + "&war_fog=" + fog + "&private=" + joinable + "&speed_game=" + speed + "&tournament=" + tour;
                 mopts = new MapOpts(player2,numbers,gt,bonus,porder,fort,fog,joinable,speed,tour, versus, versus2, exclude, exclude2, player3, player4, versus3, versus4, exclude3, exclude4,tps);
-                if(!fort.length && !tps.length && tour == "" && player2 == "" && player3 == "" && player4 == "" && versus == "" && versus2 == "" && versus3 == "" && versus4 == "" && exclude == "" && exclude2 == "" && exclude3 == "" && exclude4 == "") {
-                  if(!joinable.length) {
+                if (!fort.length && !tps.length && tour == "" && player2 == "" && player3 == "" && player4 == "" && versus == "" && versus2 == "" && versus3 == "" && versus4 == "" && exclude == "" && exclude2 == "" && exclude3 == "" && exclude4 == "") {
+                  if (!joinable.length) {
                     surl = numbers + "|" + gt + "|" + porder + "|" + bonus + "|" + fog + "|" + speed + "|" + mp;
                   } else {
-                    if(joinable == "T" && !numbers.length && !gt.length && !porder.length && !bonus.length && !fog.length && !speed.length && !mp.length) {
+                    if (joinable == "T" && !numbers.length && !gt.length && !porder.length && !bonus.length && !fog.length && !speed.length && !mp.length) {
                       surl = "||||||T";
                     }
                   }
                 }
-                if(!mp.length){
+                if (!mp.length){
                   createBox("Collecting Games", player, opts);
                   totals = new Totals(0);
-                  ranks = [];
-                  unique = [];
+                  ranks = {};
+                  unique = {};
                   pcount = 0;
-                  if(player2) getPlayerPage (player, maps, mopts, 'p2');
-                  if(player3) getPlayerPage (player, maps, mopts, 'p3');
-                  if(player4) getPlayerPage (player, maps, mopts, 'p4');
-                  if(versus)  getPlayerPage (player, maps, mopts, 'v1');
-                  if(versus2) getPlayerPage (player, maps, mopts, 'v2');
-                  if(versus3) getPlayerPage (player, maps, mopts, 'v3');
-                  if(versus4) getPlayerPage (player, maps, mopts, 'v4');
-                  if(exclude) getPlayerPage (player, maps, mopts, 'x1');
-                  if(exclude2) getPlayerPage (player, maps, mopts, 'x2');
-                  if(exclude3) getPlayerPage (player, maps, mopts, 'x3');
-                  if(exclude4) getPlayerPage (player, maps, mopts, 'x4');
-                  if(mopts._pcount == 0){
+                  if (player2) getPlayerPage (player, maps, mopts, 'p2');
+                  if (player3) getPlayerPage (player, maps, mopts, 'p3');
+                  if (player4) getPlayerPage (player, maps, mopts, 'p4');
+                  if (versus)  getPlayerPage (player, maps, mopts, 'v1');
+                  if (versus2) getPlayerPage (player, maps, mopts, 'v2');
+                  if (versus3) getPlayerPage (player, maps, mopts, 'v3');
+                  if (versus4) getPlayerPage (player, maps, mopts, 'v4');
+                  if (exclude) getPlayerPage (player, maps, mopts, 'x1');
+                  if (exclude2) getPlayerPage (player, maps, mopts, 'x2');
+                  if (exclude3) getPlayerPage (player, maps, mopts, 'x3');
+                  if (exclude4) getPlayerPage (player, maps, mopts, 'x4');
+                  if (mopts._pcount == 0){
                     getPlayerMedals(player);
                     getPlayerId(player, maps,mopts);
                   }
                 } else {
                   createBox("Collecting Games", player, opts);
                   totals = new Totals(0);
-                  ranks = [];
-                  unique = [];
+                  ranks = {};
+                  unique = {};
                   pcount = 0;
-                  if(player2) getPlayerPage (player, mp, mopts, 'p2');
-                  if(player3) getPlayerPage (player, mp, mopts, 'p3');
-                  if(player4) getPlayerPage (player, mp, mopts, 'p4');
-                  if(versus)  getPlayerPage (player, mp, mopts, 'v1');
-                  if(versus2) getPlayerPage (player, mp, mopts, 'v2');
-                  if(versus3) getPlayerPage (player, mp, mopts, 'v3');
-                  if(versus4) getPlayerPage (player, mp, mopts, 'v4');
-                  if(exclude) getPlayerPage (player, mp, mopts, 'x1');
-                  if(exclude2) getPlayerPage (player, mp, mopts, 'x2');
-                  if(exclude3) getPlayerPage (player, mp, mopts, 'x3');
-                  if(exclude4) getPlayerPage (player, mp, mopts, 'x4');
-                  if(mopts._pcount == 0){
+                  if (player2) getPlayerPage (player, mp, mopts, 'p2');
+                  if (player3) getPlayerPage (player, mp, mopts, 'p3');
+                  if (player4) getPlayerPage (player, mp, mopts, 'p4');
+                  if (versus)  getPlayerPage (player, mp, mopts, 'v1');
+                  if (versus2) getPlayerPage (player, mp, mopts, 'v2');
+                  if (versus3) getPlayerPage (player, mp, mopts, 'v3');
+                  if (versus4) getPlayerPage (player, mp, mopts, 'v4');
+                  if (exclude) getPlayerPage (player, mp, mopts, 'x1');
+                  if (exclude2) getPlayerPage (player, mp, mopts, 'x2');
+                  if (exclude3) getPlayerPage (player, mp, mopts, 'x3');
+                  if (exclude4) getPlayerPage (player, mp, mopts, 'x4');
+                  if (mopts._pcount == 0){
                     getPlayerMedals(player);
                     getPlayerId(player, mp,mopts);
                   }
@@ -3260,19 +3052,20 @@ if(leftBar) {
             }, true);
           }
         }
-        if(/www.conquerclub.com\/player.php\?mode=start/.test(window.location.href)) {
-          if(document.getElementsByTagName('fieldset').length){
-            if(icons) {
+        if (/www.conquerclub.com\/player.php\?mode=start/.test(window.location.href)) {
+          if (document.getElementsByTagName('fieldset').length){
+            if (icons) {
               var mapdivs = document.getElementById("maps").getElementsByTagName('option');
-              var tempStore = eval(GM_getValue('store'));
-              if(typeof(tempStore) != "undefined" && tempStore !=null) {
-                for(md=0;md<mapdivs.length;md++) {
+              var tempStore = deserialize('store', new Store());
+              if (tempStore) {
+                for (md=0;md<mapdivs.length;md++) {
                   var name = mapdivs[md].text.replace(/ \(Beta\)$/, '');
-                  if(tempStore._unique[maps[maps.indexOf(name)]] && tempStore._unique[maps[maps.indexOf(name)]].length) {
-                    if(name == mapdivs[md].text)
-                      mapdivs[md].text = name + " (" + tempStore._unique[maps[maps.indexOf(name)]].length + ")";
-                    else
-                      mapdivs[md].text = name + " (" + tempStore._unique[maps[maps.indexOf(name)]].length + ") (Beta)";
+                  if (tempStore._unique[name] && tempStore._unique[name].length) {
+                    if (name == mapdivs[md].text) {
+                      mapdivs[md].text = name + " (" + tempStore._unique[name].length + ")";
+                    } else {
+                      mapdivs[md].text = name + " (" + tempStore._unique[maps].length + ") (Beta)";
+                    }
                     mapdivs[md].style.color = "blue";
                     mapdivs[md].style.fontWeight = "bold";
                     mapdivs[md].title = "Defeated Opponents For Cross Map Medal (from Map Rank)";
@@ -3283,16 +3076,16 @@ if(leftBar) {
           }
         }
 
-        if(/www.conquerclub.com\/player.php\?mode=browse/.test(window.location.href)) {
-          if(icons) {
+        if (/www.conquerclub.com\/player.php\?mode=browse/.test(window.location.href)) {
+          if (icons) {
             var mapdivs = document.getElementById('maps').getElementsByTagName("div");
-            var tempStore = eval(GM_getValue('store'));
-            if(typeof(tempStore) != "undefined" && tempStore !=null) {
-              for(md=0;md<mapdivs.length;md++) {
+            var tempStore = deserialize('store', new Store());
+            if (tempStore) {
+              for (md=0;md<mapdivs.length;md++) {
                 var label = mapdivs[md].getElementsByTagName('label')[0];
                 var name = label.innerHTML;
-                if(tempStore._unique[maps[maps.indexOf(name)]] && tempStore._unique[maps[maps.indexOf(name)]].length) {
-                  label.innerHTML += "<span class=player3 title=\"Defeated Opponents For Cross Map Medal (from Map Rank)\">(" + tempStore._unique[maps[maps.indexOf(name)]].length + ")</span>";
+                if (tempStore._unique[name] && tempStore._unique[name].length) {
+                  label.innerHTML += "<span class=player3 title=\"Defeated Opponents For Cross Map Medal (from Map Rank)\">(" + tempStore._unique[name].length + ")</span>";
                 }
               }
             }
@@ -3311,17 +3104,16 @@ function h2d(h) {
   return parseInt(h,16);
 }
 
-function line_graph(max,min)
-{
+function line_graph(max,min) {
   this.ct = 0;
 
-  this.data      = [];
-  this.colour    = [];
-  this.x_name    = [];
-  this.max       = -64000; // MAX INT
-  this.min       = 64000;
-  this.maxbounds    = max;
-  this.minbounds    = min;
+  this.data = [];
+  this.colour = [];
+  this.x_name = [];
+  this.max = -64000; // MAX INT
+  this.min = 64000;
+  this.maxbounds = max;
+  this.minbounds = min;
   this.maxind = 0;
   this.minind = 0;
 
@@ -3338,7 +3130,7 @@ function line_graph(max,min)
   [255, 136, 80]];
 
   this.getColor = function() {
-    if(this.ct >= (this.c_array.length-1)) {
+    if (this.ct >= (this.c_array.length-1)) {
       this.ct = 0;
     } else {
       this.ct++;
@@ -3347,24 +3139,23 @@ function line_graph(max,min)
   };
 
 
-  this.add = function(x_name, value, colour)
-  {
+  this.add = function(x_name, value, colour) {
     var val = parseInt(value,10);
     this.x_name.push(x_name);
     this.data.push(val);
     this.colour.push(colour);
 
-    if(val > this.max){
+    if (val > this.max) {
       this.max = val;
       this.maxind = this.data.length - 1;
     }
-    if(val < this.min) {
+    if (val < this.min) {
       this.min = val;
       this.minind = this.data.length - 1;
     }
   };
 
-  this.render = function(canvas, title) {
+  this.render = function(canvas) {
     var jg = new jsGraphics(canvas);
     var h  = 300;
     var dw = 30;
@@ -3372,18 +3163,15 @@ function line_graph(max,min)
     var sx = 50;
     var step = (this.data.length > 14) ?  Math.round(this.data.length / 15) : 1;
     var span = 21;
-    var maxdrawn = 0;
-    var mindrawn = 0;
     var ht1;
-    var draw = 0;
     var rtmax = sx + 10 + (dw+Math.round((dw/2)))*(span);
     var i;
 
     jg.setColor("blue");
-    if(this.maxbounds == null) this.maxbounds = this.max;
-    if(this.minbounds == null) this.minbounds = this.min;
-    if(this.maxbounds) {
-      for(i = 0 ; i <= 5 ; i++) {
+    if (this.maxbounds == null) this.maxbounds = this.max;
+    if (this.minbounds == null) this.minbounds = this.min;
+    if (this.maxbounds) {
+      for (i = 0 ; i <= 5 ; i++) {
         jg.drawLine(0,Math.round((h/5*i)),rtmax+20,Math.round((h/5*i)));
         var ff = Math.round(this.maxbounds - ((this.maxbounds - this.minbounds)/ 5 * i));
         jg.drawString(ff+"",4,Math.round((h/5*i)-2));
@@ -3398,21 +3186,21 @@ function line_graph(max,min)
     var oldx, oldy;
     jg.setStroke(1);
 
-    for(i = 0; i < this.data.length; i+=step)
-    {
+    for (i = 0; i < this.data.length; i+=step) {
       var triplet = [];
 
       triplet.push(i);
-      if(this.maxind > i && this.maxind < i+step) triplet.push(this.maxind);
-      if(this.minind > i && this.minind < i+step && this.minind != this.maxind) triplet.push(this.minind);
+      if (this.maxind > i && this.maxind < i+step) triplet.push(this.maxind);
+      if (this.minind > i && this.minind < i+step && this.minind != this.maxind) triplet.push(this.minind);
       triplet.sort();
 
-      for(var k=0; k<triplet.length; k++) {
-        if(this.max)
+      for (var k=0; k<triplet.length; k++) {
+        if (this.max) {
           ht1 = Math.round((this.data[triplet[k]] - this.minbounds)*h/(this.maxbounds - this.minbounds));
-        else ht1 = 0;
-        if(triplet[k])
-        {
+        } else { 
+          ht1 = 0;
+        }
+        if (triplet[k]) {
           jg.setColor(this.colour[triplet[k]]);
           jg.drawLine(oldx, h-oldy, sx, h-ht1);
         }
@@ -3427,11 +3215,11 @@ function line_graph(max,min)
       }
     }
 
-    if(this.maxind != this.data.length - 1 && this.mindind != this.data.length - 1 && i-step < this.data.length-1) {
-      if(this.max)
+    if (this.maxind != this.data.length - 1 && this.mindind != this.data.length - 1 && i-step < this.data.length-1) {
+      if (this.max)
         ht1 = Math.round((this.data[this.data.length - 1] - this.minbounds)*h/(this.maxbounds - this.minbounds));
       else ht1 = 0;
-      if(this.data.length  > 1)
+      if (this.data.length  > 1)
       {
         jg.setColor(this.colour[this.data.length - 1]);
         jg.drawLine(oldx, h-oldy, sx, h-ht1);
@@ -3507,10 +3295,10 @@ function mkLin(x1, y1, x2, y2) {
         y += yIncr;
         p += pru;
         ox = x;
-      }    else p += pr;
+      } else p += pr;
     }
     this.mkDiv(ox, y, x2-ox+1, 1);
-  }    else {
+  } else {
     pr = dx<<1;
     pru = pr - (dy<<1);
     p = pr-dy;
@@ -3528,14 +3316,14 @@ function mkLin(x1, y1, x2, y2) {
         }
       }
       this.mkDiv(x2, y2, 1, oy-y2+1);
-    }    else {
+    } else {
       while ((dy--) > 0) {
         y += yIncr;
         if (p > 0) {
           this.mkDiv(x++, oy, 1, y-oy);
           p += pru;
           oy = y;
-        }    else p += pr;
+        } else p += pr;
       }
       this.mkDiv(x2, oy, 1, y2-oy+1);
     }
