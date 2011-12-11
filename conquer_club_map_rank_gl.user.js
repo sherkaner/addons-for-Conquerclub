@@ -73,7 +73,7 @@ for (var i = 1; i < 6; i++) {
   }
   medmatrix.push([i]);
 }
-medmatrix.sort(function(a,b) {
+medmatrix.sort(function(a,b) { // longest first
   return b.length - a.length;
 });
 var slider;
