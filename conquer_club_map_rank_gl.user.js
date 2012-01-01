@@ -65,8 +65,8 @@ var meddivclass = ["nomeddiv", "bmeddiv", "smeddiv", "gmeddiv", "omeddiv"];
 var medcombo = ["manual", "freestyle", "fog", "speed", "crossmap", "nuclear"];
 var medcombourl = ["&it=M", "&po=F", "&wf=Y", "&sg=Y", "", "&bc=4"];
 var medmatrix = []; // all possible combinations to get medals.
-for (var i = 1; i < 6; i++) {
-  for (var j = medmatrix.length - 1; j > -1; j--) {
+for (var i = 0; i < 6; i++) {
+  for (var j = 0, length = medmatrix.length; j < length; j++) {
     var temp = medmatrix[j].slice(0);
     temp.push(i);
     medmatrix.push(temp);
@@ -820,8 +820,8 @@ function endGame(user) {
     }
     else{
       var hrefbase = base;
-      var optimalrows = new Array(medmatrix.length);
-      var optimaltext = new Array(medmatrix.length);
+      var optimalrows = [];
+      var optimaltext = [];
       for (var mat=0; mat<medmatrix.length;mat++) {
         var assoc = [];
         var optimalkey = medmatrix[mat].join(',');
@@ -1292,7 +1292,12 @@ function key(input,e) {
 function deserialize(name, def) {
   var toReturn;
   try {
-    toReturn = JSON.parse(GM_getValue(name), def || {});
+	var original = GM_getValue(name);
+	if (original && original.indexOf('(') == 0) {
+		toReturn = def || {}; //saved through old method, reset.
+	} else {
+		toReturn = JSON.parse(original, def || {});
+	}
   } catch (e) {}
   return toReturn || def || {};
 }
@@ -2129,7 +2134,7 @@ function getHistPage(user,maplist,page,mapopts) {
                 var gt = findKeyByValue(gm, games[g].getElementsByTagName('game_type')[0].firstChild.nodeValue);
                 pushUnique(totals._defeats[gt],losers[p]);
                 pushUnique(ranks[mapname]._defeats[gt],losers[p]);
-                if (games[g].getElementsByTagName('speed_game')[0].firstChild.nodeValue == "Y"){
+                if (games[g].getElementsByTagName('speed_game')[0].firstChild.nodeValue != "N"){
                   pushUnique(totals._defeats['speed'],losers[p]);
                   pushUnique(ranks[mapname]._defeats['speed'],losers[p]);
                 }
