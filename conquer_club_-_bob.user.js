@@ -1,5 +1,5 @@
 // Conquer Club - Card Counter, Card Redemption Value, Status Indicator
-var versionString = "5.1.9";
+var versionString = "5.2.0";
 // This monkey is now called:
 
 /////	////   /////
@@ -27,7 +27,7 @@ var versionString = "5.1.9";
 //-----------------------------------------------------------------------------
 // ==UserScript==
 // @name          Conquer Club - BOB
-// @version       5.1.9
+// @version       5.2.0
 // @namespace     http://yeti_c.co.uk/conquerClub
 // @description   Adds Stats, card counter, redemption value, text based map, map inspection tools
 // @include       http*://*conquerclub.com*
@@ -1320,7 +1320,7 @@ function isNewVersion() {
 function setupMenu() {
 	// setup menu headings.
 	var gmMenu = $('<div id="bobmenu">'),
-		t = $("<h3>BOB Menu <span style='font-size:7pt;' ><a href='http://www.conquerclub.com/forum/viewtopic.php?t=91386'> " + versionString + "</a></span></h3>"),
+		t = $("<h3>BOB Menu <span style='font-size:7pt;' ><a href='http://www.conquerclub.com/forum/viewtopic.php?t=161049'> " + versionString + "</a></span></h3>"),
 		ul = $('<ul id="bobmenuUl">');
 	gmMenu.append(t).append(ul);
 	$('#leftColumn').find('ul:first').parent().append(gmMenu);
@@ -1699,12 +1699,9 @@ function updateStats() {
 		$('#statsTable').html(createStats());
 		$('#showMoreStatsLink').click(showMoreStats).parent().show();
 		$('#hideEliminated').click(function() {
-			$('#statsTable').find('tr.eliminated').toggle();
-			if ($(this).html().has("Hide")) {
-				$(this).html('Show eliminated players');
-			} else {
-				$(this).html('Hide eliminated players');
-			}
+			var shouldHide = $(this).text().has("Show");
+			$('#statsTable tr.eliminated').toggle(shouldHide);
+			$(this).text((shouldHide?'Hide':'Show') + ' eliminated players');
 		});
 		wrapper.show();
 		$("td.popup").hover(function() {
@@ -2607,7 +2604,7 @@ function updateMagicMap(showProgress) {
 			$("#players, #stats").on('mouseover','img.icon', lightCards);
 		}
 		cc_log("Attaching the handlers");
-		$('#action-form').on('mouseover','span.card0, span.card1, span.card2',mouseOverCards);
+		$('#cards, #teammates').on('mouseover','span.card0, span.card1, span.card2',mouseOverCards);
 		$('#dashboard').on('mouseover','.continent', mouseOverContinent)
 				.on('mouseover','.country', lightupCountry)
 				.on('mouseover','.objective', mouseOverObjective);
@@ -3518,13 +3515,6 @@ table.listing th {vertical-align:middle; font-weight:normal}\
 		}
 	};
 	$('body').bind('CCGameRefresh', updateBOB);
-
-	rightside.wrapInner($("<span>").css({ // Right side should be scrollable when it's too large.
-		'max-height': $('#outer-map').height(),
-		overflow:"auto",
-		display:"inline-block"
-	}));
-	rightside = rightside.find('>span');
 
 	//Auto Scroll to Game
 	if( myOptions.jumptomap ) {
