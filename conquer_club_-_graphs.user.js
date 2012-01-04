@@ -363,42 +363,44 @@ The plugin allso adds the following methods to the plot object:
     });
 })(jQuery);
 
+/*************** Actual code of the addon *******************/
 
 var root = $("div.panel.bg1").eq(0);
 function initGraph(e) {
-	$(this).hide();
-	// fetch games + events: http://www.conquerclub.com/api.php?mode=gamelist&names=Y&p1un=sherkaner&events=Y
-	// parse the response in some structure
-	// determine score as good as possible for each moment (score starts at 1000, ends at current, logs could be missing)
-	// draw graph
+	$(this).remove();
+
 	var dds = $('.left-box.details dd');
 	var player = {
 		username: dds.eq(0).text().trim(),
 		gamesPlayed: /(\d+) completed, (\d+) \(/.exec(dds.eq(3).text().trim())[1],
 		currentScore: dds.eq(2).text().trim()
 	}
-	var temp = [];
 	var nrPages = Math.ceil(player.gamesPlayed / 200);
+	var temp = $("<div id='waitForGraph'></div>").text("Requesting data form API, " + nrPages + " pages.").appendTo(root);
 	var count = 0;
 	var results = [];
 	for (var i = 0; i < nrPages; i++) {
 		$.get("http://www.conquerclub.com/api.php?mode=gamelist&names=Y&events=Y&page=" + (i + 1) + "&p1un=" + player.username).success(function(data) {
 			$(data).find('game').each(function() {
-				var that = $(this);
-				var playerIndex = that.find('player:contains(' +player.username + ')').index() + 1;
+				var that = $(this), playerIndex = that.find('player:contains(' +player.username + ')').index() + 1, gamenumber = that.find('game_number').text().trim();
+				
 				that.find('event').each(function() {
 					var result =/(\d+) (loses|gains) (\d+) points/.exec(this.textContent || this.innerText);
 					if (result && result[1] == playerIndex){
 						results.push([
 							this.getAttribute('timestamp') + "000", 
-							(result[2]=="gains"?result[3]:-result[3])
-						]);
+							0,
+							(result[2]=="gains"?result[3]:-result[3]),
+							gamenumber
+                        ]);
 					}
 				});
 			});
 			count++;
+			temp.text("Retrieved " + count + " pages of " + nrPages + ".");
 			if (count == nrPages) {
 				drawGraph(prepareGraphData(player, results), player);
+				temp.remove();
 			}
 		});
 	}
@@ -410,9 +412,8 @@ function prepareGraphData(player,results) {
 	});
 	var score = player.currentScore;
 	for (var i = results.length - 1; i >= 0; i--) {
-		var difference = results[i][1];
 		results[i][1] = "" + score;
-		score -= difference;
+		score -= results[i][2];
 	}
 	return results;
 }
@@ -420,13 +421,14 @@ function prepareGraphData(player,results) {
 function drawGraph(d, player) {
 	var graph = $("#graph");
 	if (!graph.length) {
-		graph = $('<div id="graph" style="width:500px;height:300px"></div>').appendTo(root);
+		graph = $('<div id="graph" style="width:100%;height:300px"></div>').appendTo(root);
+		graph.height(graph.width() * 0.6);
 	}
 	
 	var options = {
         series: {
-            lines: { show: true },
-			points: { show: true, radius:1 }
+            lines: { show: true }
+			//points: { show: true, radius:1 }
         },
 		grid: { hoverable: true},
 		xaxis: { mode: "time" },
@@ -453,6 +455,7 @@ function drawGraph(d, player) {
 
     });
 	$("<input type='button' value='reset graph range'/>").click(function() {
+		graph.height(graph.width() * 0.6);
 		plot = $.plot(graph, [d], $.extend(true, {}, options, {
 			xaxis: {},
 			yaxis: {}
@@ -470,18 +473,20 @@ function drawGraph(d, player) {
 		opacity: 0.80
 	}).appendTo("body");
 	
-	var previousPoint = null;
+	var lastHoveredPoint = null;
 	graph.bind("plothover", function (event, pos, item) {
 		if (item) {
-			if (previousPoint != item.dataIndex) {
+			if (lastHoveredPoint != item.dataIndex) {
 				previousPoint = item.dataIndex;
 				tooltip.hide();
-				var text = $.plot.formatDate(new Date(item.datapoint[0]), "%m/%d/%y  %H:%M:%S") + " : " + item.datapoint[1];
-				tooltip.text(text).css({left:(5 + item.pageX) + 'px',top:item.pageY + 'px'}).fadeIn(200);
+				var point = d[item.dataIndex];
+				console.log(point);
+				var text = $.plot.formatDate(new Date(+point[0]), "%m/%d/%y  %H:%M") + " : " + point[1] + " (" + point[2] + " points, game " + point[3] + ")";
+				tooltip.text(text).css({left:(5 + item.pageX) + 'px', top:(-20 + item.pageY) + 'px'}).fadeIn(200);
 			}
 		} else {
 			tooltip.hide();
-			previousPoint = null;            
+			lastHoveredPoint = null;            
 		}
     });
 	
