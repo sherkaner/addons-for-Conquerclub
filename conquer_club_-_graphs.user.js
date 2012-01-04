@@ -75,7 +75,7 @@ function prepareGraphData(player,results) {
 function drawGraph(d, player) {
 	var graph = $("#graph");
 	if (!graph.length) {
-		graph = $('<div id="graph" style="width:100%;height:300px"></div>').appendTo(root);
+		graph = $('<div id="graph" style="width:90%"></div>').appendTo(root);
 		graph.height(graph.width() * 0.6);
 	}
 	
