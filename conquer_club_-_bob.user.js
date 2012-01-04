@@ -562,26 +562,6 @@ function showMoreTextMap() {
 	updateMenuHiderHeight();
 }
 
-function showMoreStats() {
-	var sml = $('#showMoreStatsLink');
-	if (sml.html()=="fixed statistics") {
-		$("#statsTable tbody").css({
-			height:"",
-			overflowY:"hidden"
-		});
-		sml.html("scrollable statistics");
-	} else {
-		if ($('#statsTable').height()>=200) {
-			$("#statsTable tbody").css({
-				height:"200px",
-				overflowY:"auto"
-			});
-			sml.html("fixed statistics");
-		}
-	}
-	updateMenuHiderHeight();
-}
-
 function deserialize(name) {
 	try {
 		return JSON.parse(GM_getValue(name, '{}'));
@@ -981,7 +961,6 @@ function toggleStatsMode() {
 	}
 	serialize("OPTIONS", myOptions);
 	$('#menu_stats b').html(myOptions.statsMode);
-	$('#showMoreStatsLink').html("scrollable statistics");
 	updateStats();
 	updateMenuHiderHeight();
 	stopWaiting();
@@ -1697,11 +1676,14 @@ function updateStats() {
 		wrapper.hide();
 	} else {
 		$('#statsTable').html(createStats());
-		$('#showMoreStatsLink').click(showMoreStats).parent().show();
 		$('#hideEliminated').click(function() {
-			var shouldHide = $(this).text().has("Show");
-			$('#statsTable tr.eliminated').toggle(shouldHide);
-			$(this).text((shouldHide?'Hide':'Show') + ' eliminated players');
+			var shouldHide = $(this).text().has("Hide");
+			if (shouldHide) {
+				$('head').append('<style id="hideEliminatedStyle">tr.eliminated{display:none}</style>');
+			} else {
+				$('#hideEliminatedStyle').remove();
+			}
+			$(this).text((shouldHide?'Show':'Hide') + ' eliminated players');
 		});
 		wrapper.show();
 		$("td.popup").hover(function() {
@@ -2168,7 +2150,7 @@ function createStats() {
 					toReturn += "<td>" + team.territories + (gameSettings.fog?" / "+team.calculatedTerritories:"") + " (" + (gameSettings.fog?pctCalcCountries:pctCountries) +"%)</td>";
 					toReturn += "<td>" + (+team.strength.toFixed(2)) + "</td><td class='popup' data-popup='("+ team.troopsPrevious.armies +" + " + team.troopsPrevious.continent + " + " + team.troopsPrevious.territory + ")'>" + (team.troopsPrevious.armies + team.troopsPrevious.continent) + "</td><td>" + "("+ team.troopsNow.armies + " + " + team.troopsNow.continent + " + " + team.troopsNow.territory + ") = ";
 				} else {
-					toReturn += "<td>" + team.territories + (gameSettings.fog?" / "+team.calculatedTerritories:"" ) + "";
+					toReturn += "<td>" + team.territories + (gameSettings.fog?" / "+team.calculatedTerritories:"" ) + "</td><td>";
 				}
 				
 				toReturn+= (team.troopsNow.armies +  team.troopsNow.continent + team.troopsNow.territory) + "</td><td></td><td></td><td></td></tr>";
@@ -3353,7 +3335,7 @@ function gm_ConquerClubGame() {
 	adjustClock();
 
 	// ---- Create Divisions ----
-	var statsWrapper = $("<div id='statsWrapper'><span style='float:right;margin-right:20px'>[<a id='hideEliminated'>Hide eliminated players</a>][<a id='showMoreStatsLink'>scrollable statistics</a>]</span><H3>Statistics</H3></div>");
+	var statsWrapper = $("<div id='statsWrapper'><span style='float:right;margin-right:20px'>[<a id='hideEliminated'>Hide eliminated players</a>]</span><H3>Statistics</H3></div>");
 	statsWrapper.hide();
 
 	statsWrapper.append($('<div id="statsTable"></div>'));
