@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          Conquer Club - score charts revisited
-// @version       0.2.1
+// @version       0.2.2
 // @namespace     http://www.conquerclub.com
 // @description   Adds point graphs etc. to Conquer club
 // @include       *://*conquerclub.com/*memberlist.php?mode=viewprofile*
