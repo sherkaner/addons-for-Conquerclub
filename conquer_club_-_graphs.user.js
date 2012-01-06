@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name          Conquer Club - score charts revisited
-// @version       0.2.0
+// @version       0.2.1
 // @namespace     http://www.conquerclub.com
 // @description   Adds point graphs etc. to Conquer club
-// @include       http*://*conquerclub.com/*memberlist.php?mode=viewprofile*
+// @include       *://*conquerclub.com/*memberlist.php?mode=viewprofile*
 // @match         *://*.conquerclub.com/*memberlist.php?mode=viewprofile*
 // ==/UserScript==
 
@@ -19,113 +19,155 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
 
 /*************** Actual code of the addon *******************/
 
-var root = $("div.panel.bg1").eq(0);
-function initGraph() {
-	$(this).remove();
-
-	var dds = $('.left-box.details dd');
-	var player = {
-		username: dds.eq(0).text().trim(),
-		gamesPlayed: /(\d+) completed, (\d+) \(/.exec(dds.eq(3).text().trim())[1],
-		currentScore: dds.eq(2).text().trim()
-	}
-	var nrPages = Math.ceil(player.gamesPlayed / 200);
-	var temp = $("<div id='waitForGraph'></div>").text("Requesting data form API, " + nrPages + " pages.").appendTo(root);
-	var count = 0;
-	var results = [];
-	for (var i = 0; i < nrPages; i++) {
-		$.get("http://www.conquerclub.com/api.php?mode=gamelist&names=Y&events=Y&page=" + (i + 1) + "&p1un=" + player.username).success(function(data) {
-			$(data).find('game').each(function() {
-				var that = $(this), playerIndex = that.find('player:contains(' +player.username + ')').index() + 1, gamenumber = that.find('game_number').text().trim();
-				
-				that.find('event').each(function() {
-					var result =/(\d+) (loses|gains) (\d+) points/.exec(this.textContent || this.innerText);
-					if (result && result[1] == playerIndex){
-						results.push([
-							this.getAttribute('timestamp') + "000", 
-							0,
-							(result[2]=="gains"?result[3]:-result[3]),
-							gamenumber
-                        ]);
-					}
-				});
-			});
-			count++;
-			temp.text("Retrieved " + count + " pages of " + nrPages + ".");
-			if (count == nrPages) {
-				drawGraph(prepareGraphData(player, results), player);
-				temp.remove();
-			}
-		});
-	}
-}
-
-function prepareGraphData(player,results) {
-	results.sort(function(a,b) {
-		return a[0] < b[0]? -1:(a[0]> b[0]?1:0);
-	});
-	var score = player.currentScore;
-	for (var i = results.length - 1; i >= 0; i--) {
-		results[i][1] = "" + score;
-		score -= results[i][2];
-	}
-	return results;
-}
-
-function drawGraph(d, player) {
-	var graph = $("#graph");
-	if (!graph.length) {
-		graph = $('<div id="graph" style="width:90%"></div>').appendTo(root);
-		graph.height(graph.width() * 0.6);
-	}
-	
-	var options = {
-        series: {
-            lines: { show: true }
-			//points: { show: true, radius:1 }
-        },
-		grid: { hoverable: true},
-		xaxis: { mode: "time" },
-        selection: { mode: "xy" }
-    };
-    
-    var plot = $.plot(graph, [d], options);
-
-    // now connect the two
-    graph.bind("plotselected", function (event, ranges) {
-        // clamp the zooming to prevent eternal zoom
-        if (ranges.xaxis.to - ranges.xaxis.from < 0.00001) {
-            ranges.xaxis.to = ranges.xaxis.from + 0.00001;
-		}
-        if (ranges.yaxis.to - ranges.yaxis.from < 0.00001) {
-            ranges.yaxis.to = ranges.yaxis.from + 0.00001;
-		}
-        
-        // do the zooming
-		plot = $.plot(graph, [d], $.extend(true, {}, options, {
-			xaxis: { min: ranges.xaxis.from, max: ranges.xaxis.to },
-			yaxis: { min: ranges.yaxis.from, max: ranges.yaxis.to }
-		}));
-
-    });
-	$("<input type='button' value='reset graph range'/>").click(function() {
-		graph.height(graph.width() * 0.6);
-		plot = $.plot(graph, [d], $.extend(true, {}, options, {
-			xaxis: {},
-			yaxis: {}
-		}));
-	}).appendTo(root);
-	
+if (window.location.toString().indexOf('memberlist.php?mode=viewprofile')) {
+  	var root = $("div.panel.bg1").eq(0);
+	$("<input type='button' value='Create graph'/>").click(initGraphFromScreen).appendTo(root);
+	var players = []; // will contain the data
+	var waitMessage = $("<div id='waitForGraph'></div>").appendTo(root);
 	var tooltip = $('<div id="tooltip"></div>').css({
 		position: 'absolute',
 		display: 'none',
-		top: -100,
-		left: -100,
 		border: '1px solid #fdd',
 		padding: '2px',
 		'background-color': '#fee',
 		opacity: 0.80
 	}).appendTo("body");
+}
+
+function initGraphFromScreen() {
+	$(this).remove(); // remove button
+
+	var dds = $('.left-box.details dd');
+	var player = {
+		username: $.trim(dds.eq(0).text()),
+		gamesPlayed: /(\d+) completed, (\d+) \(/.exec($.trim(dds.eq(3).text()))[1],
+		currentScore: $.trim(dds.eq(2).text())
+	}
+	players.push(player);
+	getGamesInfo(player);
+}
+
+function addPlayerFromAPI(username) {
+	$.get("http://www.conquerclub.com/api.php?mode=player&un=" + escape(username)).success(function(data) {
+		$(data).find('player').each(function() {
+			var that = $(this);
+			var player = {
+				username: $.trim(that.find('username').text()),
+				gamesPlayed: $.trim(that.find('games_completed').text()),
+				currentScore: $.trim(that.find('score').text())
+			};
+			players.push(player);
+			getGamesInfo(player);
+		});
+	});
+
+}
+
+function getGamesInfo(player) {
+	var nrPages = Math.ceil(player.gamesPlayed / 200);
+	waitMessage.show().text("Requesting data form API, " + nrPages + " pages.");
+	var count = 0;
+	var results = [];
+	for (var i = 0; i < nrPages; i++) {
+		$.get("http://www.conquerclub.com/api.php?mode=gamelist&names=Y&events=Y&page=" + (i + 1) + "&p1un=" + player.username).success(function(data) {
+			$(data).find('game').each(function() {
+				var that = $(this), playerIndex = that.find('player:contains(' +player.username + ')').index() + 1, gamenumber = $.trim(that.find('game_number').text());
+				that.find('event').each(function() {
+					var result =/(\d+) (loses|gains) (\d+) points/.exec(this.textContent || this.innerText);
+					if (result && result[1] == playerIndex){
+						results.push({
+							time:this.getAttribute('timestamp')*1000, 
+							score:0,
+							pointsDifference:(result[2]=="gains"?+result[3]:-result[3]),
+							game:gamenumber
+                        });
+					}
+				});
+			});
+			count++;
+			waitMessage.text("Retrieved " + count + " pages of " + nrPages + ".");
+			if (count == nrPages) {// all pages
+				results.sort(function(a,b) { //sort based on time
+					return a.time < b.time? -1:(a.time > b.time?1:0);
+				});
+				player.gameData = results;
+				fillGraphData(player);
+				drawGraph();
+				waitMessage.hide();
+			}
+		});
+	}
+}
+
+function fillGraphData(player) {
+	if (player.graphData == undefined) {
+		var score = player.currentScore, graphData = [];
+		for (var i = player.gameData.length - 1; i >= 0; i--) {
+			var gameData = player.gameData[i];
+			gameData.score = score;
+			score -= gameData.pointsDifference;
+			gameData.timeString = $.plot.formatDate(new Date(gameData.time), "%m/%d/%y  %H:%M");
+			graphData.unshift([gameData.time, gameData.score]); // counting back..
+		}
+		player.graphData = graphData;
+	}
+}
+function getGraphData() {
+	var result = [];
+	for (var i = 0; i < players.length; i++) {
+		result.push({
+			label:players[i].username,
+			data:players[i].graphData?players[i].graphData:[]
+		});
+	}
+	return result;
+}
+
+function drawGraph() {
+	var graph = $("#graph");
+	if (!graph.length) {
+		graph = $('<div id="graph" style="width:90%"></div>').appendTo(root);
+	}
+	graph.height(graph.width() * 0.6);
+	var options = {
+        series: {
+            lines: { show: true }
+        },
+		grid: { hoverable: true },
+		xaxis: { mode: "time" },
+        selection: { mode: "xy" }
+    };
+    
+    var plot = $.plot(graph, getGraphData(), options);
+	// Zoom in when a plot is selected
+    graph.bind("plotselected", function (event, ranges) {
+		// limit zooming
+		ranges.xaxis.to = Math.max(ranges.xaxis.to, ranges.xaxis.from + 0.00001);
+		ranges.yaxis.to = Math.max(ranges.yaxis.to, ranges.yaxis.from + 0.00001);
+		
+		plot = $.plot(graph, getGraphData(), $.extend(true, {}, options, {
+			xaxis: { min: ranges.xaxis.from, max: ranges.xaxis.to },
+			yaxis: { min: ranges.yaxis.from, max: ranges.yaxis.to }
+		}));
+    });
+	
+	//reset range button
+	if ($('#resetGraph').length == 0) {
+		$("<input type='button' id='resetGraph' value='reset graph range'/>").click(function() {
+			graph.height(graph.width() * 0.6); // in case someone changed the window width
+			plot = $.plot(graph, getGraphData(), $.extend(true, {}, options, {
+				xaxis: {},
+				yaxis: {}
+			}));
+		}).appendTo(root);
+	}
+	
+	//add player button
+	if ($('#addPlayerToGraph').length == 0) {
+		$("<input type='button' id='addPlayerToGraph' value='Add graph from player'/>").click(function() {
+			addPlayerFromAPI(prompt("Which player name?"));
+		}).appendTo(root);
+	}
 	
 	var lastHoveredPoint = null;
 	graph.bind("plothover", function (event, pos, item) {
@@ -133,9 +175,7 @@ function drawGraph(d, player) {
 			if (lastHoveredPoint != item.dataIndex) {
 				previousPoint = item.dataIndex;
 				tooltip.hide();
-				var point = d[item.dataIndex];
-				console.log(point);
-				var text = $.plot.formatDate(new Date(+point[0]), "%m/%d/%y  %H:%M") + " : " + point[1] + " (" + point[2] + " points, game " + point[3] + ")";
+				var text = fillTemplate("{timeString} : {score} ({pointsDifference} points, game {game})", players[item.seriesIndex].gameData[item.dataIndex]);
 				tooltip.text(text).css({left:(5 + item.pageX) + 'px', top:(-20 + item.pageY) + 'px'}).fadeIn(200);
 			}
 		} else {
@@ -144,7 +184,7 @@ function drawGraph(d, player) {
 		}
     });
 }
-
-if (window.location.toString().indexOf('memberlist.php?mode=viewprofile')) {
-	$("<input type='button' value='Create graph'/>").click(initGraph).appendTo(root);
+function fillTemplate(template, filling) {
+	return template.replace(/{(\w*)}/g, function(){return (typeof(filling[arguments[1]])!='undefined')? filling[arguments[1]]:"";});
 }
+
