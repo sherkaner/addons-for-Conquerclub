@@ -2,9 +2,11 @@
 // @name          Conquer Club Game Link
 // @namespace     http://userscripts.org
 // @description   Adds game info popup to game links
-// @include       http://www.conquerclub.com/forum/viewtopic.php*
-// @include       http://www.conquerclub.com/forum/ucp.php?i=pm&mode=view*
-// @include       http://www.conquerclub.com/forum/ucp.php?i=pm&mode=compose*
+// @include       *://www.conquerclub.com/forum/viewtopic.php*
+// @include       *://www.conquerclub.com/forum/ucp.php?*mode=view*
+// @include       *://www.conquerclub.com/forum/ucp.php?*mode=compose*
+// @include       *://www.conquerclub.com/forum/posting.php?*mode=reply*
+// @include       *://www.conquerclub.com/forum/posting.php?*mode=post*
 // ==/UserScript==
 
 var gameInfoDiv; // The div that displays the game details
@@ -257,7 +259,7 @@ function fillPlayerInfo() {
 	for (i in games) {
 		if (games[i].players) {
 			for (j in games[i].players) {
-				var name = games[i].players[j].name;
+				var name = escape(games[i].players[j].name);
 				if (playerNames.indexOf(name) == -1) {
 					playerNames.push(name);
 				}
@@ -280,10 +282,10 @@ function fillPlayerInfo() {
 }
 
 GM_addStyle(".gameLinkContent {display: none; position: absolute; border: solid black thin; background-color: white; font-size:12px; padding: 5px; z-index:99; } \
-             .gameLinkContent .column { display:inline; float:left;}\
-             .gameLinkContent table td:nth-child(2n+1) {background-color: #EEEEEE; font-weight: bold;padding: 2px;}\
-			 .gameLinkContent table td {vertical-align:middle}\
-             .gameLinkContent td span.rank {min-height: 16px; display:block; padding-left:22px;}");
+.gameLinkContent .column { display:inline; float:left;}\
+.gameLinkContent table td:nth-child(2n+1) {background-color: #EEEEEE; font-weight: bold;padding: 2px;}\
+.gameLinkContent table td {vertical-align:middle}\
+.gameLinkContent td span.rank {min-height: 16px; display:block; padding-left:22px;}");
 
 processGameLinks();
 
