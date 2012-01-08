@@ -136,25 +136,6 @@ var images = {
 String.prototype.has = function(key) {
 	return this.indexOf(key) > -1;
 };
-String.prototype.trim = function() {
-	return this.replace(/^\s+|\s+$/g, '');
-};
-String.prototype.normalizeSpaces = function() {
-	return this.replace(/\s+/g," ").trim();
-};
-String.prototype.startsWith = function(str){
-	return (this.match("^"+str)==str);
-};
-String.prototype.endsWith = function(str){
-	return (this.match(str+"$")==str);
-};
-Array.prototype.map = function(fn) {
-	var r = [], l = this.length, i;
-	for(i=0;i<l;i++) {
-		r.push(fn(this[i]));
-	}
-	return r;
-};
 Array.intersect = function(array1, array2) {
 	var temp = [], i;
 	for (i = 0; i < array1.length; i++){
@@ -173,10 +154,8 @@ Array.removeAll = function(array1, array2) {
 	}
 	return temp;
 };
-
-
 $.fn.exists = function() {
-	return $(this).length>0;
+	return this.length>0;
 };
 //-----------------------------------------------------------------------------
 // Please Wait coding - creates a Div that gets in the way of people doing things!
@@ -237,7 +216,7 @@ function GameSettings(){
 
 		this.fog = options["Fog of War"] == "Yes";
 		//determine speed
-		this.speed = dashboard.find("h3").html().startsWith("Speed");
+		this.speed = dashboard.find("h3").html().indexOf("Speed") == 0;
 		// ---- Get Game Modes ----
 		this.playOrder = ePlayOrder[options["Play Order"]?options["Play Order"].toUpperCase():""];
 		this.type = eGameType[options["Game Type"]?options["Game Type"].toUpperCase():""];
@@ -309,9 +288,6 @@ function Player(pid, name){
 		}
 		return ret;
 	};
-}
-function fillTemplate(template, filling) {
-	return template.replace(/{(\w*)}/g, function(){return (typeof(filling[arguments[1]])!='undefined')? filling[arguments[1]]:"";});
 }
 
 function lightUpNeighbours (country) {
@@ -451,12 +427,18 @@ function isSafe(country) {
 	return howSafe;
 }
 var continentTemplate = "<span class='{clazz}' title='{title}' data-index='{index}'>{name} {bonus}</span>";
+
+function fillTemplate(template, filling) {
+	return template.replace(/{(\w*)}/g, function(){return (typeof(filling[arguments[1]])!='undefined')? filling[arguments[1]]:"";});
+}
+
 function displayContinent(continent) {
 	var result = "", i;
 	if (continent.bonus == 0) {
 		return result;
 	}
 	for (i = 0; i < continent.owners.length; i++) {
+
 		if (!continent.overriden[i]) {
 			result += fillTemplate(continentTemplate, {
 				clazz: "continent pColor" + continent.owners[i],
@@ -690,7 +672,7 @@ function findCountry(title){
 	// if we can't find the country - then we need to remove the brackets.
 	var bracket = title.lastIndexOf("(");
 	if (bracket != -1) {
-		title = title.slice(0,bracket).trim(); // remove stuff after the bracket so that we can find the country OK.
+		title = $.trim(title.slice(0,bracket)); // remove stuff after the bracket so that we can find the country OK.
 	}
 	for (i = 0; i < allCountries.length;i++) {
 		if (title == allCountries[i].name) {
@@ -1285,13 +1267,16 @@ function toggleUpdateAvailable() {
 function isNewVersion() {
 	var serverVersion = GM_getValue('updateavailable', false), newVersion, thisVersion;
 	if (serverVersion) {
-		newVersion = serverVersion.split('.').map(function(string) {
-			return parseInt(string,10);
+		thisVersion = versionString.split('.');
+		var equal = 0;
+		$.each(serverVersion.split('.'), function(index, value) {
+			if (equal == 0) {
+				var server = +value;
+				var test = +thisVersion[index];
+				equal = server > test?1:(server<test?-1:0);
+			}
 		});
-		thisVersion = versionString.split('.').map(function(string) {
-			return parseInt(string,10);
-		});
-		return (newVersion[0]>thisVersion[0] || (newVersion[0]==thisVersion[0] && (newVersion[1]>thisVersion[1] || (newVersion[1]==thisVersion[1] && newVersion[2]>thisVersion[2]))));
+		return equal > 0;
 	}
 	return false;
 }
@@ -1371,10 +1356,8 @@ function updateGameLinks() {
 }
 
 function updateMyGamesClocks() {
-	if (location.href.indexOf("mygames")>=0 || location.href.indexOf("mode=next")>=0 || location.href.indexOf("submit=Accept")>=0) { // if in mygames
-		if (location.href.indexOf("mygames2")>=0 || location.href.indexOf("mygames3")>=0 || location.href.indexOf("mygames4")>=0) { // but if not in active
-			return;
-		}
+	if ((location.href.indexOf("mygames")>=0 || location.href.indexOf("mode=next")>=0 || location.href.indexOf("submit=Accept")>=0) // if in mygames
+     && ($('#current').text().indexOf('Active') > -1 ||  $('#current').text().indexOf('Eliminated') > -1)) { // and active tab is Active or Eliminated
 		var elements = $('#middleColumn tr.even,#middleColumn tr.odd').find('td:eq(4)');
 		updateMyGamesClock(elements);
 	}
@@ -2077,56 +2060,64 @@ function hideContinents() {
 	}
 	$(".continents").toggle();
 }
+function getStatisticsTemplate(extended, spoils) {
+	var template = "<tr {trExtra}><td>{player}</td>";
+	template += spoils?"<td>{spoils}</td>":"";
+	template += "<td>{missedTurns}</td><td>{troops}</td><td>{regions}</td>";
+	template += extended?"<td>{strength}</td>":"";
+	template += "<td {bonusExtra}>{bonus}</td><td {troopsDueExtra}>{troopsDue}</td><td>{deferredTroops}</td>";
+	template += (extended && spoils && spoils != eBonusCards.NUCLEAR)?"<td>{spoilsEstimate}</td>":"";
+	template += "<td {zonesExtra}>{zones}</td></tr>"
+	return template;
+}
 
 function createStats() {
 	var extended = myOptions.statsMode != "Standard";
-	var toReturn = "<table class='listing'><thead><tr><th><b>P</b>layer</th>" + (gameSettings.spoils?"<th><b>S</b>poils</th>":"" )+"<th><b>M</b>issed<br><b>T</b>urns";
-	toReturn += (extended? "(Total)":"") + "</th><th><b>T</b>roops</th><th><b>R</b>egions" + (gameSettings.fog?"/ Calc":"") + "</th>";
-	if (extended) {
-		toReturn += "<th><b>S</b>trength</th><th><b>L</b>ast<br><b>B</b>onus</th><th title='territory + continent + auto deploy'><b>T</b>roops due<br>(<b>R</b> + <b>Z</b> + <b>RB</b>)</th><th><b>D</b>eferred<br><b>T</b>roops</th>" + ((gameSettings.spoils && gameSettings.spoils != eBonusCards.NUCLEAR)?"<th><b>S</b>poils <br><b>E</b>stimate</th>":"" );
-	} else {
-		toReturn += "<th><b>L</b>ast<br><b>B</b>onus</th><th><b>T</b>roops<br><b>D</b>ue</th><th><b>D</b>eferred<br><b>T</b>roops</th>";
-	}
-	toReturn += "<th><span><b>Z</b>ones</span><input type='button' value='Hide' id='hideConts'></th></tr></thead><tbody>";
+	var template = getStatisticsTemplate(extended, gameSettings.spoils);
+	var toReturn = "<table class='listing'><thead>" + fillTemplate(template.replace(/td/g, "th"), {
+		player:"Player",
+		spoils:"Spoils",
+		missedTurns:"Missed turns" + (extended?" (total)":""),
+		troops:"Troops",
+		regions:"Regions" + (gameSettings.fog?"/Calc":""),
+		strength:"Strength",
+		bonus:"Last bonus",
+		troopsDueExtra:"title='territory + continent + auto deploy'",
+		troopsDue:"Troops due<br>(R + Z + RB)",
+		deferredTroops:"Deferred troops",
+		spoilsEstimate:"Spoils estimate",
+		zones:"Zones <input type='button' value='Hide' id='hideConts'/>"
+	}) + "</thead><tbody>";
 
-	var teamArmies = 0, teamTerritories = 0, teamCalcedTerrs = 0, teamStrength =0, pid, pctCalcCountries, pctArmies, pctCountries, curpid,nameStr,isEliminated, index,tmp = "", unk = "",team = {armies:0,territories:0,calculatedTerritories:0, strength:0, troopsNow: {armies:0,continent:0, territory:0},troopsPrevious: {armies:0,continent:0, territory:0}};
+	var player, estimatedArmiesFromCards, armiesNextTurn, pl_Strength,pctCalcCountries, pctArmies, pctCountries, nameStr, isEliminated, index, unk = "", ntr = "",team = {armies:0,territories:0,calculatedTerritories:0, strength:0, troopsNow: {armies:0,continent:0, territory:0},troopsPrevious: {armies:0,continent:0, territory:0}};
 
 	for (index = 0; index < allPlayers.length; index++) {
-		var player = allPlayers[index];
-		nameStr = '<span class="player">'+player.name+'</span>';
-
-		var cardStr = gameSettings.spoils ? '<img width="18px" height="16px" title="' + player.cards + ' Bonus Cards" alt="' + player.cards + ' Bonus Cards" class="i3 icon" src="http://static.conquerclub.com/cards.gif"/>' + player.cards + ' ' : '';
-
+		player = allPlayers[index];
 		pctArmies = (totalArmies!==0)?Math.round(player.armies*100/totalArmies):0;
 		pctCountries = Math.round(player.countries*100/totalCountries);
 		pctCalcCountries = Math.round(player.calculatedCountries*100/totalCountries);
 		isEliminated = player.eliminatedInRound != 0;
-		var armiesNextTurn = (player.pid && !isEliminated )?calcArmiesNextTurn(gameSettings.fog?player.calculatedCountries:player.countries):0;
 
-		var pl_Strength = (player.armies + (((armiesNextTurn + player.continentBonus + player.territoryBonus)*(player.skipped+1))) + getArmiesFromCardSet(player.cards) - (2*player.countries/3));
-
-		var estimatedArmiesFromCards = Math.round(getEstimatedArmiesFromCards(player.cards, player.countries, totalCountries) * 100) / 100;
-		if (index && index != UID) { // if not neutral / UNKNOWN
-			toReturn += "<tr class='pColor" + index + (isEliminated?" eliminated":"") + "'><td>" + nameStr + "</td>" + (gameSettings.spoils? "<td>" + cardStr + "</td>" :"" );
-			if (extended) {
-				toReturn += "<td>" + player.skipped+"&nbsp;("+player.total_skipped+")</td><td>" + player.armies +" ( " + pctArmies +"% )" + "</td>";
-				toReturn += "<td>" + player.countries + (gameSettings.fog?" / " + player.calculatedCountries:"") + " (" + (gameSettings.fog?pctCalcCountries:pctCountries) +"%)" + player.killToReduce() +"</td>";
-				toReturn += "<td>" + (+pl_Strength.toFixed(2)) + "</td><td class='popup' data-popup='("+ player.armiesLastTurn +" + " + player.lastContinentBonus + " + " + player.lastTerritoryBonus + ")'>" + (player.armiesLastTurn + player.lastContinentBonus) + "</td><td>" + "("+ armiesNextTurn +" + " + player.continentBonus + " + " + player.territoryBonus + ") = ";
-			} else {
-				toReturn += "<td>" + player.skipped + "</td><td>" + player.armies + "</td>";
-				toReturn += "<td>" + player.countries + (gameSettings.fog? " / " + player.calculatedCountries+"":"") + "</td>";
-				toReturn += "<td>" + (player.armiesLastTurn + player.lastContinentBonus) + "</td><td>";
-			}
-			toReturn += (armiesNextTurn + player.continentBonus + player.territoryBonus) + "</td>";
-			if (player.skipped===0) {
-				toReturn += "<td>" + player.deferred + "</td>";
-			} else {
-				toReturn += "<td>" + ((armiesNextTurn + player.continentBonus)*(player.skipped)) + "</td>";
-			}
-			if (extended) {
-				toReturn += ((gameSettings.spoils && gameSettings.spoils != eBonusCards.NUCLEAR)? "<td>" + estimatedArmiesFromCards + "</td>" : "");
-			}
-			toReturn += "<td class='continents'>" + player.continentsDisplay() + "</td></tr>";
+		estimatedArmiesFromCards = Math.round(getEstimatedArmiesFromCards(player.cards, player.countries, totalCountries) * 100) / 100;
+		if (index && index != UID) { // if not neutral or unknown
+			armiesNextTurn = isEliminated?0:calcArmiesNextTurn(gameSettings.fog?player.calculatedCountries:player.countries);
+			pl_Strength = (player.armies + (((armiesNextTurn + player.continentBonus + player.territoryBonus)*(player.skipped+1))) + getArmiesFromCardSet(player.cards) - (2*player.countries/3));
+			toReturn += fillTemplate(template, {
+				trExtra: "class='pColor" + index + (isEliminated?" eliminated'":"'"),
+				player:"<span class='player'>" + player.name + "</span>",
+				spoils: '<img width="18px" height="16px" title="' + player.cards + ' Bonus Cards" alt="' + player.cards + ' Bonus Cards" class="i3 icon" src="http://static.conquerclub.com/cards.gif"/>' + player.cards + ' ',
+				missedTurns: player.skipped + (extended?"&nbsp;("+player.total_skipped+")":""),
+				troops: player.armies + (extended?" ( " + pctArmies +"% )":""),
+				regions:player.countries + (gameSettings.fog?" / " + player.calculatedCountries:"") + (extended?" (" + (gameSettings.fog?pctCalcCountries:pctCountries) +"%)" + player.killToReduce():""),
+				strength:(+pl_Strength.toFixed(2)),
+				bonusExtra:"class='popup' data-popup='("+ player.armiesLastTurn +" + " + player.lastContinentBonus + " + " + player.lastTerritoryBonus + ")'",
+				bonus: (player.armiesLastTurn + player.lastContinentBonus),
+				troopsDue:(extended?"("+ armiesNextTurn +" + " + player.continentBonus + " + " + player.territoryBonus + ") = ":"") + (armiesNextTurn + player.continentBonus + player.territoryBonus),
+				deferredTroops:(armiesNextTurn + player.continentBonus)*player.skipped,
+				spoilsEstimate:estimatedArmiesFromCards,
+				zonesExtra:"class='continents'",
+				zones:player.continentsDisplay()
+			});
 			team.armies += player.armies;
 			team.territories += player.countries;
 			team.calculatedTerritories += player.calculatedCountries;
@@ -2134,55 +2125,51 @@ function createStats() {
 			team.troopsNow.armies += armiesNextTurn;
 			team.troopsNow.continent += player.continentBonus;
 			team.troopsNow.territory += player.territoryBonus;
-			if (player.eliminatedInRound == 0 || player.eliminatedInRound == getRounds()) {
+			if (player.eliminatedInRound == 0 || player.eliminatedInRound == getRounds()) { //not killed or killed in current round
 				team.troopsPrevious.armies += player.armiesLastTurn;
 				team.troopsPrevious.continent += player.lastContinentBonus;
 				team.troopsPrevious.territory += player.lastTerritoryBonus;
 			}
 
 			if (isLastOfTeam(index)) {
-				pctArmies = (totalArmies!==0)?Math.round(team.armies*100/totalArmies):0;
+              	pctArmies = (totalArmies!==0)?Math.round(team.armies*100/totalArmies):0;
 				pctCountries = Math.round(team.territories*100/totalCountries);
 				pctCalcCountries = Math.round(team.calculatedTerritories*100/totalCountries);
-
-				toReturn += "<tr class='team'><td>Team " + index/gameSettings.type +"</td>" + (gameSettings.spoils? "<td></td>" :"" ) + "<td></td><td>" + team.armies + (extended?" ( " + pctArmies +"% )":"") + "</td>";
-				if (extended) {
-					toReturn += "<td>" + team.territories + (gameSettings.fog?" / "+team.calculatedTerritories:"") + " (" + (gameSettings.fog?pctCalcCountries:pctCountries) +"%)</td>";
-					toReturn += "<td>" + (+team.strength.toFixed(2)) + "</td><td class='popup' data-popup='("+ team.troopsPrevious.armies +" + " + team.troopsPrevious.continent + " + " + team.troopsPrevious.territory + ")'>" + (team.troopsPrevious.armies + team.troopsPrevious.continent) + "</td><td>" + "("+ team.troopsNow.armies + " + " + team.troopsNow.continent + " + " + team.troopsNow.territory + ") = ";
-				} else {
-					toReturn += "<td>" + team.territories + (gameSettings.fog?" / "+team.calculatedTerritories:"" ) + "</td><td>";
-				}
-				
-				toReturn+= (team.troopsNow.armies +  team.troopsNow.continent + team.troopsNow.territory) + "</td><td></td><td></td><td></td></tr>";
+                toReturn += fillTemplate(template, {
+                    trExtra: "class='team'",
+                    player:"Team " + index/gameSettings.type,
+                    troops: team.armies + (extended?" ( " + pctArmies +"% )":""),
+                    regions:team.territories + (gameSettings.fog?" / " + team.calculatedTerritories:"") + (extended?" (" + (gameSettings.fog?pctCalcCountries:pctCountries) +"%)":""),
+                    strength:(+team.strength.toFixed(2)),
+                    bonusExtra:"class='popup' data-popup='("+ team.troopsPrevious.armies +" + " + team.troopsPrevious.continent + " + " + team.troopsPrevious.territory +")'",
+                    bonus: team.troopsPrevious.armies + team.troopsPrevious.continent,
+                    troopsDue:(extended?"("+ team.troopsNow.armies + " + " + team.troopsNow.continent + " + " + team.troopsNow.territory + ") = ":"") + (team.troopsNow.armies +  team.troopsNow.continent + team.troopsNow.territory)
+                });
 				team = {armies:0,territories:0,calculatedTerritories:0, strength:0, troopsNow: {armies:0,continent:0, territory:0},troopsPrevious: {armies:0,continent:0, territory:0}}
 			}
 		} else if (index==UID){ //unknown
-			unk += "<tr><td>"+ nameStr + "</td>" +
-			( gameSettings.spoils?"<td></td>":"" ) + "<td></td><td>";
-			if (extended) {
-				unk += player.armies +" ( " + pctArmies +"% )</td><td>"+ player.countries + " ( " + pctCountries +"% )</td><td></td>" + (gameSettings.spoils ?"<td></td>":"");
-			} else {
-				unk += player.armies +" </td><td>"+ player.countries + "</td>";
-			}
-			unk += "<td></td><td></td><td></td></tr>\n";
+			unk = fillTemplate(template, {
+				player:"<span class='player'>" + player.name + "</span>",
+				troops: player.armies + (extended?" ( " + pctArmies + "% )":""),
+				regions:player.countries + (extended?" ( " + pctCountries +"% )":"")
+			});
 		} else { //neutral
-			tmp = "<tr><td>"+ nameStr + "</td>" +
-			( gameSettings.spoils?"<td></td>":"" )+ "<td></td><td>" + player.armies;
-			if (extended) {
-				tmp += " ( " + pctArmies +"% )</td><td>"+ player.countries + " ( " + pctCountries +"% )</td>" +
-				"<td>"+ pl_Strength +"</td>" +
-				((gameSettings.spoils && gameSettings.spoils != eBonusCards.NUCLEAR) ? "<td></td>":"" );
-			} else {
-				tmp += "</td><td>"+ player.countries + "</td>";
-			}
-			tmp += "<td></td><td></td><td></td><td>"+showKillers()+"</td></tr>\n";
+			ntr = fillTemplate(template, {
+				player:"<span class='player'>" + player.name + "</span>",
+				troops:player.armies + (extended?" ( " + pctArmies + "% )":""),
+				regions:player.countries + (extended?" ( " + pctCountries +"% )":""),
+				zones:showKillers()
+			});
 		}
 	}
-
-	toReturn += unk + tmp; //neutral & Unknowns
-	toReturn+="</tbody>";
-	if (extended) {
-		toReturn += "<tfoot><tr><td>Totals</td>" + ( gameSettings.spoils?"<td></td>":"" )+"<td></td><td>" + totalArmies + " ( 100% )</td><td>" + totalCountries + " ( 100% )</td><td></td>" + ( (gameSettings.spoils && gameSettings.spoils != eBonusCards.NUCLEAR) ?"<td></td>":"" )+"<td></td></tr></tfoot>\n";
+	// add neutrals and unknowns last
+	toReturn += unk + ntr +"</tbody>";
+	if (extended) { // add totals
+		toReturn += "<tfoot>" + fillTemplate(template, {
+			player:"Totals",
+			troops: totalArmies + " ( 100% )",
+			regions:totalCountries + " ( 100% )"
+		}) + "</tfoot>";
 	}
 	toReturn+= "</table>";
 	return toReturn;
@@ -2382,7 +2369,9 @@ function updateContinents() {
 			}
 		}
 	}
+
 	var contOutput = "";
+
 	for (i = 0; i < allContinents.length; i++) {
 		contOutput += displayContinent(allContinents[i]);
 	}
@@ -2577,7 +2566,7 @@ function updateMagicMap(showProgress) {
 				playerNumber+=gameSettings.type;
 			});
 			// and once for the player list
-			toAdd = $("#players li").not('[class*=status]');
+			toAdd = $("#players li").not('[class*=status]'); // team
 			playerNumber = 1;
 			toAdd.each(function() {
 				$(this).hover(handler(playerNumber, gameSettings.type), onMouseOutHover);
@@ -2750,7 +2739,7 @@ function checkElimSummary() {
 	$('#termWrapper').toggle(TerminatorSummary!="");
 }
 
-function snapshotToObjects(snapshotArmies, length) {
+function snapshotToObjects(snapshotArmies, old) {
 	var toReturn = [];
 	var items = snapshotArmies.split(',');
 	for (var i = 0; i < items.length; i++) {
@@ -2760,12 +2749,12 @@ function snapshotToObjects(snapshotArmies, length) {
 			toAdd.quantity = -1;
 			toAdd.pid = UID;
 		} else {
-			if (length == 1) {
-				toAdd.quantity = parseInt(ter[0],10);
-				toAdd.pid = parseInt(ter[1],10);
+			if (old) {
+				toAdd.quantity = +ter[0];
+				toAdd.pid = +ter[1];
 			} else {
-				toAdd.quantity = parseInt(ter[1],10);
-				toAdd.pid = parseInt(ter[0],10);
+				toAdd.quantity = +ter[1];
+				toAdd.pid = +ter[0];
 			}
 		}
 		toReturn.push(toAdd);
@@ -2808,7 +2797,7 @@ function stringToObjects(text) {
 function snapToChat() {
 	var text = "snap :: " + getRounds() + "~" + currentToString();
 	if (text.length > 255) {
-		alert("Too much information.. Sorry, can't take snapshot");
+		alert("Too much information.. Sorry, can't take snapshot in chat.");
 		return;
 	}
 	$('#message').val(text);
@@ -2836,7 +2825,7 @@ function testForSnaps() {
 		that.contents().each(testForSnaps);
 	} else {
 		var html = this.textContent;
-		if (html.startsWith(": snap :: ")) {
+		if (html.indexOf(": snap :: ") == 0) {
 			var base = html.slice(10).split("~");
 			html = ': <a class="snapshot">snapshot round ' +  base[base.length - 2] + '<span class="hide">' + base[base.length - 1] + '</span></a>';
 			that.replaceWith(html);
@@ -2869,7 +2858,6 @@ function switchToBase26(number, upperCase) {
 function takeSnapshot() {
 	// get date
 	var arms = currentToSnapshotarray(), savename = gameSettings.gamenr+"~"+ new Date().getTime() +"~"+getRounds();
-	cc_log('taking snapshot');
 	GM_setValue(savename, arms);
 	addSnapshot(savename, $('#menu_refresh').parent());
 }
@@ -2893,7 +2881,7 @@ function onSnapShot(loadName,id) {
 	currentSnapshot = getSnapshotData(loadName);
 	currentSnapshot.id = id;
 	// splitting in case of old snapshot
-	currentSnapshot.data = snapshotToObjects(data.split("~~~~~~~~~~")[0], data.split("~~~~~~~~~~").length);
+	currentSnapshot.data = snapshotToObjects(data.split("~~~~~~~~~~")[0], data.split("~~~~~~~~~~").length == 1);
 	redrawArmies(currentSnapshot.data);
 	var display = currentSnapshot.date.getHours()+":"+padDigits(currentSnapshot.date.getMinutes(), 2)+" - "+currentSnapshot.date.getDate()+"/"+(currentSnapshot.date.getMonth()+1)+"/"+currentSnapshot.date.getFullYear();
 	$('#snapshotState').text("Round " + currentSnapshot.round + ", date/time: " + display );
@@ -2947,7 +2935,7 @@ function analyse() {
 			lightupCountries(changedCountries);
 		});
 	} else {
-		alert("error army arrays are different lengths - This Snapshot is invalid");
+		alert("Error: army arrays are different lengths - this snapshot is invalid");
 	}
 }
 
@@ -3073,7 +3061,6 @@ function deleteAllSnapshots() {
 }
 
 function loadSnapshots(refresh) {
-
 	var snapshots = getSnapshots().sort(function(a,b) {
 		a = a.split("~");
 		b = b.split("~");
@@ -3350,32 +3337,25 @@ function gm_ConquerClubGame() {
 	$('#log').prev().before(textMapWrapper);
 	$('#showMoreLink').click(showMoreTextMap);
 
-	dashboard.after($('<div id="mapinspect"></div>'));
+	$('<div id="mapinspect"></div>').insertAfter(dashboard);
 
 	if (gameSettings.spoils == eBonusCards.FLATRATE) {
-		var redemption = $('<div id="redemption"></div>')
-		.css("backgroundColor","#EEEEEE")
-		.html("<span><font color=red><b>Red:</b></font> 4 <font color=green><b>Green:</b></font> 6 <font color=blue><b>Blue:</b></font> 8 <b>Mixed:</b> 10</span>");
-		dashboard.after(redemption);
+		$('<div id="redemption"></div>').css("backgroundColor","#EEEEEE").html("<span><font color=red><b>Red:</b></font> 4 <font color=green><b>Green:</b></font> 6 <font color=blue><b>Blue:</b></font> 8 <b>Mixed:</b> 10</span>").insertAfter(dashboard);
 	}
 	showSnapshots();
 
-	var termWrapper = $('<div id="termWrapper"></div>');
+	var termWrapper = $('<div id="termWrapper"></div>').insertAfter('#full-log');
 	if (gameSettings.type == eGameType.TERMINATOR) {
 		termWrapper.html("<h3>Terminator Points Summary</h3>");
 	} else {
 		termWrapper.html("<h3>Elimination Summary</h3>");
 	}
-	$('#full-log').after(termWrapper);
 
 	var contOverviewWrapper = $('<div id="contOverviewWrapper"><H4>Continents Overview</H4></div>').css({
 		display:"none",
 		overflowY:"auto",
 		overflowX:"hidden"
-	});
-
-	contOverviewWrapper.append('<div id="contOverview"></div>');
-	rightside.append(contOverviewWrapper);
+	}).append('<div id="contOverview"></div>').appendTo(rightside);
 
 	if (myOptions.floatActions == "On") {
 		var actionForm = $('#action-form');
@@ -3391,9 +3371,9 @@ function gm_ConquerClubGame() {
 			} else {
 				wrapperDiv.css('paddingTop',"0px");
 			}
-			wrapperDiv.append($('#mapinspect'));
-			wrapperDiv.append($('#cards').parent().parent().css('backgroundColor',"#EEEEEE"));
-			actionForm.find('fieldset').append(wrapperDiv);
+			wrapperDiv.append($('#mapinspect'))
+					.append($('#cards').parent().parent().css('backgroundColor',"#EEEEEE"))
+					.appendTo(actionForm.find('fieldset'));
 			setFormWidth();
 		}
 		$('#rolls').css({
@@ -3414,7 +3394,7 @@ function gm_ConquerClubGame() {
 div.h {opacity:1.0;padding-left:4px;padding-right:4px;border-top:thick solid ;border-bottom:thick solid;}\
 div.i {opacity:0.7;border:thick solid;}\
 div.j {opacity:1.0;border:thick solid;}\
-div.off {opacity:0.0;border:medium dotted #FFFFFF;}\
+div.off {opacity:0.0;border:medium dotted #FFF;}\
 div.typeborder {opacity:1.0;padding-left:4px;padding-right:4px;border-top:thick solid;border-bottom:thick solid;}\
 div.typeattack {opacity:1.0;padding-right:4px;border-left:thick solid;border-top:thick solid;border-bottom:thick solid;}\
 div.typedefend {opacity:1.0;padding-left:4px;border-right:thick solid;border-top:thick solid;border-bottom:thick solid;}\
@@ -3430,17 +3410,18 @@ table.listing th {vertical-align:middle; font-weight:normal}\
 #statsTable table {width:100%;border:1px solid #FFF;background-color:#eee;}\
 #statsTable tbody tr:nth-child(2n) {background-color:#e6e6e6}\
 #statsTable thead tr {font-weight: normal;}\
+#statsTable thead th:first-letter {font-weight: bold;}\
 #statsTable tfoot tr {font-weight:bold;}\
 #statsTable tbody tr.team {border-top:1px solid #ccc;border-bottom:1px solid #ccc}\
 #statsTable tbody span {float:left;padding-right:5px;}\
 #statsTable tfoot tr {border-top:3px double #ccc}\
-#mapinspect {background-color:#EEEEEE;clear:right}\
-#textMap {background-color:#EEEEEE;margin:10px 0 0 0;}\
+#mapinspect {background-color:#EEE;clear:right}\
+#textMap {background-color:#EEE;margin:10px 0 0 0;}\
 #termWrapper {margin:10px 0 0 0;}\
 #inner-map {zIndex:2;position:absolute}\
 #contOverviewWrapper span{white-space: no-wrap; display:inline-block; padding-right:5px;}\
-#popupBackground {position:absolute;height:100%;width:100%;display:none;opacity:0.5;background-color:#000000;z-index:98;top:0;left:0;}\
-#popup {background-color:#FFFFFF;opacity:1;position:absolute;top:20%;left:30%;z-index:99,padding:10px;vertical-align:middle;border:1px solid black;}';
+#popupBackground {position:absolute;height:100%;width:100%;display:none;opacity:0.5;background-color:#000;z-index:98;top:0;left:0;}\
+#popup {background-color:#FFF;opacity:1;position:absolute;top:20%;left:30%;z-index:99,padding:10px;vertical-align:middle;border:1px solid black;}';
 
 	for (var i = 0; i < 9; i++) {
 		styles += '#magicmap .player'+i+' {border-color:' + col0[i] + ';}\
@@ -3513,6 +3494,7 @@ table.listing th {vertical-align:middle; font-weight:normal}\
 	updateContinents();
 	updateObjectives();
 	updateTextMap();
+	
 	updateStats();
 	updateMagicMap(false);
 	colourCodeDD();
