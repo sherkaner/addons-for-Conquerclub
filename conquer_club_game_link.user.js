@@ -2,6 +2,7 @@
 // @name          Conquer Club Game Link
 // @namespace     http://userscripts.org
 // @description   Adds game info popup to game links
+// @version       1.4.0
 // @include       *://www.conquerclub.com/forum/viewtopic.php*
 // @include       *://www.conquerclub.com/forum/ucp.php?*mode=view*
 // @include       *://www.conquerclub.com/forum/ucp.php?*mode=compose*
