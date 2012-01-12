@@ -63,6 +63,10 @@ var Converter = (function(){
 	}, fogOfWar = {
 		Y: "Yes",
 		N: "No"
+	}, stateToClass = {
+		W: "waiting",
+		A: "active",
+		F: "finished"
 	};
 	toReturn.rankToClass = function(rank) {
 		return rankToClass[rank] || "r0";
@@ -87,6 +91,9 @@ var Converter = (function(){
 	};
 	toReturn.gameTypeToTeamSize = function(gt) {
 		return gameTypeTeamSize[gt] || 1;
+	}
+	toReturn.stateToClass = function(value) {
+		return stateToClass[value] || "unknown";
 	}
 	return toReturn;
 })();
@@ -153,23 +160,28 @@ function createDivHtml(gameDetails) {
 	var teamSize = Converter.gameTypeToTeamSize(gameDetails.gameType);
    
 	for (var playerIndex = 0; playerIndex < gameDetails.players.length; playerIndex++) {
-		divHtml += "<tr><td>";
+		divHtml += "<tr class='" + Converter.stateToClass(gameDetails.state) + "'>";
 		if (teamSize == 1 && playerIndex == 0)
-			divHtml += "Players:";
+			divHtml += "<td>Players:</td>";
 		else if (playerIndex % teamSize == 0 && teamSize > 1) 
-			divHtml += "Team " + (Math.floor(playerIndex / teamSize) + 1) + ":";
-		divHtml += "</td><td>";
+			divHtml += "<td>Team " + (Math.floor(playerIndex / teamSize) + 1) + ":</td>";
+		else {
+			divHtml += "<td></td>";
+		}
 
         var playerInfo = players[gameDetails.players[playerIndex].name];
-        var rankClass = [];
+        var rankClass = [], tdClass = "";
         if (playerInfo) {
           rankClass.push(playerInfo.membership.toLowerCase())
 		  rankClass.push(Converter.rankToClass(playerInfo.rank));
         }
 		if (gameDetails.players[playerIndex].state == "Lost") {
 			rankClass.push("eliminated");
+		} else if (['Ready','Blocked','Waiting','Playing'].indexOf(gameDetails.players[playerIndex].state) > -1) {
+			tdClass = " class='" + gameDetails.players[playerIndex].state + "'";
 		}
-		divHtml += "<span class='icon rank " + rankClass.join(' ') + "'>";
+		
+		divHtml += "<td" + tdClass + "><span class='icon rank " + rankClass.join(' ') + "'>";
 		divHtml += gameDetails.players[playerIndex].name;
 		if (gameDetails.players[playerIndex].state == "Reserved") {
 			divHtml += "(reserved)";
@@ -234,6 +246,7 @@ function fillGameInfo() {
 			games[gameNumber].fogOfWar = gamesXML[i].getElementsByTagName('war_fog')[0].textContent;
 			games[gameNumber].troopDeploy = gamesXML[i].getElementsByTagName('initial_troops')[0].textContent;
 			games[gameNumber].round = gamesXML[i].getElementsByTagName('round')[0].textContent;
+			games[gameNumber].state = gamesXML[i].getElementsByTagName('game_state')[0].textContent;
 			games[gameNumber].players = [];
 			players = gamesXML[i].getElementsByTagName("player");
 			for (j = 0; j < players.length; j++) {
@@ -285,8 +298,12 @@ GM_addStyle(".gameLinkContent {display: none; position: absolute; border: solid 
 .gameLinkContent .column { display:inline; float:left;}\
 .gameLinkContent table td:nth-child(2n+1) {background-color: #EEEEEE; font-weight: bold;padding: 2px;}\
 .gameLinkContent table td {vertical-align:middle}\
-.gameLinkContent td span.rank {min-height: 16px; display:block; padding-left:22px;}");
-
+.gameLinkContent td span.rank {min-height: 16px; display:block; padding-left:22px;}\
+.gameLinkContent tr.active td {padding-left: 17px; background: none no-repeat scroll 2px center transparent;}\
+.gameLinkContent tr.active td.Ready {background-image: url('http://static.conquerclub.com/icon_status_green.gif');}\
+.gameLinkContent tr.active td.Waiting {background-image: url('http://static.conquerclub.com/icon_status_red.gif');}\
+.gameLinkContent tr.active td.Blocked {background-image: url('http://static.conquerclub.com/icon_status_blocked.gif');}\
+.gameLinkContent tr.active td.Playing {background-image: url('http://static.conquerclub.com/icon_status_yellow.gif');}");
 processGameLinks();
 
 // Simplified method to do a request, GET is default and XML is returned.
