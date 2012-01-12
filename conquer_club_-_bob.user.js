@@ -2776,7 +2776,7 @@ function currentToSnapshotarray() {
 
 function stringToObjects(text) {
 	var arrMatch, i, pattern = new RegExp("[A-Z]+([a-z]+)|[\?]","g"), toReturn = [];
-	while ((arrMatch = pattern.exec(text))){
+	while (arrMatch = pattern.exec(text)) {
 		var toAdd = {pid:0,quantity:0};
 		var playerString = /^[\?A-Z]+/.exec(arrMatch[0])[0];
 		if (playerString == "?") {
@@ -3138,7 +3138,7 @@ function showSnapshots() {
 			$('#normalSnap').click(takeSnapshot);
 			$('#revert').click(reloadToLive);
 			$('#showDifferences').click(analyse);
-			$('#chat').on("click", ".snapshot", function(e) {
+			$('#chat').on("click", "a.snapshot", function(e) {
 				var data = $(this).find(".hide").text();
 				var toDraw = stringToObjects(data);
 				if (toDraw.length != allCountries.length) {
@@ -3351,11 +3351,7 @@ function gm_ConquerClubGame() {
 		termWrapper.html("<h3>Elimination Summary</h3>");
 	}
 
-	var contOverviewWrapper = $('<div id="contOverviewWrapper"><H4>Continents Overview</H4></div>').css({
-		display:"none",
-		overflowY:"auto",
-		overflowX:"hidden"
-	}).append('<div id="contOverview"></div>').appendTo(rightside);
+	var contOverviewWrapper = $('<div id="contOverviewWrapper"><H4>Continents Overview</H4></div>').hide().append('<div id="contOverview"></div>').appendTo(rightside);
 
 	if (myOptions.floatActions == "On") {
 		var actionForm = $('#action-form');
@@ -3418,7 +3414,8 @@ table.listing th {vertical-align:middle; font-weight:normal}\
 #mapinspect {background-color:#EEE;clear:right}\
 #textMap {background-color:#EEE;margin:10px 0 0 0;}\
 #termWrapper {margin:10px 0 0 0;}\
-#inner-map {zIndex:2;position:absolute}\
+#inner-map {zIndex:2;position:absolute;}\
+#contOverview {max-height: 250px; overflow-y: auto; overflow-x: hidden;}\
 #contOverviewWrapper span{white-space: no-wrap; display:inline-block; padding-right:5px;}\
 #popupBackground {position:absolute;height:100%;width:100%;display:none;opacity:0.5;background-color:#000;z-index:98;top:0;left:0;}\
 #popup {background-color:#FFF;opacity:1;position:absolute;top:20%;left:30%;z-index:99,padding:10px;vertical-align:middle;border:1px solid black;}';
