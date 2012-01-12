@@ -65,7 +65,7 @@ var meddivclass = ["nomeddiv", "bmeddiv", "smeddiv", "gmeddiv", "omeddiv"];
 var medcombo = ["manual", "freestyle", "fog", "speed", "crossmap", "nuclear"];
 var medcombourl = ["&it=M", "&po=F", "&wf=Y", "&sg=Y", "", "&bc=4"];
 var medmatrix = []; // all possible combinations to get medals.
-for (var i = 0; i < 6; i++) {
+for (var i = 0; i < medcombo.length; i++) {
   for (var j = 0, length = medmatrix.length; j < length; j++) {
     var temp = medmatrix[j].slice(0);
     temp.push(i);
@@ -121,6 +121,7 @@ function Totals(insignia) {
   this._crossmaps = 0;
   this._wins = 0;
   this._pages = 0;
+  this._rpages = 0;
   this._expected = 0;
   this._games = 0;
   this._kills = 0;
@@ -172,7 +173,8 @@ function Defeats() {
   this.xRating = [];
   this.nuclear = [];
   this.xNuclear = [];
-
+  this.random = [];
+  this.xRandom = [];
 }
 
 function Summary(name) {
@@ -710,13 +712,13 @@ function endGame(user) {
       mids.push(maps.indexOf(summary[y]._best[cnv]) + 1);
     }
     href+= "&mp=" + mids;
-    if (summary[y]._medal != 'Rating') {
+    if (summary[y]._medal != 'Rating' && summary[y]._medal != 'Random') {
       x+= "<tr><td><a href='#' title=\"Find Best " + summary[y]._medal + " Games\" onclick='e.preventdefault();var wdw=window.open(\"" + href + "\", \"mrsugg\");wdw.focus();'>" + summary[y]._medal + "</a></td>";
     }
     else x+= "<tr><td>" + summary[y]._medal + "</td>";
     x+= "<td class=" + medclass[summary[y]._medals] + ">" + medname[summary[y]._medals] + "</td>";
     x+= "<td>" + summary[y]._current + "</td><td>" + summary[y]._next + "</td>";
-    if (summary[y]._medal == 'Rating') x+= "<td>-</td></tr>";
+    if (summary[y]._medal == 'Rating' || summary[y]._medal == 'Random') x+= "<td>-</td></tr>";
     else if (summary[y]._best.length == 0) x+= "<td>None</td></tr>";
     else if (summary[y]._medal == 'crossmap') {
       x+= "<td>" + summary[y]._best + " (" + unique[summary[y]._best[0]].length + ")</td></tr>";
@@ -738,8 +740,8 @@ function endGame(user) {
     x+= "<tr><td>Medals</td><td colspan=4>Maps</td></tr>";
     if (nm){
       var hrefbase = base + "&amp;gt=" + gm[nm._medal];
-      var optimalrows = {};
-      var optimaltext = {};
+      var optimalrows = [];
+      var optimaltext = [];
       for (var mat=0; mat<medmatrix.length;mat++) {
         var assoc = [];
         var optimalkey = medmatrix[mat].join(',');
@@ -1338,8 +1340,7 @@ var loadButtonHandler = function (searchDetails,s,bRun) {
     var strip = mSel.options[j].innerHTML.replace(/ \(Beta\)$/, '').replace(/\(\d+\) /,'' );
     if (searchDetails[strip]){
       mSel.options[j].selected = searchDetails[strip];
-    }
-    else{
+    } else {
       mSel.options[j].selected = false;
       searchDetails[strip] = false;
       myOptions[s] = searchDetails;
@@ -1936,11 +1937,111 @@ function getPlayerMedals(user) {
   majax.send(null);
 }
 
-
+function getRandomMedals(user, page){
+    var jump = baseURL + 'api.php?mode=gamelist&mp=Random&gs=F&p1un=' + escape(user);
+    
+    if(page > 1) jump += "&page=" + page;
+    ghist["rpaging" + page] = new XMLHttpRequest();
+    ghist["rpaging" + page].open('GET', jump, true);
+    ghist["rpaging" + page].onreadystatechange = function() {
+      if (ghist["rpaging" + page].readyState == 4) {
+        var parser = new DOMParser();
+        var dom = parser.parseFromString(ghist["rpaging" + page].responseText,"application/xml");
+        var games = dom.getElementsByTagName('game');
+        var pages = dom.getElementsByTagName('page')[0].firstChild.nodeValue;
+        var numGames = parseInt(dom.getElementsByTagName('games')[0].getAttribute('total'));
+        var puid = cid;
+        var numPages = 1;
+                
+        if(pages.match(/^(\d+) of (\d+)$/)) {
+		  var returned = parseInt(RegExp.$2)
+          numPages = returned > 1?returned:1;
+        }
+        if(page == 1) {
+          if(numPages > 1) {
+            for(var pg=2;pg<=numPages;pg++) {
+              getRandomMedals(user, pg );
+            }
+          }
+        }
+        
+        for(var g=0; g< games.length; g++) {
+            var gvalid = 1;
+            var game_number = games[g].getElementsByTagName('game_number')[0].firstChild.nodeValue;
+            var players = games[g].getElementsByTagName('player');
+            var gaming = games[g].getElementsByTagName('game_type')[0].firstChild.nodeValue;
+            
+            var pids = [];
+            for(s=0; s<players.length; s++) {
+              var pid = (players[s].firstChild.nodeValue);
+              pids.push(pid);
+            }
+          
+            var winner = 0;
+            var triumph = 0;
+            var numTeams = 0;
+            var holder = 0;
+            var myLoss = 0;
+            var meanwin = 0;
+            var meanloss = 0;
+            var beaten = 0;
+            
+            var winner = 0;
+            var losers = [];
+            var winners = [];
+            for(s=0; s<players.length; s++) {
+              var pid = (players[s].firstChild.nodeValue);
+              if(players[s].getAttribute('state') == "Won") {
+                triumph = pid;
+                if(triumph == puid) {
+                  winner = 1;
+                }
+                if(pid != puid) winners.push(pid);
+              }
+              else{
+                if(pid != puid) losers.push(pid);
+              }
+            }
+            var reallosers = winner? losers.length : losers.length + 1;
+            numTeams = players.length / (players.length - reallosers);
+            var maxLosers = players.length - (players.length / numTeams);
+            if(winner) {
+              for(var p=0; p<losers.length;p++) {
+                if(totals._defeats['random'].indexOf(losers[p]) == -1) {
+                  totals._defeats['random'].push(losers[p]);
+                }
+              }
+            }
+            else{
+              for(var p=0; p<winners.length;p++) {
+                if(totals._defeats['xRandom'].indexOf(winners[p]) == -1) {
+                  totals._defeats['xRandom'].push(winners[p]);
+                }
+                
+              }
+            }
+          
+        }
+        
+        totals._rpages++;
+        viewer.document.getElementById('progress').innerHTML = "Scanning Random..." + (100 * (totals._rpages)/(numPages)).toFixed(0) + "%";
+        if(totals._rpages == numPages){
+            endGame(user);
+        }
+      }
+      else if (ghist["rpaging" + page].readyState == 1 && totals._rpages == 0) {
+        viewer.document.getElementById('progress').innerHTML = "Scanning Random...0%";
+      }
+    }
+    ghist["rpaging" + page].send(null);    
+}
 
 function getHistPage(user,maplist,page,mapopts) {
   var jump = baseURL + 'api.php?mode=gamelist&events=Y&gs=F&p1un=' + escape(user);
-  if (maplist.length == 1) jump += "&mp=" + maplist[0];
+  if(maplist.length == 1) {
+    jump += "&mp=" + maplist[0];
+    if(maplist.indexOf("Random") != -1 ) random = true;
+  }
   if (mapopts) {
     if (mapopts._num.length==1) jump += "&np=" + mapopts._num[0];
     if (mapopts._type.length==1) jump += "&gt=" + mapopts._type[0];
@@ -2010,7 +2111,7 @@ function getHistPage(user,maplist,page,mapopts) {
           unique[r] = myStore._unique[r];
         }
         totals._counter = myStore._total;
-        endGame(user);
+		getRandomMedals(user, 1);
       } else {
         if (pages.match(/^(\d+) of (\d+)$/)) {
           numPages = parseInt(RegExp.$2);
@@ -2422,7 +2523,7 @@ function getHistPage(user,maplist,page,mapopts) {
               myStore._unique[m] = unique[m];
             }
           }
-          endGame(user);
+          getRandomMedals(user, 1);
         }
       }
     }
@@ -2522,9 +2623,9 @@ if (leftBar) {
         latestVersiont = (((parseInt(latest[0]) * 100) + (parseInt(latest[1]) * 10) + parseInt(latest[2])) > ((parseInt(ver[0]) * 100) + (parseInt(ver[1]) * 10) + parseInt(ver[2])));
       }
     });
-    GM_addStyle("#phistory {z-index:2000;color:#000;width:151px;position:absolute;background-color:#FFF;text-align:left;border:1px solid #000;visibility:hidden;}");
-    GM_addStyle(".history_link {background-color: #FFFFFF;padding: 2px 6px 2px 6px;} .history_link_over {background-color: #3366CC; padding: 2px 6px 2px 6px;}");
-    GM_addStyle("#player {width:143px;border:1px solid #000;} #map{width:153px;border-width:1px} .fieldx {width:10em;border: 1px solid #565}");
+    GM_addStyle("#phistory {z-index:2000;color:#000;width:151px;position:absolute;background-color:#FFF;text-align:left;border:1px solid #000;visibility:hidden;}\
+	.history_link {background-color: #FFFFFF;padding: 2px 6px 2px 6px;} .history_link_over {background-color: #3366CC; padding: 2px 6px 2px 6px;}\
+	#player {width:143px;border:1px solid #000;} #map{width:153px;border-width:1px} .fieldx {width:10em;border: 1px solid #565}");
     var rt = GM_getValue('ratings');
     if (rt == undefined) {
       GM_setValue('ratings',ratings);
