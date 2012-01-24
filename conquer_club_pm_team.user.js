@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          Conquer Club Private Message Team
-// @version       0.3
+// @version       0.4
 // @namespace     http://userscripts.org/
 // @description   Adds a button in team games to private message entire team
 // @author        ThrushAAX
@@ -103,7 +103,7 @@ function doWork(){
         form += '<input type="hidden" name="address_list[u]['+ teamplayers[i] +']" value="to"/>';
     }
     
-    // reqiored to get form not to give error..
+    // required to get form not to give error..
     form += '<input type="hidden" name="add_to['+teamplayers[teamplayers.length-1] +']" value="Add"/>';
     
     form += '<input type="hidden" name="subject" value="Our team game '+gamenumber+'"/>'
@@ -115,7 +115,8 @@ function doWork(){
     $('<button>PM Teammates</button>').insertAfter("#players").click(function(){
         var evt = document.createEvent("HTMLEvents");
 	evt.initEvent("submit", true, true);
-        $(form).insertAfter("#chat-form").get(0).dispatchEvent(evt);
+        // tries to submit the form in two different ways for chrome and FF
+        $(form).insertAfter("#chat-form").submit().get(0).dispatchEvent(evt);
     });
     
 }
