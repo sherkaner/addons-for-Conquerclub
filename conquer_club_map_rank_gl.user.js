@@ -2693,7 +2693,7 @@ if (leftBar) {
       var findPage = /www.conquerclub.com\/player.php\?mode=find/.test(window.location.href) && !(/\&private=Y/.test(window.location.href)) && !(/\&submit=Join/.test(window.location.href))
       var startPage = /www.conquerclub.com\/player.php\?mode=start/.test(window.location.href)
 
-      if ((findPage || startpage) && document.getElementsByTagName('fieldset').length) {
+      if ((findPage || startPage) && document.getElementsByTagName('fieldset').length) {
         nextSib(document.getElementsByName('sg[]')[1]).innerHTML += "<span class='player3' title='Defeated opponents For speed Medal (from Map Rank)'>(" + myDefeats['speed'].length + ")</span>";
         nextSib(document.getElementsByName('po[]')[1]).innerHTML += "<span class='player3' title='Defeated opponents For freestyle Medal (from Map Rank)'>(" + myDefeats['freestyle'].length + ")</span>";
         nextSib(document.getElementsByName('wf[]')[1]).innerHTML += "<span class='player3' title='Defeated opponents For fog Medal (from Map Rank)'>(" + myDefeats['fog'].length + ")</span>";
@@ -2895,7 +2895,7 @@ if (leftBar) {
         ul = document.createElement ('ul');
         ul.style.borderWidth = "0px 1px 0px 1px";
         ul.style.width = "151px";
-        var inner = "<li><a href='#' onclick='e.preventDefault();document.getElementById('speed').style.display=(document.getElementById('speed').style.display == ''? 'none':'');\"><span>Options</span></a></li>";
+        var inner = "<li><a href='javascript:void(0);' onclick=\"document.getElementById('speed').style.display=(document.getElementById('speed').style.display == ''? 'none':'');\"><span>Options</span></a></li>";
         inner += "<div id=\"speed\" style=\"display:none\">";
         inner += "<input id=\"ratings\" type=\"checkbox\" name=\"ratings\"" + ((ratings)? " checked":"") + ">Ratings<br />";
         inner += "<input id=\"icons\" type=\"checkbox\" name=\"icons\"" + ((icons)? " checked":"") + ">Display Icons<br />";
