@@ -1,8 +1,8 @@
 // Conquer Club - Card Counter, Card Redemption Value, Status Indicator
-var versionString = "5.2.0";
+var versionString = "5.2.1";
 // This monkey is now called:
 
-/////	////   /////
+/////	 ////   /////
 //  //  //  //  //  //
 /////   //  //  /////
 //  //  //  //  //  //
@@ -27,7 +27,7 @@ var versionString = "5.2.0";
 //-----------------------------------------------------------------------------
 // ==UserScript==
 // @name          Conquer Club - BOB
-// @version       5.2.0
+// @version       5.2.1
 // @namespace     http://yeti_c.co.uk/conquerClub
 // @description   Adds Stats, card counter, redemption value, text based map, map inspection tools
 // @include       http*://*conquerclub.com*
@@ -163,7 +163,7 @@ $.fn.exists = function() {
 
 // Start/stop please wait
 function stopWaiting() {
-	$('#popup, #popupBackground').toggle(false);
+	$('#popup, #popupBackground').hide();
 }
 
 // Start please wait with custom message
@@ -438,7 +438,6 @@ function displayContinent(continent) {
 		return result;
 	}
 	for (i = 0; i < continent.owners.length; i++) {
-
 		if (!continent.overriden[i]) {
 			result += fillTemplate(continentTemplate, {
 				clazz: "continent pColor" + continent.owners[i],
@@ -1659,7 +1658,7 @@ function updateStats() {
 		wrapper.hide();
 	} else {
 		$('#statsTable').html(createStats());
-		$('#hideEliminated').click(function() {
+		$('#hideEliminated').unbind('click').click(function() {
 			var shouldHide = $(this).text().has("Hide");
 			if (shouldHide) {
 				$('head').append('<style id="hideEliminatedStyle">tr.eliminated{display:none}</style>');
@@ -1834,7 +1833,7 @@ function processLog(start, init, showProgress) {
 	var str_conquered = "conquered";
 	var str_bombarded = " bombarded ";
 	var str_missedTurn = " missed a turn";
-	var str_cashed = " cashed";
+	var str_cashed = " played";
 	var str_eliminated = " eliminated ";
 	var str_holding = " holding ";
 	var str_deferred = " deferred ";
@@ -2767,14 +2766,34 @@ function currentToSnapshotarray() {
 		var country = allCountries[i];
 		if (country.quantity == -1) {
 			toReturn += "?-?,";
-	} else {
-			toReturn += country.quantity + "-" + country.pid + ",";
-	}
+		} else {
+				toReturn += country.quantity + "-" + country.pid + ",";
+		}
 	}
 	return toReturn.slice(0,toReturn.length - 1);
 }
 
 function stringToObjects(text) {
+    if (text.charCodeAt (0) == '?'.charCodeAt (0)) {
+	    var result = [], 
+			nBigBits = text.charCodeAt(1) - '0'.charCodeAt(0),
+			decoder = createUnicodeDecoder(text.slice(2)),
+			nPIDbits = countBits(allPlayers.length - 1);
+		for (var i = 0;i < allCountries.length;i++) {
+		    var next = {pid:decoder.decodeBits(nPIDbits), quantity:-1};
+			if (!(gameSettings.fog && next.pid == UID)) {
+			    next.quantity = decoder.decodeBits(2);
+				if (next.quantity == 0) {
+				    var nbits = decoder.decodeBits(nBigBits);
+				    next.quantity = decoder.decodeBits(nbits) + (1 << nbits) + 3;
+				}
+			}
+			console.log(next);
+			result.push(next);
+			console.log(result);
+		}
+		return result;
+	}
 	var arrMatch, i, pattern = new RegExp("[A-Z]+([a-z]+)|[\?]","g"), toReturn = [];
 	while (arrMatch = pattern.exec(text)) {
 		var toAdd = {pid:0,quantity:0};
@@ -2833,26 +2852,100 @@ function testForSnaps() {
 	}
 }
 
-function currentToString() {
-	var toReturn = "", i;
-	for (i = 0; i < allCountries.length; i++) {
-		var country = allCountries[i];
-		if (country.quantity == -1) {
-			toReturn += "?";
-		} else {
-			toReturn += switchToBase26(country.quantity, true);
-			toReturn += switchToBase26(country.pid, false);
+/** Encoder for efficiently writing the snapshot to a chatline, thanks to Joriki for this contribution. **/
+// Encodes data bit by bit into a string
+// symbolSize: Amount of bits to use
+// nextChars: A function that should return the given bits to the desired char 
+function BaseEncoder(symbolSize,nextChars) {
+    var bits = 0,
+		nbits = 0,
+		string = "",
+		mask = (1 << symbolSize) - 1;
+
+    // Encodes the given number into the result, using nencode bits.
+	this.encodeBits = function(newBits,nencode) {
+        bits <<= nencode;
+        bits |= newBits;
+        nbits += nencode;
+        for (;;) {
+            var shift = nbits - symbolSize;
+            if (shift < 0) {
+				break;
+			}
+            string += nextChars((bits >> shift) & mask);
+            nbits = shift;
+        }
+    }
+
+	// Returns the result so far.
+    this.result = function() {
+		if (nbits != 0) { //fill up the remaining bits
+            this.encodeBits(0,symbolSize - nbits);
 		}
-	}
-	return toReturn;
+        return string;
+    }
 }
-function switchToBase26(number, upperCase) {
-	var result="";
-	while (number > 0 || result.length == 0) {
-		result = String.fromCharCode((upperCase?65:97) + number%26) + result;
-		number = Math.floor(number/26);
+// Decodes the data bit by bit from the given string
+// symbolSize: Amount of bits used
+// nextBits: A function that transfers the given charcode to bits
+function BaseDecoder(string,symbolSize,nextBits) {
+    var bits = 0, nbits = 0, index = 0;
+
+    this.decodeBits = function(ndecode) {
+        while (nbits < ndecode) {
+            bits <<= symbolSize;
+            bits |= nextBits(string.charCodeAt(index++));
+            nbits += symbolSize;
+        }
+        nbits -= ndecode;
+        return (bits >> nbits) & ((1 << ndecode) - 1);
+    }
+}
+
+function createUnicodeEncoder() {
+	return new BaseEncoder(15, function(bits) {
+		return String.fromCharCode(bits + 128);
+	});
+}
+function createUnicodeDecoder(string) {
+	return new BaseDecoder(string, 15, function(nextChar) {
+		return nextChar - 128;
+	});
+}
+//returns the number of bits in the given number
+function countBits(number) {
+    var nbits = 0;
+    while ((1 << nbits) <= number) {
+        nbits++;
 	}
-	return result;
+    return nbits;
+}
+
+function currentToString() {
+    var encoder = createUnicodeEncoder(), 
+		nPIDbits = countBits(allPlayers.length - 1), 
+		nBigBits = 0;
+    for (var i = 0;i < allCountries.length;i++) {
+		var rest = allCountries [i].quantity - 3;
+		if (rest > 0)
+			nBigBits = Math.max(nBigBits, countBits(countBits(rest) - 1));
+    }
+    for (var i = 0;i < allCountries.length;i++) {
+        var country = allCountries [i];
+        var unknown = country.quantity == -1;
+        encoder.encodeBits (unknown ? UID : country.pid, nPIDbits);
+        if (!unknown) {
+            var rest = country.quantity - 3;
+            var big = rest > 0;
+            encoder.encodeBits (big ? 0 : country.quantity, 2);
+            if (big) {
+                var nbits = countBits(rest) - 1;
+                encoder.encodeBits(nbits, nBigBits);
+                encoder.encodeBits(rest - (1 << nbits), nbits);
+            }
+        }
+    }
+    return '?' + String.fromCharCode ('0'.charCodeAt (0) + nBigBits) + encoder.result ();
 }
 
 function takeSnapshot() {
@@ -3284,7 +3377,7 @@ function isGamePage() {
 // this function is run ONCE on initial INIT of the script.
 function gm_ConquerClubGame() {
 	cc_log("Starting");
-	var styles = '.vnav ul li a {color:#000000; background-color: #CCDDCC}.vnav ul ul li a {background-color:#77AA77}\
+	var styles = '.vnav ul li a {color:#000000; background-color: #CCDDCC; padding-right: 1px;}.vnav ul ul li a {background-color:#77AA77}\
 .swapavatars#page-body dl.postprofile {float:left;border-left:0px solid;border-right:1px solid #FFF;}\
 .swapavatars#page-body div.postbody {float:right}\
 .swapavatars#page-body div.online {background-position:100% 17pt}';
