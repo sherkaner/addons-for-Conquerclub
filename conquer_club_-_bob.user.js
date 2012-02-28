@@ -2773,48 +2773,9 @@ function currentToSnapshotarray() {
 	return toReturn.slice(0,toReturn.length - 1);
 }
 
-function stringToObjects(text) {
-    if (text.charCodeAt (0) == '?'.charCodeAt (0)) {
-	    var result = [], 
-			nBigBits = text.charCodeAt(1) - '0'.charCodeAt(0),
-			decoder = createUnicodeDecoder(text.slice(2)),
-			nPIDbits = countBits(allPlayers.length - 1);
-		for (var i = 0;i < allCountries.length;i++) {
-		    var next = {pid:decoder.decodeBits(nPIDbits), quantity:-1};
-			if (!(gameSettings.fog && next.pid == UID)) {
-			    next.quantity = decoder.decodeBits(2);
-				if (next.quantity == 0) {
-				    var nbits = decoder.decodeBits(nBigBits);
-				    next.quantity = decoder.decodeBits(nbits) + (1 << nbits) + 3;
-				}
-			}
-			console.log(next);
-			result.push(next);
-			console.log(result);
-		}
-		return result;
-	}
-	var arrMatch, i, pattern = new RegExp("[A-Z]+([a-z]+)|[\?]","g"), toReturn = [];
-	while (arrMatch = pattern.exec(text)) {
-		var toAdd = {pid:0,quantity:0};
-		var playerString = /^[\?A-Z]+/.exec(arrMatch[0])[0];
-		if (playerString == "?") {
-			 toAdd.pid = UID;
-			 toAdd.quantity = -1;
-		} else {
-			for(i = 0; i < playerString.length;i++) {
-				toAdd.quantity = toAdd.quantity * 26 + playerString.charCodeAt(i) - 'A'.charCodeAt(0);
-			}
-			for(i = 0; i < arrMatch[1].length;i++) {
-				toAdd.pid = toAdd.pid * 26 + arrMatch[1].charCodeAt(i) - 'a'.charCodeAt(0);
-			}
-		}
-		toReturn.push(toAdd);
-	}
-	return toReturn;
-}
+
 function snapToChat() {
-	var text = "snap :: " + getRounds() + "~" + currentToString();
+	var text = "snap :: " + getRounds() + "~" + encoding.positionsToChatline();
 	if (text.length > 255) {
 		alert("Too much information.. Sorry, can't take snapshot in chat.");
 		return;
@@ -2853,100 +2814,153 @@ function testForSnaps() {
 }
 
 /** Encoder for efficiently writing the snapshot to a chatline, thanks to Joriki for this contribution. **/
-// Encodes data bit by bit into a string
-// symbolSize: Amount of bits to use
-// nextChars: A function that should return the given bits to the desired char 
-function BaseEncoder(symbolSize,nextChars) {
-    var bits = 0,
-		nbits = 0,
-		string = "",
-		mask = (1 << symbolSize) - 1;
+var encoding = (function() {
+	// Encodes data bit by bit into a string
+	// symbolSize: Amount of bits to use
+	// nextChars: A function that should return the given bits to the desired char 
+	function BaseEncoder(symbolSize,nextChars) {
+		var bits = 0,
+			nbits = 0,
+			string = "",
+			mask = (1 << symbolSize) - 1;
 
-    // Encodes the given number into the result, using nencode bits.
-	this.encodeBits = function(newBits,nencode) {
-        bits <<= nencode;
-        bits |= newBits;
-        nbits += nencode;
-        for (;;) {
-            var shift = nbits - symbolSize;
-            if (shift < 0) {
-				break;
+		// Encodes the given number into the result, using nencode bits.
+		this.encodeBits = function(newBits,nencode) {
+			bits <<= nencode;
+			bits |= newBits;
+			nbits += nencode;
+			for (;;) {
+				var shift = nbits - symbolSize;
+				if (shift < 0) {
+					break;
+				}
+				string += nextChars((bits >> shift) & mask);
+				nbits = shift;
 			}
-            string += nextChars((bits >> shift) & mask);
-            nbits = shift;
-        }
-    }
-
-	// Returns the result so far.
-    this.result = function() {
-		if (nbits != 0) { //fill up the remaining bits
-            this.encodeBits(0,symbolSize - nbits);
 		}
-        return string;
-    }
-}
-// Decodes the data bit by bit from the given string
-// symbolSize: Amount of bits used
-// nextBits: A function that transfers the given charcode to bits
-function BaseDecoder(string,symbolSize,nextBits) {
-    var bits = 0, nbits = 0, index = 0;
 
-    this.decodeBits = function(ndecode) {
-        while (nbits < ndecode) {
-            bits <<= symbolSize;
-            bits |= nextBits(string.charCodeAt(index++));
-            nbits += symbolSize;
-        }
-        nbits -= ndecode;
-        return (bits >> nbits) & ((1 << ndecode) - 1);
-    }
-}
-
-function createUnicodeEncoder() {
-	return new BaseEncoder(15, function(bits) {
-		return String.fromCharCode(bits + 128);
-	});
-}
-function createUnicodeDecoder(string) {
-	return new BaseDecoder(string, 15, function(nextChar) {
-		return nextChar - 128;
-	});
-}
-//returns the number of bits in the given number
-function countBits(number) {
-    var nbits = 0;
-    while ((1 << nbits) <= number) {
-        nbits++;
+		// Returns the result so far.
+		this.result = function() {
+			if (nbits != 0) { //fill up the remaining bits
+				this.encodeBits(0,symbolSize - nbits);
+			}
+			return string;
+		}
 	}
-    return nbits;
-}
+	// Decodes the data bit by bit from the given string
+	// symbolSize: Amount of bits used
+	// nextBits: A function that transfers the given charcode to bits
+	function BaseDecoder(string,symbolSize,nextBits) {
+		var bits = 0, nbits = 0, index = 0;
+        
+		this.decodeBits = function(ndecode) {
+			while (nbits < ndecode) {
+				bits <<= symbolSize;
+				bits |= nextBits(string.charCodeAt(index++));
+				nbits += symbolSize;
+			}
+			nbits -= ndecode;
+			return (bits >> nbits) & ((1 << ndecode) - 1);
+		}
+	}
 
-function currentToString() {
-    var encoder = createUnicodeEncoder(), 
-		nPIDbits = countBits(allPlayers.length - 1), 
-		nBigBits = 0;
-    for (var i = 0;i < allCountries.length;i++) {
-		var rest = allCountries [i].quantity - 3;
-		if (rest > 0)
-			nBigBits = Math.max(nBigBits, countBits(countBits(rest) - 1));
-    }
-    for (var i = 0;i < allCountries.length;i++) {
-        var country = allCountries [i];
-        var unknown = country.quantity == -1;
-        encoder.encodeBits (unknown ? UID : country.pid, nPIDbits);
-        if (!unknown) {
-            var rest = country.quantity - 3;
-            var big = rest > 0;
-            encoder.encodeBits (big ? 0 : country.quantity, 2);
-            if (big) {
-                var nbits = countBits(rest) - 1;
-                encoder.encodeBits(nbits, nBigBits);
-                encoder.encodeBits(rest - (1 << nbits), nbits);
+	function createUnicodeEncoder() {
+		return new BaseEncoder(15, function(bits) {
+			return String.fromCharCode(bits + 128);
+		});
+	}
+	function createUnicodeDecoder(string) {
+		return new BaseDecoder(string, 15, function(nextChar) {
+			return nextChar - 128;
+		});
+	}
+	//returns the number of bits in the given number
+	function countBits(number) {
+		var nbits = 0;
+		while ((1 << nbits) <= number) {
+			nbits++;
+		}
+		return nbits;
+	}
+	// Stores the positions by saving them bit by bit, 15 bits per character in chat.
+	function positionsToChatline() {
+		var encoder = createUnicodeEncoder(), 
+			nPIDbits = countBits(allPlayers.length - 1), 
+			nBigBits = 0,
+            i, rest;
+		for (i = 0;i < allCountries.length;i++) {
+			rest = allCountries [i].quantity - 3;
+			if (rest > 0)
+				nBigBits = Math.max(nBigBits, countBits(countBits(rest) - 1));
+		}
+		for (i = 0;i < allCountries.length;i++) {
+			var country = allCountries [i];
+			var unknown = country.quantity == -1;
+			encoder.encodeBits (unknown ? UID : country.pid, nPIDbits);
+			if (!unknown) {
+				rest = country.quantity - 3;
+				var big = rest > 0;
+				encoder.encodeBits (big ? 0 : country.quantity, 2);
+				if (big) {
+					var nbits = countBits(rest) - 1;
+					encoder.encodeBits(nbits, nBigBits);
+					encoder.encodeBits(rest - (1 << nbits), nbits);
+				}
+			}
+		}
+		return '?' + String.fromCharCode ('0'.charCodeAt (0) + nBigBits) + encoder.result();
+	}
+	// Retrieves the bits and recreates the positions from them.
+	function chatlineToPositions(text) {
+        var result = [], 
+            nBigBits = text.charCodeAt(1) - '0'.charCodeAt(0),
+            decoder = createUnicodeDecoder(text.slice(2)),
+            nPIDbits = countBits(allPlayers.length - 1);
+        for (var i = 0;i < allCountries.length;i++) {
+            var next = {pid:decoder.decodeBits(nPIDbits), quantity:-1};
+            if (!(gameSettings.fog && next.pid == UID)) {
+                next.quantity = decoder.decodeBits(2);
+                if (next.quantity == 0) {
+                    var nbits = decoder.decodeBits(nBigBits);
+                    next.quantity = decoder.decodeBits(nbits) + (1 << nbits) + 3;
+                }
             }
+            result.push(next);
         }
+        return result;
     }
-    return '?' + String.fromCharCode ('0'.charCodeAt (0) + nBigBits) + encoder.result ();
-}
+	// older way of storing snapshots in chat, uses A-Z for storing player number and a-z for storing quantities
+	function chatlineToPositionsOld(text) {
+		var arrMatch, i, pattern = new RegExp("[A-Z]+([a-z]+)|[\?]","g"), toReturn = [];
+		while (arrMatch = pattern.exec(text)) {
+			var toAdd = {pid:0,quantity:0};
+			var playerString = /^[\?A-Z]+/.exec(arrMatch[0])[0];
+			if (playerString == "?") {
+				 toAdd.pid = UID;
+				 toAdd.quantity = -1;
+			} else {
+				for(i = 0; i < playerString.length;i++) {
+					toAdd.quantity = toAdd.quantity * 26 + playerString.charCodeAt(i) - 'A'.charCodeAt(0);
+				}
+				for(i = 0; i < arrMatch[1].length;i++) {
+					toAdd.pid = toAdd.pid * 26 + arrMatch[1].charCodeAt(i) - 'a'.charCodeAt(0);
+				}
+			}
+			toReturn.push(toAdd);
+		}
+		return toReturn;
+	}
+	
+	return {
+		chatlineToPositions: function(text) {
+			if (text.charCodeAt (0) == '?'.charCodeAt(0)) {
+				return chatlineToPositions(text);
+			}
+			return chatlineToPositionsOld(text);
+		},
+		positionsToChatline: positionsToChatline
+	};
+})();
 
 function takeSnapshot() {
 	// get date
@@ -3233,7 +3247,7 @@ function showSnapshots() {
 			$('#showDifferences').click(analyse);
 			$('#chat').on("click", "a.snapshot", function(e) {
 				var data = $(this).find(".hide").text();
-				var toDraw = stringToObjects(data);
+				var toDraw = encoding.chatlineToPositions(data);
 				if (toDraw.length != allCountries.length) {
 					alert("wrong format for snapshot.");
 					return;
