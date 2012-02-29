@@ -712,13 +712,13 @@ function endGame(user) {
       mids.push(maps.indexOf(summary[y]._best[cnv]) + 1);
     }
     href+= "&mp=" + mids;
-    if (summary[y]._medal != 'Rating' && summary[y]._medal != 'Random') {
+    if (summary[y]._medal != 'Rating' && summary[y]._medal != 'random') {
       x+= "<tr><td><a href='#' title=\"Find Best " + summary[y]._medal + " Games\" onclick='e.preventdefault();var wdw=window.open(\"" + href + "\", \"mrsugg\");wdw.focus();'>" + summary[y]._medal + "</a></td>";
     }
     else x+= "<tr><td>" + summary[y]._medal + "</td>";
     x+= "<td class=" + medclass[summary[y]._medals] + ">" + medname[summary[y]._medals] + "</td>";
     x+= "<td>" + summary[y]._current + "</td><td>" + summary[y]._next + "</td>";
-    if (summary[y]._medal == 'Rating' || summary[y]._medal == 'Random') x+= "<td>-</td></tr>";
+    if (summary[y]._medal == 'Rating' || summary[y]._medal == 'random') x+= "<td>-</td></tr>";
     else if (summary[y]._best.length == 0) x+= "<td>None</td></tr>";
     else if (summary[y]._medal == 'crossmap') {
       x+= "<td>" + summary[y]._best + " (" + unique[summary[y]._best[0]].length + ")</td></tr>";
@@ -922,7 +922,7 @@ function endGame(user) {
   trHTML += createSummTd("pos", "List Of Maps Played With Score 0 Or More", pos.length + " Positive Maps");
   trHTML += createSummTd("neg", "List Of Maps Played With Negative Score", neg.length + " Negative Maps");
   trHTML += createSummTd("miss", "List Of Missing Game Logs", miss.length + " Missing Logs");
-  trHTML += "<td class='summ'>&nbsp;</td>"
+  trHTML += "<td class='summ'>&nbsp;</td>";
   tr.innerHTML = trHTML;
   stable.appendChild(tr);
   tr = viewer.document.createElement('tr');
@@ -1296,7 +1296,7 @@ function deserialize(name, def) {
   try {
 	var original = GM_getValue(name);
 	if (original && original.indexOf('(') == 0) {
-		toReturn = def || {}; //saved through old method, reset.
+		toReturn = def || {}; // saved through old method, reset.
 	} else {
 		toReturn = JSON.parse(original, def || {});
 	}
@@ -1954,7 +1954,7 @@ function getRandomMedals(user, page){
         var numPages = 1;
                 
         if(pages.match(/^(\d+) of (\d+)$/)) {
-		  var returned = parseInt(RegExp.$2)
+		  var returned = parseInt(RegExp.$2);
           numPages = returned > 1?returned:1;
         }
         if(page == 1) {
@@ -2032,7 +2032,7 @@ function getRandomMedals(user, page){
       else if (ghist["rpaging" + page].readyState == 1 && totals._rpages == 0) {
         viewer.document.getElementById('progress').innerHTML = "Scanning Random...0%";
       }
-    }
+    };
     ghist["rpaging" + page].send(null);    
 }
 
@@ -2690,8 +2690,8 @@ if (leftBar) {
         }
       }
 
-      var findPage = /www.conquerclub.com\/player.php\?mode=find/.test(window.location.href) && !(/\&private=Y/.test(window.location.href)) && !(/\&submit=Join/.test(window.location.href))
-      var startPage = /www.conquerclub.com\/player.php\?mode=start/.test(window.location.href)
+      var findPage = /www.conquerclub.com\/player.php\?mode=find/.test(window.location.href) && !(/\&private=Y/.test(window.location.href)) && !(/\&submit=Join/.test(window.location.href));
+      var startPage = /www.conquerclub.com\/player.php\?mode=start/.test(window.location.href);
 
       if ((findPage || startPage) && document.getElementsByTagName('fieldset').length) {
         nextSib(document.getElementsByName('sg[]')[1]).innerHTML += "<span class='player3' title='Defeated opponents For speed Medal (from Map Rank)'>(" + myDefeats['speed'].length + ")</span>";
