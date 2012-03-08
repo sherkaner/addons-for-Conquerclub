@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name          Conquer Club - score charts revisited
-// @version       0.2.2
+// @version       0.3
 // @namespace     http://www.conquerclub.com
 // @description   Adds point graphs etc. to Conquer club
-// @include       *://*conquerclub.com/*memberlist.php?mode=viewprofile*
+// @include       http*://*conquerclub.com/*memberlist.php?mode=viewprofile*
 // @match         *://*.conquerclub.com/*memberlist.php?mode=viewprofile*
 // ==/UserScript==
 
@@ -38,8 +38,13 @@ function initGraphFromScreen() {
 	$(this).remove(); // remove button
 
 	var dds = $('.left-box.details dd');
+	var username = dds.eq(0).text();
+	var index = username.indexOf("[");
+	if (index > -1 && index < username.indexOf("]")) {
+		username = username.substring(0, index);
+	}
 	var player = {
-		username: $.trim(dds.eq(0).text()),
+		username: $.trim(username),
 		gamesPlayed: /(\d+) completed, (\d+) \(/.exec($.trim(dds.eq(3).text()))[1],
 		currentScore: $.trim(dds.eq(2).text())
 	}
@@ -68,34 +73,44 @@ function getGamesInfo(player) {
 	waitMessage.show().text("Requesting data form API, " + nrPages + " pages.");
 	var count = 0;
 	var results = [];
-	for (var i = 0; i < nrPages; i++) {
-		$.get("http://www.conquerclub.com/api.php?mode=gamelist&names=Y&events=Y&page=" + (i + 1) + "&p1un=" + player.username).success(function(data) {
-			$(data).find('game').each(function() {
-				var that = $(this), playerIndex = that.find('player:contains(' +player.username + ')').index() + 1, gamenumber = $.trim(that.find('game_number').text());
-				that.find('event').each(function() {
-					var result =/(\d+) (loses|gains) (\d+) points/.exec(this.textContent || this.innerText);
-					if (result && result[1] == playerIndex){
-						results.push({
-							time:this.getAttribute('timestamp')*1000, 
-							score:0,
-							pointsDifference:(result[2]=="gains"?+result[3]:-result[3]),
-							game:gamenumber
-                        });
-					}
-				});
+	var success = function(data) {
+		$(data).find('game').each(function() {
+			var that = $(this), playerIndex = that.find('player:contains(' +player.username + ')').index() + 1, gamenumber = $.trim(that.find('game_number').text());
+			that.find('event').each(function() {
+				var result =/(\d+) (loses|gains) (\d+) points/.exec(this.textContent || this.innerText);
+				if (result && result[1] == playerIndex){
+					results.push({
+						time:this.getAttribute('timestamp')*1000, 
+						score:0,
+						pointsDifference:(result[2]=="gains"?+result[3]:-result[3]),
+						game:gamenumber
+					});
+				}
 			});
-			count++;
-			waitMessage.text("Retrieved " + count + " pages of " + nrPages + ".");
-			if (count == nrPages) {// all pages
-				results.sort(function(a,b) { //sort based on time
-					return a.time < b.time? -1:(a.time > b.time?1:0);
-				});
-				player.gameData = results;
-				fillGraphData(player);
-				drawGraph();
-				waitMessage.hide();
-			}
 		});
+		if (count == 0) {
+			var pageNrs = $(data).find('page').text().split(' of ');
+			if (pageNrs[1] > nrPages) {
+				for (var i = nrPages; i < pageNrs[1]; i++) {
+					$.get("http://www.conquerclub.com/api.php?mode=gamelist&names=Y&events=Y&page=" + (i + 1) + "&p1un=" + player.username).success(success);
+				}
+				nrPages = pageNrs[1];
+			}
+		}
+		count++;
+		waitMessage.text("Retrieved " + count + " pages of " + nrPages + ".");
+		if (count == nrPages) {// all pages
+			results.sort(function(a,b) { //sort based on time
+				return a.time < b.time? -1:(a.time > b.time?1:0);
+			});
+			player.gameData = results;
+			fillGraphData(player);
+			drawGraph();
+			waitMessage.hide();
+		}
+	}
+	for (var i = 0; i < nrPages; i++) {
+		$.get("http://www.conquerclub.com/api.php?mode=gamelist&names=Y&events=Y&page=" + (i + 1) + "&p1un=" + player.username).success(success);
 	}
 }
 

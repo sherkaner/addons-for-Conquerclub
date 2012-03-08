@@ -2,12 +2,12 @@
 // @name          ConquerClub - Clickable Maps
 // @namespace			conquerClubClickableMaps
 // @description   Makes the map in conquerclub clickable, creating an easier way of making moves.
-// @version				4.8
+// @version				4.9
 // @include				http*://*.conquerclub.com/*game.php?game=*
 // @match 				*://*.conquerclub.com/*game.php?game=*
 
 // ==/UserScript==
-var versionString = "4.8";
+var versionString = "4.9";
 
 if ((typeof GM_getValue == 'undefined') || (GM_getValue('a', 'b') == undefined)) {
 	var namespace = "ClickableMaps.";
@@ -898,13 +898,11 @@ var userGuideHTML = '<div id="ug-top" style="padding:15px;padding-top:5px;"><h4>
 					}catch(err){}
 					if (selectToCountry.value != tIndex) {
 						wait('off');
-						setTimeout(function(){
-							alert(tName+' is not accessible from '+fromTerritory);
-						}, 200);
 						return;
 					}
 					if (e.button == 2 || e.shiftKey) {
 						doAction = 'Auto-Assault';
+						autoAttackX = false;
 						if (e.ctrlKey) {
 							// this is an Auto-Attack[x] (doAction will remain 'Attack')
 							var input = prompt('Enter the minimum number of troops to remain on the assaulting[/assaulted] territory:');
@@ -912,7 +910,13 @@ var userGuideHTML = '<div id="ug-top" style="padding:15px;padding-top:5px;"><h4>
 								wait('off');
 								return;
 							}
-							minArmies = input.split('/');
+							var amounts = input.split('/');
+							autoAttackData = {
+								assaultingIndex:selectFromCountry.value,
+								assaultingRemaining:amounts[0],
+								assaultedIndex:selectToCountry.value,
+								assaultedRemaining:amounts[1]
+							} 
 							doAction = 'Assault';
 							autoAttackX	= true;
 						}
@@ -960,9 +964,6 @@ var userGuideHTML = '<div id="ug-top" style="padding:15px;padding-top:5px;"><h4>
 					}catch(err){}
 					if (selectToCountry.value != tIndex) {
 						wait('off');
-						setTimeout(function(){
-							alert(tName+' is not accessible from '+fromTerritory);
-						}, 200);
 						return;
 					}
 					toTerritory = tName;
@@ -1029,7 +1030,7 @@ var userGuideHTML = '<div id="ug-top" style="padding:15px;padding-top:5px;"><h4>
 		if (chatHasFocus) {
 			return;
 		}
-		switch ( e.which) {
+		switch (e.which) {
 			case parseInt(userPrefs['phaseEndHotkey']) :
 				if (doAction == 'Assault') {
 					clickButton('End Assaults');
@@ -1251,9 +1252,9 @@ var userGuideHTML = '<div id="ug-top" style="padding:15px;padding-top:5px;"><h4>
 		}
 		debug('doAction: '+doAction);
 		if (autoAttackX) {
-			//debug('remaining armies: '+remainingArmies);
-			//debug('min armies: '+minArmies);
-			if ((minArmies[0] && parseInt(remainingArmies) <= parseInt(minArmies[0]) + 1) || (minArmies[1] && parseInt(remainingArmiesD) <= parseInt(minArmies[1]) + 1) || doAction == 'Advance') {
+			var indicesRight = autoAttackData.assaultingIndex == document.getElementById('from_country').value && autoAttackData.assaultedIndex == document.getElementById('to_country').value;
+			var armiesRight = (!autoAttackData.assaultingRemaining || (+remainingArmies) > (+autoAttackData.assaultingRemaining + 1)) && (!autoAttackData.assaultedRemaining || (+remainingArmiesD) > (+autoAttackData.assaultedRemaining + 1));
+			if (!indicesRight || !indicesRight || doAction == 'Advance') {
 				autoAttackX = false;
 			} else {
 				clickButton('Assault');
@@ -1295,9 +1296,9 @@ var userGuideHTML = '<div id="ug-top" style="padding:15px;padding-top:5px;"><h4>
 					}
 					//debug('doAction: '+doAction);
 					if (autoAttackX) {
-						//debug('remaining armies: '+remainingArmies);
-						//debug('min armies: '+minArmies);
-						if ((minArmies[0] && parseInt(remainingArmies) <= parseInt(minArmies[0]) + 1) || (minArmies[1] && parseInt(remainingArmiesD) <= parseInt(minArmies[1]) + 1) || doAction == 'Advance') {
+						var indicesRight = autoAttackData.assaultingIndex == document.getElementById('from_country').value && autoAttackData.assaultedIndex == document.getElementById('to_country').value;
+						var armiesRight = (!autoAttackData.assaultingRemaining || (+remainingArmies) > (+autoAttackData.assaultingRemaining + 1)) && (!autoAttackData.assaultedRemaining || (+remainingArmiesD) > (+autoAttackData.assaultedRemaining + 1));
+						if (!indicesRight || !indicesRight || doAction == 'Advance') {
 							autoAttackX = false;
 						} else {
 							clickButton('Assault');
@@ -1324,38 +1325,32 @@ var userGuideHTML = '<div id="ug-top" style="padding:15px;padding-top:5px;"><h4>
 	}
 	function addConfirmation(button) {
 		button.addEventListener('click', function (evt) {
-				var command = this.value, shouldContinue = true, confirmMessage;
-				if (userPrefs['confirm'+command] == 'Y') {
-					if (command == "Deploy") {
-						confirmMessage = 'Deploy '+selectQuantity.value+' troop(s) on '+toTerritory+'?';
-					} else if (command == "Assault" || command =="Auto-Assault") {
-						confirmMessage = command + ' from '+fromTerritory+' to '+toTerritory+'?';
-					} else if (command == "Advance") {
-						confirmMessage = 'Advance '+selectQuantity.value+' troop(s)?';
-					} else if (command == "Reinforce") {
-						confirmMessage = 'Reinforce '+selectQuantity.value+' troop(s) from '+fromTerritory+' to '+toTerritory+'?';
-					}
-					if (!confirm(confirmMessage)) {
-						shouldContinue = false;
-					}
+			var command = this.value, shouldContinue = true, confirmMessage;
+			if (userPrefs['confirm'+command] == 'Y') {
+				if (command == "Deploy") {
+					confirmMessage = 'Deploy '+selectQuantity.value+' troop(s) on '+toTerritory+'?';
+				} else if (command == "Assault" || command =="Auto-Assault") {
+					confirmMessage = command + ' from '+fromTerritory+' to '+toTerritory+'?';
+				} else if (command == "Advance") {
+					confirmMessage = 'Advance '+selectQuantity.value+' troop(s)?';
+				} else if (command == "Reinforce") {
+					confirmMessage = 'Reinforce '+selectQuantity.value+' troop(s) from '+fromTerritory+' to '+toTerritory+'?';
 				}
-				if (userPrefs['confirmPhaseEnd'] == 'Y') {
-					if (command == 'Reinforce' && fortificationType != 'Unlimited') {
-						if (!confirm('This will end your turn. Are you sure?')) {
-							shouldContinue = false;
-						}
-					} else if (command == 'End Assaults' || command == 'End Reinforcement') {
-						if (!confirm('Are you sure you want to '+command.toLowerCase()+'?')) {
-							shouldContinue = false;
-						}
-					}
+				shouldContinue = confirm(confirmMessage);
+			}
+			if (userPrefs['confirmPhaseEnd'] == 'Y') {
+				if (command == 'Reinforce' && fortificationType != 'Unlimited') {
+					shouldContinue = confirm('This will end your turn. Are you sure?');
+				} else if (command == 'End Assaults' || command == 'End Reinforcement') {
+					shouldContinue = confirm('Are you sure you want to '+command.toLowerCase()+'?');
 				}
-				if (!shouldContinue) {
-					evt.preventDefault();
-					return false;
-				}
-				return true;
-			}, false);
+			}
+			if (!shouldContinue) {
+				evt.preventDefault();
+				return false;
+			}
+			return true;
+		}, false);
 	}
 
 	function wait(state) {
@@ -1730,7 +1725,7 @@ document.getElementById('message').addEventListener('blur', function(){
 
 // DECLARATIONS
 var outerMap,innerMap,mapInfo,outerMapPos,currentPlayerName,currentPlayerNumber, fortificationType,actionForm,images,fromTerritory,toTerritory,attackedFromTerritory,
-attackedToTerritory,selectQuantity,selectedQuantity,actionString,doAction,chatHasFocus,userGuide,backScreen,clickableMapMenu,minArmies,remainingArmies,remainingArmiesD,overTerritory,armiesArray,
+attackedToTerritory,selectQuantity,selectedQuantity,actionString,doAction,chatHasFocus,userGuide,backScreen,clickableMapMenu,autoAttackData,remainingArmies,remainingArmiesD,overTerritory,armiesArray,
 userPrefs,defaultPrefs = [],autoAdvance = false,autoAttackX = false,deployDeferred = false,sendingRequest = false,actionUpdated = false, 
 bob = false,beginTurn = false,sprites = {};
 
