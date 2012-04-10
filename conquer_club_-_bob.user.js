@@ -1,5 +1,5 @@
 // Conquer Club - Card Counter, Card Redemption Value, Status Indicator
-var versionString = "5.2.1";
+var versionString = "5.2.3";
 // This monkey is now called:
 
 /////	 ////   /////
@@ -27,7 +27,7 @@ var versionString = "5.2.1";
 //-----------------------------------------------------------------------------
 // ==UserScript==
 // @name          Conquer Club - BOB
-// @version       5.2.1
+// @version       5.2.3
 // @namespace     http://yeti_c.co.uk/conquerClub
 // @description   Adds Stats, card counter, redemption value, text based map, map inspection tools
 // @include       http*://*conquerclub.com*
@@ -203,27 +203,6 @@ var eFortifications = {
 	CHAINED:1,
 	UNLIMITED:2
 };
-
-function GameSettings(){
-	this.gamenr = $("#game2").val();
-	// ---- determine fog ----
-	if (dashboard.exists()) {
-		var options = {};
-		dashboard.find("dl > dt").each(function() {
-			var dt = $(this);
-			options[dt.html()] = dt.next().html();
-		});
-
-		this.fog = options["Fog of War"] == "Yes";
-		//determine speed
-		this.speed = dashboard.find("h3").html().indexOf("Speed") == 0;
-		// ---- Get Game Modes ----
-		this.playOrder = ePlayOrder[options["Play Order"]?options["Play Order"].toUpperCase():""];
-		this.type = eGameType[options["Game Type"]?options["Game Type"].toUpperCase():""];
-		this.fortifications = eFortifications[options["Reinforcements"]?options["Reinforcements"].toUpperCase():""];
-		this.spoils = eBonusCards[options["Spoils"]?options["Spoils"].toUpperCase():""];
-	}
-}
 
 //-------------------------------------------------------------------------
 // OBJECTS
@@ -638,7 +617,7 @@ function checkFloatDice() {
 			position:'fixed',
 			backgroundColor:"#EEEEEE",
 			top:0,
-			zIndex:4
+			zIndex:14
 		});
 		if ($('#action-form').exists()) {
 			if ($('#from_country').exists()) {
@@ -2953,7 +2932,7 @@ var encoding = (function() {
 	
 	return {
 		chatlineToPositions: function(text) {
-			if (text.charCodeAt (0) == '?'.charCodeAt(0)) {
+			if (text.length > 2 && text.charCodeAt (0) == '?'.charCodeAt(0) && text.charCodeAt(2) > 127) {
 				return chatlineToPositions(text);
 			}
 			return chatlineToPositionsOld(text);
@@ -3279,7 +3258,28 @@ var jtm = function jtm() {
 //-------------------------------------------------------------------------
 var rightside = $('#right_hand_side');
 var dashboard = $('#dashboard');
-var gameSettings = new GameSettings();
+var gameSettings = (function() {
+	var toReturn = {
+		gamenr : $("#game2").val()
+	};
+	// ---- determine fog ----
+	if (dashboard.exists()) {
+		var options = {};
+		dashboard.find("dl > dt").each(function() {
+			var dt = $(this);
+			options[dt.html()] = dt.next().html();
+		});
+		toReturn.fog = options["Special Gameplay"] && options["Special Gameplay"].indexOf("Fog") != -1;
+		//determine speed
+		toReturn.speed = dashboard.find("h3").html().indexOf("Speed") == 0;
+		// ---- Get Game Modes ----
+		toReturn.playOrder = ePlayOrder[options["Play Order"] ? options["Play Order"].toUpperCase() : ""];
+		toReturn.type = eGameType[options["Game Type"] ? options["Game Type"].toUpperCase() : ""];
+		toReturn.fortifications = eFortifications[options["Reinforcements"] ? options["Reinforcements"].toUpperCase():""];
+		toReturn.spoils = eBonusCards[options["Spoils"] ? options["Spoils"].toUpperCase():""];
+	}
+	return toReturn;
+})();
 
 //---- Log Processing ----
 var currentLog = "";
@@ -3483,7 +3483,7 @@ function gm_ConquerClubGame() {
 			position:'fixed',
 			backgroundColor:"#EEEEEE",
 			top:0,
-			zIndex:4
+			zIndex:14
 		});
 	}
 
