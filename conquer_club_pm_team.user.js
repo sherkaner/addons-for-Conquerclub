@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          Conquer Club Private Message Team
-// @version       0.4
+// @version       0.5
 // @namespace     http://userscripts.org/
 // @description   Adds a button in team games to private message entire team
 // @author        ThrushAAX
@@ -17,10 +17,13 @@ var username = null;
 
 if(/www.conquerclub.com\/game.php\?game=(\d+)/.test(window.location.href) ){
     gamenumber = RegExp.$1;
-}
 
-if(gamenumber){
-    doWork();
+    if(gamenumber){
+        $.get("http://www.conquerclub.com/api.php", {
+            mode: "gamelist",
+            gn: gamenumber
+        }, doWork, "xml");
+    }
 }
 
 function getMyName(){
@@ -33,19 +36,31 @@ function getMyName(){
     return username;
 }
 
-function doWork(){
+function doWork(xml){
+    
+    var $xml = $(xml);
+    
+    if( $xml.find("games").attr("total") != "1"){   //should only have 1 game so pretty big problem otherwise
+        return;
+    }
+    
+    var $game = $xml.find("game");
+
     //get type
-    var type = $("#dashboard").find('dt:contains("Game Type")').next().text();
+    var type = $game.children("game_type").text();
     var teamsize;
     
-    if( type == 'Quadruples' ){
+    if( type == 'Q' ){
         teamsize = 4;
+        type = 'quadruples';
     }
-    else if( type=='Triples'){
+    else if( type == 'T'){
         teamsize = 3;
+        type = 'triples';
     }
-    else if( type == 'Doubles'){
+    else if( type == 'D'){
         teamsize = 2;
+        type = 'doubles';
     }
     else { // some other type we don't care about
         return;
@@ -77,8 +92,7 @@ function doWork(){
         return;
     }
     
-    //console.log(myindex, playerids);
-    
+    var mapname = $game.children("map").text();
     var myid = playerids[myindex];
     var startindex;
     
@@ -93,8 +107,15 @@ function doWork(){
     var teamplayers = playerids.splice(startindex,teamsize);
     teamplayers.splice(teamplayers.indexOf(myid),1);
     
-    //console.log(startindex,teamsize, teamplayers  );
-    
+    var tourneyname = $("#dashboard").find("td:contains(Tournament:)").find("a").text();
+    var subject = mapname+' ';
+    if( tourneyname ){
+        subject += 'for '+tourneyname;
+    }
+    else {
+        subject += type;
+    }
+    subject = subject.substring(0,60);  //max length for subjects
     
     //make fake post form to add users to pm form    
     var form='<form id="PMTEAMFORM" method="post" action="/forum/ucp.php?i=pm&mode=compose">';
@@ -106,7 +127,7 @@ function doWork(){
     // required to get form not to give error..
     form += '<input type="hidden" name="add_to['+teamplayers[teamplayers.length-1] +']" value="Add"/>';
     
-    form += '<input type="hidden" name="subject" value="Our team game '+gamenumber+'"/>'
+    form += '<input type="hidden" name="subject" value="'+subject+'"/>'
     form += '<input type="hidden" name="message" value="[Game]'+gamenumber+'[/Game]"/>'
     form += '<input type="submit" name="" value="" style="display:none;" />'
     form += '</form>';
