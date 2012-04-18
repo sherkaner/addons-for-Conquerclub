@@ -1,13 +1,13 @@
 // ==UserScript==
 // @name          ConquerClub - Clickable Maps
-// @namespace			conquerClubClickableMaps
+// @namespace     conquerClubClickableMaps
 // @description   Makes the map in conquerclub clickable, creating an easier way of making moves.
-// @version				4.9
-// @include				http*://*.conquerclub.com/*game.php?game=*
-// @match 				*://*.conquerclub.com/*game.php?game=*
+// @version	      4.10
+// @include       http*://*.conquerclub.com/*game.php?game=*
+// @match         *://*.conquerclub.com/*game.php?game=*
 
 // ==/UserScript==
-var versionString = "4.9";
+var versionString = "4.10";
 
 if ((typeof GM_getValue == 'undefined') || (GM_getValue('a', 'b') == undefined)) {
 	var namespace = "ClickableMaps.";
@@ -300,7 +300,9 @@ var userGuideHTML = '<div id="ug-top" style="padding:15px;padding-top:5px;"><h4>
 		sprites.fortifyFromMarker.style.visibility = 'hidden';
 	
 		deployDeferred = false;
-		// parse the text of the action menu (actionString) to determine what phase we are in. if there is no action element, then we must be viewing someone else's game
+		// parse the text of the action menu (actionString) to determine what phase
+    // we are in. if there is no action element, then we must be viewing someone
+    // else's game.
 		if (actionString.match('Waiting for your next turn') || actionString.match('You may take your turn now') || actionString.match('You have won...')) {
 			outerMap.style.borderColor = '#eeeeee';
 			doAction = 'Waiting';
@@ -325,19 +327,20 @@ var userGuideHTML = '<div id="ug-top" style="padding:15px;padding-top:5px;"><h4>
 			if (userPrefs['showFloatingQuantity'] == 'Y') {
 				sprites.floatingQuantity.style.visibility = 'visible';
 			}
-			//debug("fromTerritory == '"+fromTerritory+"' && toTerritory == '"+attackedToTerritory+"'");
+			// debug("fromTerritory == '"+fromTerritory+"' && toTerritory ==
+      // '"+attackedToTerritory+"'");
 		} else if (actionString.match('Reinforce') || actionString.match('You cannot make any reinforcements.')) {
 			outerMap.style.borderColor = '#00ff00';
 			doAction = 'Reinforce';
 		}
-		//debug('new action: '+doAction);
+		// debug('new action: '+doAction);
 	
 		debug("fromTerritory == '"+fromTerritory+"' && toTerritory == '"+toTerritory+"'");
 		if (fromTerritory == '' && toTerritory == '') {
 			if (doAction == 'Advance') {
 				sprites.advanceFromMarker.style.visibility = 'visible';
 			}
-			//debug('no from or toTerritory. returning');
+			// debug('no from or toTerritory. returning');
 			return;
 		}
 		for (var i in mapInfo.countries) {
@@ -425,7 +428,9 @@ var userGuideHTML = '<div id="ug-top" style="padding:15px;padding-top:5px;"><h4>
 				n = prompt('Enter new hotkey:');
 			}
 			if (n != '') {
-				// something was entered--make sure it is not already assigned to something else, and that is it not 0-9 since those are reserved for changing army quantities
+				// something was entered--make sure it is not already assigned to
+        // something else, and that is it not 0-9 since those are reserved for
+        // changing army quantities
 				if (n.match(/[0-9]/)) {
 					alert('Number keys are reserved for changing the number of troops. Please choose another hotkey.');
 					return;
@@ -528,9 +533,10 @@ var userGuideHTML = '<div id="ug-top" style="padding:15px;padding-top:5px;"><h4>
 		storeUserPrefs();
 	}
 	function updateMap(territoryNumber, playerNumber, quantity) {
-		//debug('running updateMap. doAction: '+doAction);
+		// debug('running updateMap. doAction: '+doAction);
 		if (sendingRequest) {
-			//debug('returning from updateMap because sendingReqeust='+sendingRequest);
+			// debug('returning from updateMap because
+      // sendingReqeust='+sendingRequest);
 			return;
 		}
 		try{
@@ -545,15 +551,9 @@ var userGuideHTML = '<div id="ug-top" style="padding:15px;padding-top:5px;"><h4>
 		sprites.crosshair.style.visibility = 'hidden';
 		sprites.floatingQuantity.style.visibility = 'hidden';
 
-		switch ( doAction) {
+		switch (doAction) {
 			case 'Deploy':
-				try {
-					document.getElementById('to_country').value = territoryNumber;
-					createChangeEvent(document.getElementById('to_country'));
-				} catch (err) {
-					return;
-				}
-				if (document.getElementById('to_country').value != territoryNumber) {
+				if (!changeValue('#to_country', territoryNumber)) {
 					return;
 				}
 				setCursor('pointer');
@@ -633,13 +633,8 @@ var userGuideHTML = '<div id="ug-top" style="padding:15px;padding-top:5px;"><h4>
 					}
 					return;
 				}
-				try {
-					document.getElementById('to_country').value = territoryNumber;
-					createChangeEvent(document.getElementById('to_country'));
-				} catch (err) {
-					return;
-				}
-				if (document.getElementById('to_country').value != territoryNumber) {
+
+				if (!changeValue('#to_country', territoryNumber)) {
 					return;
 				}
 				setCursor('pointer');
@@ -657,8 +652,7 @@ var userGuideHTML = '<div id="ug-top" style="padding:15px;padding-top:5px;"><h4>
 				break;
 			case 'Reinforce':
 				try {
-					document.getElementById('to_country').value = territoryNumber;
-					createChangeEvent(document.getElementById('to_country'));
+					changeValue('#to_country', territoryNumber);
 				} catch (err) {
 					return;
 				}
@@ -687,11 +681,11 @@ var userGuideHTML = '<div id="ug-top" style="padding:15px;padding-top:5px;"><h4>
 	}
 	function onMapMouseMove(e) {
 		if (!document.getElementById('action')) {
-			//debug('spectator game. returning');
+			// debug('spectator game. returning');
 			return;
 		}
 		if (sendingRequest) {
-			//debug('returning because sendingRequest='+sendingRequest);
+			// debug('returning because sendingRequest='+sendingRequest);
 			return;
 		}
 	
@@ -737,16 +731,11 @@ var userGuideHTML = '<div id="ug-top" style="padding:15px;padding-top:5px;"><h4>
 		}
 	}
 	function findButton(text) {
-		var form = document.getElementById("action-form"), inputs, i, input;
-		if (form) {
-			inputs = form.getElementsByTagName("input");
-			if (inputs.length != undefined) {
-				for (i = 0; i < inputs.length; i++) {
-					input = inputs[i];
-					if (input.type=="submit" && input.value == text) {
-						return input;
-					}
-				}
+		var inputs = document.querySelectorAll("#action-form input"), i, input;
+		for (i = 0; i < inputs.length; i++) {
+			input = inputs[i];
+			if (input.type=="submit" && input.value == text) {
+				return input;
 			}
 		}
 		return null;
@@ -788,21 +777,18 @@ var userGuideHTML = '<div id="ug-top" style="padding:15px;padding-top:5px;"><h4>
 			}
 		}
 		if (!clickedTerritory) {
-			//debug('no territory clicked. x:'+clickX+' y:'+clickY);
+			// debug('no territory clicked. x:'+clickX+' y:'+clickY);
 			wait('off');
 			return;
 		}
 	
 		if (e.button == 0 && ! e.shiftKey) {
-			try{
-				document.getElementById('from_country').value = tIndex;
-				createChangeEvent(document.getElementById('from_country'));
-			}catch(err){}
+			changeValue('#from_country', tIndex);
 		}
 	
 		updateAction();
 		if (doAction == 'Waiting') {
-			//debug('not your turn. exiting');
+			// debug('not your turn. exiting');
 			wait('off');
 			return;
 		}
@@ -829,16 +815,15 @@ var userGuideHTML = '<div id="ug-top" style="padding:15px;padding-top:5px;"><h4>
 		try{
 			selectQuantity = document.getElementById('quantity');
 		}catch(err){}
-
+		console.log(doAction);
 		switch(doAction) {
 			case 'Deploy':
-				selectToCountry.value = tIndex;
-				createChangeEvent(selectToCountry);
-				if (selectToCountry.value != tIndex) {
+				if (changeValue(selectToCountry, tIndex)) {
+					toTerritory = tName;
+				} else { // an enemy territory was clicked during deployment
 					wait('off');
 					return;
-				} // an enemy territory was clicked during deployment
-				toTerritory = tName;
+				}
 				if (deployDeferred) {
 					armiesLeftToDeploy = actionString.split(' ')[2];
 					clickButton('Deploy');
@@ -849,19 +834,20 @@ var userGuideHTML = '<div id="ug-top" style="padding:15px;padding-top:5px;"><h4>
 						return;
 					}
 				}
-				if (e.button == 2) { //right click
+				var setValue;
+				if (e.button == 2) { // right click
 					if (!userPrefs['deploymentClicks'] == 'Left-1 Right-Selected') {
-						selectQuantity.value = "1";
+						setValue = "1";
 					}
 				} else if (e.shiftKey) {
 					armiesLeftToDeploy = actionString.split(' ')[2];
-					selectQuantity.value = armiesLeftToDeploy;
+					setValue = armiesLeftToDeploy;
 				} else {
 					if (userPrefs['deploymentClicks'] == 'Left-1 Right-Selected') {
-						selectQuantity.value = "1";
+						setValue = "1";
 					}
 				}
-				createChangeEvent(selectQuantity);
+				changeValue(selectQuantity, setValue);
 				break;
 			case 'Assault':
 				if (fromTerritory == '' || toTerritory == '') {
@@ -875,11 +861,10 @@ var userGuideHTML = '<div id="ug-top" style="padding:15px;padding-top:5px;"><h4>
 						wait('off');
 						return;
 					}
-					// try to set from_country, but if there is an error (which would happen if a freindly country was clicked with no attackable enemies around it), then return
-					try{
-						selectFromCountry.value = tIndex;
-						createChangeEvent(selectFromCountry);
-					}catch(err){
+					// try to set from_country, but if there is an error (which would
+          // happen if a freindly country was clicked with no attackable enemies
+          // around it), then return
+					if (!changeValue(selectFromCountry, tIndex)) {
 						wait('off');
 						return;
 					}
@@ -892,10 +877,7 @@ var userGuideHTML = '<div id="ug-top" style="padding:15px;padding-top:5px;"><h4>
 					return;
 				// if enemy, set as to_country and continue to attack
 				} else {
-					try{
-						selectToCountry.value = tIndex;
-						createChangeEvent(selectToCountry);
-					}catch(err){}
+					changeValue(selectToCountry, tIndex);
 					if (selectToCountry.value != tIndex) {
 						wait('off');
 						return;
@@ -916,13 +898,13 @@ var userGuideHTML = '<div id="ug-top" style="padding:15px;padding-top:5px;"><h4>
 								assaultingRemaining:amounts[0],
 								assaultedIndex:selectToCountry.value,
 								assaultedRemaining:amounts[1]
-							} 
+							};
 							doAction = 'Assault';
 							autoAttackX	= true;
 						}
 						if (e.altKey) {
 							// this is an auto-attack/advance
-							//debug('executing auto-attack/auto-advance');
+							// debug('executing auto-attack/auto-advance');
 							autoAdvance = true;
 						} else {
 							autoAdvance = false;
@@ -948,8 +930,7 @@ var userGuideHTML = '<div id="ug-top" style="padding:15px;padding-top:5px;"><h4>
 					return;
 				}
 				if (toTerritory == attackedFromTerritory) {
-					selectQuantity.value = '0';
-					createChangeEvent(selectQuantity);
+					changeValue(selectQuantity, '0');
 				}
 				break;
 			case 'Reinforce':
@@ -958,20 +939,17 @@ var userGuideHTML = '<div id="ug-top" style="padding:15px;padding-top:5px;"><h4>
 					return;
 				}
 				if (e.button == 2 || e.shiftKey) {
-					try{
-						selectToCountry.value = tIndex;
-						createChangeEvent(selectToCountry);
-					}catch(err){}
+					changeValue(selectToCountry, tIndex);
 					if (selectToCountry.value != tIndex) {
 						wait('off');
 						return;
 					}
 					toTerritory = tName;
 				} else {
-					selectFromCountry.value = tIndex;
-					createChangeEvent(selectFromCountry);
-					fromTerritory = tName;
-					toTerritory = '';
+					if (changeValue(selectFromCountry, tIndex)) {
+						fromTerritory = tName;
+						toTerritory = '';
+					}
 					wait('off');
 					return;
 				}
@@ -983,16 +961,11 @@ var userGuideHTML = '<div id="ug-top" style="padding:15px;padding-top:5px;"><h4>
 		}
 		clickButton(doAction);
 	}
-	function createChangeEvent(element) {
-		var evt = document.createEvent("HTMLEvents");
-		evt.initEvent("change", true, true);
-		element.dispatchEvent(evt);
-	}
 
 	function getCurrentPlayer() {
 		var allPlayers = [], playerElements, i, playerNumber, expression;
 		debug('getting player number for '+currentPlayerName);
-		playerElements = document.getElementById('players').getElementsByTagName('span');
+		playerElements = document.querySelectorAll('#players span[id^=player_]');
 		for (i = 0; i < playerElements.length; i++) {
 			if (playerElements[i].id.match(/player_\d/)) {
 				allPlayers.push(playerElements[i].textContent);
@@ -1000,7 +973,6 @@ var userGuideHTML = '<div id="ug-top" style="padding:15px;padding-top:5px;"><h4>
 		}
 		expression = toExpression(currentPlayerName);
 		for (i = 0; i < allPlayers.length; i++) {
-			//debug( ':'+allPlayers[i]+': == :'+currentPlayerName+': i: '+ i +' i+1: ' + (parseInt(i, 0) + 1));
 			if (allPlayers[i].match(expression)) {
 				playerNumber = i+1;
 				break;
@@ -1115,20 +1087,25 @@ var userGuideHTML = '<div id="ug-top" style="padding:15px;padding-top:5px;"><h4>
 		}
 	}
 	function updateSelectedQuantity(q) {
-		try {
-			selectQuantity = document.getElementById('quantity');
-		} catch (err) {
-			return;
+		if (changeValue("#quantity", q)) {
+			selectedQuantity = q;
+			sprites.floatingQuantity.innerHTML = q;
 		}
-		if (!selectQuantity) {
-			return;
+	}
+	function changeValue(input, value) {
+		var optionToSelect = typeof input == "string"? document.querySelector(input + " option[value='" + value + "']"): 
+				input? input.querySelector("option[value='" + value + "']"): false;
+		if (optionToSelect) {
+			optionToSelect.selected = true;
+			createChangeEvent(optionToSelect);
+			return true;
 		}
-		if (selectQuantity.value != q) {
-			selectQuantity.value = q;
-			createChangeEvent(selectQuantity);
-			sprites.floatingQuantity.innerHTML = selectQuantity.value;
-		}
-		selectedQuantity = selectQuantity.value;
+		return false;
+	}
+	function createChangeEvent(element) {
+		var evt = document.createEvent("HTMLEvents");
+		evt.initEvent("change", true, true);
+		element.dispatchEvent(evt);
 	}
 	
 	function onMouseWheel(e) {
@@ -1155,7 +1132,9 @@ var userGuideHTML = '<div id="ug-top" style="padding:15px;padding-top:5px;"><h4>
 		 var lastupdate = GM_getValue('lastupdate', 0);
 		 if (lastupdate < new Date().getTime() - 60*60*1000) {
 				GM_setValue('lastupdate', new Date().getTime() + "");
-				var scriptURL = 'http://userscripts.org/scripts/source/64539.meta.js';// ?nocache=' + Math.random();
+				var scriptURL = 'http://userscripts.org/scripts/source/64539.meta.js';// ?nocache='
+                                                                              // +
+                                                                              // Math.random();
 				GM_xmlhttpRequest({
 					 method: 'GET',
 					 url: scriptURL,
@@ -1201,8 +1180,8 @@ var userGuideHTML = '<div id="ug-top" style="padding:15px;padding-top:5px;"><h4>
 	}
 
 	function debug(text) {
-		if (true && unsafeWindow.console) {
-			unsafeWindow.console.log("CM:" + debug.caller.toString().split(/{/)[0].split('function')[1]+': '+text);
+		if (true && console) {
+			console.log("CM:" + debug.caller.toString().split(/{/)[0].split('function')[1]+': '+text);
 		}
 	}
 	function showUserGuide(state) {
@@ -1226,7 +1205,8 @@ var userGuideHTML = '<div id="ug-top" style="padding:15px;padding-top:5px;"><h4>
 	}
 	function loadUserPrefs(def) {
 		var toReturn = JSON.parse(GM_getValue('USER_PREFS2', (def || '{}')));
-		if (typeof(toReturn.length) != "undefined") { //old config: array in stead of object
+		if (typeof(toReturn.length) != "undefined") { // old config: array in stead
+                                                  // of object
 			var array = toReturn;
 			toReturn = new Object();
 			for (var i = 0; i<array.length;i++) {
@@ -1268,7 +1248,8 @@ var userGuideHTML = '<div id="ug-top" style="padding:15px;padding-top:5px;"><h4>
 			clickButton('Begin Turn');
 		}
 		if (autoAdvance) {
-			// no way to get here by auto attack or autoAttackX without failing, falsify
+			// no way to get here by auto attack or autoAttackX without failing,
+      // falsify
 			autoAdvance = false;
 			if (doAction == 'Advance') {
 				clickButton('Advance');
@@ -1294,7 +1275,7 @@ var userGuideHTML = '<div id="ug-top" style="padding:15px;padding-top:5px;"><h4>
 							addConfirmation(inputs[i]);
 						}
 					}
-					//debug('doAction: '+doAction);
+					// debug('doAction: '+doAction);
 					if (autoAttackX) {
 						var indicesRight = autoAttackData.assaultingIndex == document.getElementById('from_country').value && autoAttackData.assaultedIndex == document.getElementById('to_country').value;
 						var armiesRight = (!autoAttackData.assaultingRemaining || (+remainingArmies) > (+autoAttackData.assaultingRemaining + 1)) && (!autoAttackData.assaultedRemaining || (+remainingArmiesD) > (+autoAttackData.assaultedRemaining + 1));
@@ -1312,7 +1293,8 @@ var userGuideHTML = '<div id="ug-top" style="padding:15px;padding-top:5px;"><h4>
 						clickButton('Begin Turn');
 					}
 					if (autoAdvance) {
-						// no way to get here by auto attack or autoAttackX without failing, falsify
+						// no way to get here by auto attack or autoAttackX without failing,
+            // falsify
 						autoAdvance = false;
 					  if (doAction == 'Advance') {
 							clickButton('Advance');
@@ -1354,7 +1336,7 @@ var userGuideHTML = '<div id="ug-top" style="padding:15px;padding-top:5px;"><h4>
 	}
 
 	function wait(state) {
-		//debug('wait '+state);
+		// debug('wait '+state);
 		if (state == 'on') {
 			sendingRequest = true;
 			setCursor('wait');
@@ -1377,7 +1359,8 @@ var userGuideHTML = '<div id="ug-top" style="padding:15px;padding-top:5px;"><h4>
 			attackFromGif:"data:image/gif,GIF89a(%00(%00%A2%05%00%00%00%00%08%94%10%7B%00%00%AD%00%00%FF%00%00%00%00%00%00%00%00%00%00%00!%FF%0BNETSCAPE2.0%03%01%00%00%00!%F9%04%09%0C%00%05%00%2C%00%00%00%00(%00(%00%00%03%84X%BA%AC%F40J%D2%AA%5D3%EB%CB%8B%FEY%D7%7C%17)n%A23ua%3AJ%DC%EAV%F2%0B%CDld%3F%F8%A9%AB%B7%9E%8F%07%A4%08%87%3C%D8%11%E9%09.%91%BFgN)%9DF%AB1*%B6%A4%DD%D2%AE%DE%AF3l%01%931%E6s3M%AE%A9%8B%C47%DC(_%B3%B7%A8%B7%E9%FC%BBK%FB~GW%5D%7F%60%813%84vtK%89%8A%8B%3D%8Ds%8FP%93en%5C%91b(%20%95%94%9Cc%82%9F%A0%16%09%00%00!%F9%04%09%0C%00%05%00%2C%00%00%00%00(%00(%00%00%03%8EX%BA%DC%FE0%C6A%AB%A52%B3%CB%B9%96%5Dx%7D%8Dh%8E%A4%E9%A8Z%D8v%19L%16%F2S%CF%F7%86%CE%8B%B7%EE%BC%1EP1%0C%12%81E%E3%B1%A2c*%7F%96%25%E6%09u%26%A9%A8%EB%D3%A3Ur%9D%D4*%26%1A%B6E%C9%E5%D2%19%9C%96%8E%D1%ED%2F%3B-%9F%B6i%E4n%D0%87%9Fcwz)%7C%7Dv%7Fp%84%85F9%88%03%5B%83B%81b%89M%871%8B%94%5D%2C%20'n.%1F'%A0%93%96%A1%97%2F%A4~%7B%A4w%9D%A8%10%09%00%00!%F9%04%09%0C%00%05%00%2C%00%00%00%00(%00(%00%00%03%8AX%BA%DC%FE0%CAI%2B%138k%5B%B5%FF%02%F7%80%A4'.e%9A%89%A9SZ%24%05v%26%FCM%F7%99%8F%F5Y%F4%AE%8D%0F%25l%00%87%3B%E2jx)*%8E%CC%234%EA%9C%22%ABN%E6%13%8B%D1%06%97%DB%AE%D7%08%FE%95%C7fq8%84V%B2%D7%ED%F5%3B%AD%1E%03%AD%3E%60%20K%3D%D3%E7%7DurvSx4~r%80%1C%86I6%7Cd%86M%91%89%82%90%93n3%7F%8D2*-W%9D%8F%2C%A0%95Z%9Eq%A7%A8%14%09%00%00!%F9%04%05%0C%00%05%00%2C%00%00%00%00(%00(%00%00%03)X%BA%DC%FE0%CAI%AB%BD8%EB%CD%BB%FF%60(%8Edi%9Eh%AA%AEl%EB%BEp%2C%CFtm%DFx%AE%EF%7C%EF%FF%40F%02%00!%F9%04%09%0C%00%05%00%2C%02%00%02%00%24%00%24%00%00%03rX%BA%AC%F20%8AFk%93X%DA%5D%B2%D7%1C%F3%8DP%D8%7D%14%BAyf%B6%82%A6%03%8Bs%7CFWm%DFO%5E%EE)%9C%EC%07%F4%FDtE%DE%04%99%D40%9B%AAd%90%25%9Db%AA%95(%96v%DD%1A%85%DE%055%AC%7C%16Gd%25%8F%0C2%DB%DA%E0%EA%CC%1D%9A%D3-%BA.P%CF%8Ds%5Cx%80%81%7CYhew%24%24%7B%89wV%89%5E%86!%09%00%00!%F9%04%05%0C%00%05%00%2C%00%00%00%00(%00(%00%00%03%86X%BA%BC%F40%C2Fk%958%DB%ED%B2%C7%DC%F5%11%CAH%86%A5%16%AA%1C%8B%16n%03%BE%B2%B4%D9%B48Qx%AE%3F%B5%9D%EFw%EA%08%87%BC%88%11%88%BC%09%95%CD%D6%0E%1A%B5(%A9%D5%1F%EC%98M%CE%BAD.x)%1E%A7z%E6%60%D9%ECI%AB%B1%EE%B6%9B%BC%06%CB%E7P%F88_%AF%F2%FBHXhYh%83Q%86%86%81z%5B%8B%2F_%5E%80aR%89N%8Do%7Dw(%26g%994%26%1F%84%9F%919%239%09%00%00%3B",
 			advanceFromGif:"data:image/gif,GIF89a(%00(%00%A2%06%00%00%00%00%08%94%10%8C%8C%00%C6%C6%00%F7%F7%00%FF%FF%00%00%00%00%00%00%00!%FF%0BNETSCAPE2.0%03%01%00%00%00!%F9%04%09%0C%00%06%00%2C%00%00%00%00(%00(%00%00%03%84h%BA%AC%F50%CA%D2%AA%5D3%EB%CB%8D%FEY%D7%7C%17)n%A23ua%3AJ%DC%EAV%F2%0B%CDld%3F%F8%A9%AB%B7%9E%8F%07%A4%08%87%3C%D8%11%E9%09.%91%BFgN)%9DF%AB1*%B6%A4%DD%D2%AE%DE%AF3l%01%931%E6s3M%AE%A9%8B%C47%DC(_%B3%B7%A8%B7%E9%FC%BBK%FB~GW%5D%7F%60%813%84vtK%89%8A%8B%3D%8Ds%8FP%93en%5C%91b(%20%95%94%9Cc%82%9F%A0%16%09%00%00!%F9%04%09%0C%00%06%00%2C%00%00%00%00(%00(%00%00%03%8Eh%BA%DC%FE0%C6A%AB%A52%B3%CB%B9%96%5Dx%7D%8Dh%8E%A4%E9%A8Z%D8v%19L%1A%F2S%CF%F7%86%CE%8B%B7%EE%BC%1EP1%0C%12%81E%E3%B1%A2c*%7F%96%25%E6%09u%26%A9%A8%EB%D3%A3Ur%9D%D4*%26%1A%B6E%C9%E5%D2%19%9C%96%8E%D1%ED%2F%3B-%9F%B6i%E4n%D0%87%9Fcwz)%7C%7Dv%7Fp%84%85F9%88%03%5B%83B%81b%89M%871%8B%94%5D%2C%20'n.%1F'%A0%93%96%A1%97%2F%A4~%7B%A4w%9D%A8%10%09%00%00!%F9%04%09%0C%00%06%00%2C%00%00%00%00(%00(%00%00%03%8Ah%BA%DC%FE0%CAI%2B%138k%5B%B5%FF%02%F7%80%A4'.e%9A%89%A9SZ%24%05v%26%FCM%F7%99%8F%F5i%F4%AE%8D%0F%25l%00%87%3B%E2jx)*%8E%CC%234%EA%9C%22%ABN%E6%13%8B%D1%06%97%DB%AE%D7%08%FE%95%C7fq8%84V%B2%D7%ED%F5%3B%AD%1E%03%AD%3E%60%20K%3D%D3%E7%7DurvSx4~r%80%1C%86I6%7Cd%86M%91%89%82%90%93n3%7F%8D2*-W%9D%8F%2C%A0%95Z%9Eq%A7%A8%14%09%00%00!%F9%04%05%0C%00%06%00%2C%00%00%00%00(%00(%00%00%03)h%BA%DC%FE0%CAI%AB%BD8%EB%CD%BB%FF%60(%8Edi%9Eh%AA%AEl%EB%BEp%2C%CFtm%DFx%AE%EF%7C%EF%FF%40F%02%00!%F9%04%09%0C%00%06%00%2C%02%00%02%00%24%00%24%00%00%03rh%BA%AC%F20%8AFk%93X%DAm%B2%D7%1C%F3%8DP%D8%7D%14%BAyf%B6%82%A6%03%8Bs%7CFWm%DFO%5E%EE)%9C%EC%07%F4%FDtE%DE%04%99%D40%9B%AAd%90%25%9Db%AA%95(%96v%DD%1A%85%DE%055%AC%7C%16Gd%25%8F%0C2%DB%DA%E0%EA%CC%1D%9A%D3-%BA.P%CF%8Ds%5Cx%80%81%7CYhew%24%24%7B%89wV%89%5E%86!%09%00%00!%F9%04%05%0C%00%06%00%2C%00%00%00%00(%00(%00%00%03%86h%BA%BC%F40%C2Fk%958%DB%ED%B2%C7%DC%F5%11%CAH%86%A5%16%AA%1C%8B%1An%03%BE%B2%B4%D9%B48Qx%AE%3F%B5%9D%EFw%EA%08%87%BC%88%11%88%BC%09%95%CD%D6%0E%1A%B5(%A9%D5%1F%EC%98M%CE%BAD.x)%1E%A7z%E6%60%D9%ECI%AB%B1%EE%B6%9B%BC%06%CB%E7P%F88_%AF%F2%FBHXhYh%83Q%86%86%81z%5B%8B%2F_%5E%80aR%89N%8Do%7Dw(%26g%994%26%1F%84%9F%919%239%09%00%00%3B",
 			advanceToGif:"data:image/gif,GIF89a%14%00%14%00%91%00%00%00%00%00RR%00%D6%D6%18%00%00%00!%FF%0BNETSCAPE2.0%03%01%00%00%00!%F9%04%09%0C%00%00%00%2C%00%00%00%00%14%00%14%00%00%02'%84%0F%A2%8B%7D%0B%99K%B1%AAf%B3%40%DA%BE%EEQ%60%24%8E%E6%89%A6%EA%0A%1A%AB%AB~'7c%E3%04g8%0DM%05%00!%F9%04%09%0C%00%00%00%2C%00%00%00%00%14%00%14%00%00%025%84%0F%A2%8B%7D%0B%99K%B1%AAV%8D%A0%10u%17%3D%D2%C4m%1C)%5E%1FZ%AE%A8%C5zY%0C%C7%ED%F8%5E'%FB%85%E4%EAJ%E94%B0%99%CC%12%3C%D6hI%40%01%00!%F9%04%09%0C%00%00%00%2C%00%00%00%00%14%00%14%00%00%025%84%0F%A1%8B%7D%1B%12t%86Q%FB%22%CDMm%E4U%DA%C7%25%A4%13%85g%A6%AER%BBb%AE8%BA%D3l%E6%B3%06%7Fj%8F%AA%01A5%DAe%F8%82%C86%CAM%01%00!%F9%04%05d%00%00%00%2C%00%00%00%00%14%00%14%00%00%02%11%84%8F%A9%CB%ED%0F%A3%9C%B4%DA%8B%B3%DE%BC%FB%AF%15%00!%F9%04%05%0C%00%00%00%2C%00%00%00%00%14%00%14%00%00%024%84%0F%A1%8B%7D%1B%12t%86Q%FB%22%CDMm%E4U%DA%C7%25%A4%13%85g%A6%AER%BBb%EE%3B%BA%D3l%E6%B6%06%7Fj%8F%AA%C9%82%97%1A%CB%07I%C6n%8E%02%00!%F9%04%05%0C%00%00%00%2C%00%00%00%00%14%00%14%00%00%024%84%0F%A2%8B%7D%0B%99K1Q%F90%AAY%CC%0E~%A1%22n%A4VF%5E%D9%91l%EB%BE%EAk%9C1%EB%DE%A2%84NX%DF2%A1%3C%3D%95qg%D4%7D%20%9F%02%00%3B",
-			//green one: advanceToGif = "data:image/gif,GIF89a%14%00%14%00%F7%04%00%00%00%00%00%B5%18%08k%08B%FFJ%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00!%FF%0BNETSCAPE2.0%03%01%00%00%00!%F9%04%09%0C%00%04%00%2C%00%00%00%00%14%00%14%00%00%08C%00%09%08%1CH%60%80%C1%83%04%13%0E%3C%C8%10%A1%C2%82%0D%23%1AL(%B1%E2%00%82%16%25.%CC%A8%11%22%C7%86%1E%3F%8A%1CI%B2%A4%C9%93%1C%05%9ETir%E3H%8C%2F)~%7C%C8%B2%22M%98%0C%1F%06%04%00!%F9%04%09%0C%00%04%00%2C%00%00%00%00%14%00%14%00%00%08U%00%09%08%1CH%20%80%C1%83%04%13%0E%3C%C8%10%A1%C2%82%0D%23%1AL%18Q%60%00%88%0C%09fT%D8p%A1%C3%87%18%2Fb%04%E9q%E2F%92!O%92%94%88Rc%C5%96%2C%5B%A6%FC%B8r%E2H%94%1B%3B%82%3C%A9%B2%A4M%8B%2C_%BA%94%D8shL%98E%09%04%04%00!%F9%04%09%0C%00%04%00%2C%00%00%00%00%14%00%14%00%00%08U%00%09%08%1CH%40%80%C1%83%04%13%0E%3C(%A0%20C%85%02%11B%94%B8%B0!%C4%8A%09%0D%5E%24%A81%A2%C5%8D%18%0B%82T%D8%B0%E3%C8%8A%26O%3ALy%92%A2J%8F%1FU%3E%7C)%B2%E6K%8B%2C7%9A%CCI2%26O%8E1aN%FC%B9%92%A1%CB%8BF%2F%06%04%00!%F9%04%05d%00%04%00%2C%00%00%00%00%14%00%14%00%00%08%22%00%09%08%1CH%B0%A0%C1%83%08%13*%5C%C8%B0%A1%C3%87%10%23J%9CH%B1%A2%C5%8B%183j%DCh1%20%00!%F9%04%09%0C%00%04%00%2C%00%00%00%00%14%00%14%00%00%08T%00%09%08%1CH%40%80%C1%83%04%13%0E%3C(%A0%20C%85%02%11B%94%B8%B0!%C4%8A%09%0D%5E%24%A81%A2%C5%8D%18%0B%82T%D8%B0%E3%C8%8A%26O%3ALy%92%A2%CA%95%1FU%3E%7C)%B2%A6L%8B%2C7%9A%CCI2%A6%CB%9E%13c%A2%D4%C9%B0h%CB%99%0A%03%02%00!%F9%04%05%0C%00%04%00%2C%00%00%00%00%14%00%14%00%00%08T%00%09%08%1CH%20%80%C1%83%04%13%0E%3C%C8%10%A1%C2%82%0D%0BBt%B8%90%22%C1%88%15%03%3C%CC%C8qcG%83%1E%2F%82%B4%18%B2%A1%C6%90%19A%A2L%A9r%A5%C9%95%02G%B6D%A9r%A6G%87%24%1FR%CC%99R%24I%8D9M%0A%BD)%D4%E6F%86%1B%03%02%00%3B",
+			// green one: advanceToGif =
+      // "data:image/gif,GIF89a%14%00%14%00%F7%04%00%00%00%00%00%B5%18%08k%08B%FFJ%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00!%FF%0BNETSCAPE2.0%03%01%00%00%00!%F9%04%09%0C%00%04%00%2C%00%00%00%00%14%00%14%00%00%08C%00%09%08%1CH%60%80%C1%83%04%13%0E%3C%C8%10%A1%C2%82%0D%23%1AL(%B1%E2%00%82%16%25.%CC%A8%11%22%C7%86%1E%3F%8A%1CI%B2%A4%C9%93%1C%05%9ETir%E3H%8C%2F)~%7C%C8%B2%22M%98%0C%1F%06%04%00!%F9%04%09%0C%00%04%00%2C%00%00%00%00%14%00%14%00%00%08U%00%09%08%1CH%20%80%C1%83%04%13%0E%3C%C8%10%A1%C2%82%0D%23%1AL%18Q%60%00%88%0C%09fT%D8p%A1%C3%87%18%2Fb%04%E9q%E2F%92!O%92%94%88Rc%C5%96%2C%5B%A6%FC%B8r%E2H%94%1B%3B%82%3C%A9%B2%A4M%8B%2C_%BA%94%D8shL%98E%09%04%04%00!%F9%04%09%0C%00%04%00%2C%00%00%00%00%14%00%14%00%00%08U%00%09%08%1CH%40%80%C1%83%04%13%0E%3C(%A0%20C%85%02%11B%94%B8%B0!%C4%8A%09%0D%5E%24%A81%A2%C5%8D%18%0B%82T%D8%B0%E3%C8%8A%26O%3ALy%92%A2J%8F%1FU%3E%7C)%B2%E6K%8B%2C7%9A%CCI2%26O%8E1aN%FC%B9%92%A1%CB%8BF%2F%06%04%00!%F9%04%05d%00%04%00%2C%00%00%00%00%14%00%14%00%00%08%22%00%09%08%1CH%B0%A0%C1%83%08%13*%5C%C8%B0%A1%C3%87%10%23J%9CH%B1%A2%C5%8B%183j%DCh1%20%00!%F9%04%09%0C%00%04%00%2C%00%00%00%00%14%00%14%00%00%08T%00%09%08%1CH%40%80%C1%83%04%13%0E%3C(%A0%20C%85%02%11B%94%B8%B0!%C4%8A%09%0D%5E%24%A81%A2%C5%8D%18%0B%82T%D8%B0%E3%C8%8A%26O%3ALy%92%A2%CA%95%1FU%3E%7C)%B2%A6L%8B%2C7%9A%CCI2%A6%CB%9E%13c%A2%D4%C9%B0h%CB%99%0A%03%02%00!%F9%04%05%0C%00%04%00%2C%00%00%00%00%14%00%14%00%00%08T%00%09%08%1CH%20%80%C1%83%04%13%0E%3C%C8%10%A1%C2%82%0D%0BBt%B8%90%22%C1%88%15%03%3C%CC%C8qcG%83%1E%2F%82%B4%18%B2%A1%C6%90%19A%A2L%A9r%A5%C9%95%02G%B6D%A9r%A6G%87%24%1FR%CC%99R%24I%8D9M%0A%BD)%D4%E6F%86%1B%03%02%00%3B",
 			fortifyFromGif:"data:image/gif,GIF89a(%00(%00%F7%5C%00%00%00%00%00%18%08%00!%08%00)%08%001%08%001%10%009%08%009%10%00B%08%00B%10%00J%10%00R%10%00Z%08%00Z%10%00c%10%00c%18%00k%10%00k%18%00s%10%00s%18%00%7B%08%00%7B%10%00%7B%18%00%84%10%00%84%18%00%8C%00%00%8C%10%00%8C%18%00%94%10%00%94%18%00%9C%08%00%9C%10%00%9C%18%00%A5%10%00%A5%18%00%A5!%00%AD%18%00%B5%10%00%B5%18%00%BD%18%00%C6%18%00%C6!%00%CE%18%00%CE!%08c%18%08k%18%08s%18%08%7B%10%08%7B%18%08%84%10%08%84%18%08%94%10%18%84B!%7B9!%84J!%8CJ!%8CR!%94R!%9CJ)%94J)%94R)%9CR)%9CZ)%A5R)%A5Z)%ADZ)%ADc)%B5c1%ADc1%B5c1%BDc1%BDk1%C6k1%C6s1%CEk1%CEs1%D6s1%DE%7B9%ADR9%CEk9%D6s9%D6%7B9%DE%7B9%E7%7B9%E7%849%EF%849%F7%849%F7%8CB%EF%84B%F7%84B%F7%8CB%FF%8C%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00!%FF%0BNETSCAPE2.0%03%01%00%00%00!%F9%04%09%0C%00%5C%00%2C%00%00%00%00(%00(%00%00%08%FE%00%B9%08%1CHP%E0%0D%22K%A8hY%C8p!%95%25%40l%14%9CHq%A0%0D%1EG%B04%DC%B8%91J%91%1B%15Cr%B9%81%24%0B%C7%93%1B%B1%14%91(%92%20%0F)'%2B.4%C9p%09%C8%965%80h%D4%B2%B3%E5%C0%8DSx%88%B4Q%84%A1I%9F%13y.%C4%02%24d%D1%99Z%90R%D4B%13%8B%0F%8A%40%96F%95%1A%92!%15%A1.5b%C9%C2%B5%A5B-RXr%A9%B1d%E1%94%B2%3E%A7%2C%2420%2BZ%B8%3E%B1%88%DD%C1%05%07L%2CT%F0%FA%84%B2%10%09%17%22%0B%A1%08F%FA%B7%07a%2CK%16%FBL%B20%E3%5D%C9-%99h%24%AC%E5%09f%9FQ%94b1%F2%B9%E5%11%86X%E8%96%0Ey%DA%E1j%91BvJy-%B2%CA%C2%D9%B4)%EA8%8B%3BwA%22%3BS%FB.%F8%94%A7%90%E1%04%5B%2F%2C%82%7C%20%E5%9D%86%9Bs%81I%C56%95%A6%C8%9FF%09%AD%E5H%F3%C7K%A2%84h%A4%E2d%F8%10%8DQ%04r%F6%EE%9B%3B%7B%26%0AU%E6F%B20%FD%40%24%E3%8F%AF.b%92Jt%E7%89%AD%26D%7CIP%C4Y%14%FA-%26%04LZ%FCW%D0%13%0Cb%C1%1E%5EG%9C%15YHO%B4u%9BjR%0D%C1%5D%16%17%B6%84%DFRP0%D7%12B%C1M%E8%D3%10%1A%3A%84D%11D%E8%17c%11H%C8%C5%10%14C%E0U%04w%A8%01%26%85%5E%1BEa%E2bD%20%F1%23JXH%91%04%87!%05%04%00!%F9%04%09%0C%00%5C%00%2C%00%00%00%00(%00(%00%00%08%F7%00%B9%08%1CH%B0%A0%C1%83%08%13%26%EC%00B%84%89%13%10O%98%20!%02%84%C2%8B%047%800%91%A2%A3%C7%8F%1DO%88%C0%A8%10%C4%09%90(A%8A%24YP%03%89%940U%92%60%C9e%C3I%94%2B%0C%AE%80i%82%24%88%94%18S%F6T%D8%01%25M.(%87%1E%D4p%B3c%CE%A3H%8D%1E%14%01%12%EA%40%95%07%8B~%B4JP*%C1%A6O%B9%5E%AD%3A%F0%A7G%B1%06%C9%0A%E4x%16mW%B2%1B%B6%BA%7D%2B%97j%DB%B9cC%0Al%9A%02%2F%DD%B3%7C%FD%E6%3D%2BWp%D4%AD%1E%C3%1A%AEZx1%E2%BB%82%8D%06v%BCur%E4%AA%2F!%E3%25k%B7%23%E5%BB%96%E7z%CD%ECy3%DF%BE%83Q%BB%F5%BAV-W%95%AA%07%9E%16%0B%D4%20i%CD%24k%1Fd%DB8%A8%EE%DD0%15%C6%8C%8D%F0%B4%D4%E1%B8%11%A60%8E%9Cu%EE%E61_Cw-%1D%BA%E1%C3%CE%15%06%04%00!%F9%04%09%0C%00%5C%00%2C%00%00%00%00(%00(%00%00%08%FE%00%B9%08%1CH%B0%A0%C1%83%08%13*%5C%C8%B0!%C1%04%10%15%2CX%A0%00%E2%01%87%0D!6h%E1%A2%A3%C7%8E-%16%24%B8%88%D1%60%01%05%1C%3F%AA%FC%C8BA%81%92%03%0F%B0P%09C%86M%9B0V.%20P2%40%82%94.j%DA4%18%C3%26K%92%0C%0B%2C%F8X%93%A1%8C%9C%20%13d%F4%D8%D4a%05%A8.Z%F0Th%20e%D5%92O%3B%B2%18%90p%C0%CC%A00%60%0E%C4%AA%20%E1%D2%8Ei%D5%AE%F5(%D5%E0O%8Fr%09%B24%60%F0m%C7%BCz%E9%16%1C%00%14p%E0%8E%0D%0A*%F8h%F8%B0%0B%BE%03%CF%FEm%2C%F0%E3%02%82%0E%18S%E6%F21%F1%C0%C2%9B9%7Bt%E08te%90%A5M%7B%84%90%3A%F4%EA%D6%94%3F%92%1E%98%19%EF%E6%CE%04_%60u%0D7%06%C1%19P%5B%DC%F6j0%B8%0B%CA%92%E3%12%94%E1%91E%E3%16%5E%2F%1C%C4%EA%1C%B0d%19%085P%CF%9B%5C!s%B1%97aJ%A2%84%8B%DD%BB%C7%90%D5%19%B2%D8%E8%B1%FC%C2%EF%E0%DB%26%94(%D9%85%7B%A7X%B3%8A%84(%F0%00%C4%05%40%05u_CF%AD%B4%5E%03%2C%04H%5E%5Ea%AD%E4%E0WyY%D0%E0%835a%60%DAM%18%DEd%DA%86%1C.%14%10%00%00!%F9%04%05%0C%00%5C%00%2C%00%00%00%00(%00(%00%00%08C%00%B9%08%1CH%B0%A0%C1%83%08%13*%5C%C8%B0%A1%C3%87%10%23J%9CH%B1%A2%C5%8B%183j%DC%C8%B1%A3%C7%8F%20C%8A%1CI%B2%A4%C9%93(S%AA%5C%C9%B2%A5%CB%970c%CA%9CI%B3%A6%CD%9B8%09%06%04%00!%F9%04%09%0C%00%5C%00%2C%02%00%02%00%24%00%24%00%00%08%F6%00%B9%08%1CHP%E0%84%09.%5C%C0X%08%C3%C5%84%08%05%23J%2C%18Aa%C3%84%18%13.%7C8%B1%23%97%08%0B3%8A%14%B9%D0%81%C7%82%13.%8E%5C%89%11%06%C4%93%08Uf%8C%B8%12%C6%04%8F)G%9E%E4B%F2%E6D%9D%3B%07ft)Q%E1%CC%A0%04%87%9A%24%D8B%26R%9A-%0B%3A%7D%0AU%A1O%9E*%A9%16m%09A%E0T%AD%053%DE%04%99%B0%05%D8%AD%1A%B9%20%C4x%16%ADK%91m%ABj%3C%1AW%E8P%B6u%93%DEM%987%AC%C6%AC%7D%EDZ%C4%1B%98g%C2%B5%7C%0B%8BD%ECB%B1F%08d%13%F7m%F9%80%0B%E0%BCC%0D%D2%8D%DB%F2e%E4%C6u3%0F%FCz%B6%E5U.%0EHS%15M%F03%E8%D5%5C%252%96%7C%92%E4%CB%A22i%CB%D5xZ%A2k%B8%86k%BE%F6%98%3A7%CB%A1f%9F%E6%3C~%F7%2C%84%94%C6%FFr%AC%DB%C2%E1%E2%AE%3B%03%02%00!%F9%04%05%0C%00%5C%00%2C%00%00%00%00(%00(%00%00%08%FE%00%B9%08%1CHp%A0%07%11%24L%A4X%B8%F0%84%09%12%22%0AJ%9C8Q%84B%86%183%A601%82%A2%C7%81%165%8A%CC%C8%F1%E3D%12%1A!%8A%88%C8ee%C8%8C%2CMr%C9pq%A1%89%98%1E_.%24!S%C4%09%86'p%F6%C4x%22%83%C7%0C%18M%C8%9CH%93%A1R%8A5y.%A5%88r%E7I%86R%A7Be%D8%91%20R%9BZ%3F~%DDX%F0b%D1%B0%1FE0%8C%A9v%A1P%B4%12%AB%A6%18x%F1)%DC%8F%3FSH%5D%7B%D7dU%A5mO%F45%E9%81!%97%8BY%07S%CC%EB%D3%AD%E2%8FUI%E4%0D%F18%A7M%C3%95)%06%C6%9Cy%A2%C6%CE%155%BE%ED%5C%F5%04c%D0%05%FF%5E%1C%9Dy%F5_%D4%04%19%B7%9D%0B%BB%25f%BE%B0%EB%0A4%5B%1B%F7%08%DC%9Dy%D3eh4%F3l%9C%BF%C1VNN%B6%E0%EC%C4%7D%F3%A6(%9E%DA)u%B4M%1D%2F%C6%C8%3A%ADt%E8%05%B31%5B%D5*%B7%B9_%A2%24%3C%7C%F4%20%19%23x%8F%23j%DAT)0%04B%F9)%82%C2m%3Cr%E4%7B%F2%F8%89t%C2%7Fw%DDg%DA%81%10i%15%10%00%00%3B"
 		};
 		if (document.getElementById('dashboard').innerHTML.match('Fortifications: <b>Unlimited</b>')) {
@@ -1398,7 +1381,7 @@ var userGuideHTML = '<div id="ug-top" style="padding:15px;padding-top:5px;"><h4>
 		userGuide.style.overflow = 'auto';
 		userGuide.style.background = '#eeffee';
 		userGuide.style.width = '600px';
-		userGuide.style.height = screen.height - 300+'px'; //'600px'
+		userGuide.style.height = screen.height - 300+'px'; // '600px'
 		userGuide.style.top = '50px';
 		userGuide.style.zIndex = 101;
 		userGuide.style.border = 'thick double #000000';
@@ -1540,7 +1523,8 @@ var userGuideHTML = '<div id="ug-top" style="padding:15px;padding-top:5px;"><h4>
 		clickableMapMenuDiv.appendChild(clickableMapMenuHeading);
 		clickableMapMenuDiv.appendChild(clickableMapMenu);
 
-		// CREATE MENU ITEMS- [ createMenuItem( parent, id, listener, method, displayText, value )]
+		// CREATE MENU ITEMS- [ createMenuItem( parent, id, listener, method,
+    // displayText, value )]
 		// appearance
 		var sm = createMenuItem(clickableMapMenu, 'appearanceSubMenu', 'mouseover', function(){
 		}, 'Appearance...');
@@ -1629,13 +1613,17 @@ var userGuideHTML = '<div id="ug-top" style="padding:15px;padding-top:5px;"><h4>
 			var el = document.getElementById(pref);
 			switch(pref) {
 				case 'actionMenu':
-					// if BOB is running, remove the action menu option to prevent conflicts with BOB's HUD
+					// if BOB is running, remove the action menu option to prevent
+          // conflicts with BOB's HUD
 					if (bob) {
 						el.parentNode.removeChild(el);
 						break;
 					}
 					switch(userPrefs[pref]) {
-						case 'normal': // DO NOTHING because on initial load, it will already be normal, unless someone is using another script to do the same thing, in which case we don't want ot undo it :)
+						case 'normal': // DO NOTHING because on initial load, it will
+                            // already be normal, unless someone is using
+                            // another script to do the same thing, in which
+                            // case we don't want ot undo it :)
 							break;
 						case 'floating':
 							if (actionForm) {
@@ -1678,7 +1666,8 @@ var userGuideHTML = '<div id="ug-top" style="padding:15px;padding-top:5px;"><h4>
 						}
 					} else {
 						if (el.id.match('confirm')) {
-							// if BOB is running, then remove the confirmations that BOB also has to prevent conflicts
+							// if BOB is running, then remove the confirmations that BOB also
+              // has to prevent conflicts
 							if (bob && ( el.id == 'confirmDeploy' || el.id == 'confirmAuto-Attack' || el.id == 'confirmPhaseEnd' )) {
 								el.parentNode.removeChild(el);
 								userPrefs[pref] = 'N';
