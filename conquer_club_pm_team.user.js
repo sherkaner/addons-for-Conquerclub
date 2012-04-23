@@ -4,7 +4,9 @@
 // @namespace     http://userscripts.org/
 // @description   Adds a button in team games to private message entire team
 // @author        ThrushAAX
-// @include       http*://www.conquerclub.com/game.php?game=*
+// @include       http://www.conquerclub.com/game.php?game=*
+// @include       https://www.conquerclub.com/game.php?game=*
+// @match         *://*.conquerclub.com/game.php?game=*
 // ==/UserScript==
 
 /*! jQuery v1.7.1 jquery.com | jquery.org/license */
@@ -19,7 +21,7 @@ if(/www.conquerclub.com\/game.php\?game=(\d+)/.test(window.location.href) ){
     gamenumber = RegExp.$1;
 
     if(gamenumber){
-        $.get("http://www.conquerclub.com/api.php", {
+        $.get("/api.php", {
             mode: "gamelist",
             gn: gamenumber
         }, doWork, "xml");
