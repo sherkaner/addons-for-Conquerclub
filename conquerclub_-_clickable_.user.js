@@ -3,8 +3,9 @@
 // @namespace     conquerClubClickableMaps
 // @description   Makes the map in conquerclub clickable, creating an easier way of making moves.
 // @version	      4.10
-// @include       http*://*.conquerclub.com/*game.php?game=*
-// @match         *://*.conquerclub.com/*game.php?game=*
+// @match 				*://*.conquerclub.com/*game.php?game=*
+// @match				http://userscripts.org/scripts/source/64539.meta.js
+// @include				*://*.conquerclub.com/*game.php?game=*
 
 // ==/UserScript==
 var versionString = "4.10";
@@ -36,6 +37,11 @@ if ((typeof GM_getValue == 'undefined') || (GM_getValue('a', 'b') == undefined))
 				return value;
 		}
 	};
+	
+	GM_setValue = function(name, value) {
+		value = (typeof value)[0] + value;
+		localStorage.setItem(namespace + name, value);
+	};
 
 	GM_listValues = function() {
 		var i,result = [],name;
@@ -48,54 +54,39 @@ if ((typeof GM_getValue == 'undefined') || (GM_getValue('a', 'b') == undefined))
 		return result;
 	};
 
-
-	GM_log = function(message) {
-		console.log(message);
-	};
-	GM_xmlhttpRequest=function(obj) {
-		var name, request = new XMLHttpRequest();
-		request.onreadystatechange=function() {
-			if(obj.onreadystatechange) {
-				obj.onreadystatechange(request);
+	if (!GM_xmlhttpRequest) { //chrome supports this function now
+		GM_xmlhttpRequest = function(obj) {
+			var request=new XMLHttpRequest();
+			request.onreadystatechange=function() {
+				if(obj.onreadystatechange) {
+					obj.onreadystatechange(request);
+				};
+				if(request.readyState==4 && obj.onload) {
+					obj.onload(request);
+				}
 			};
-			if(request.readyState==4 && obj.onload) {
-				obj.onload(request);
+			request.onerror=function() {
+				if(obj.onerror) {
+					obj.onerror(request);
+				}
+			};
+			try {
+				request.open(obj.method,obj.url,true);
+			} catch(e) {
+				if(obj.onerror) {
+					obj.onerror( {readyState:4,responseHeaders:'',responseText:'',responseXML:'',status:403,statusText:'Forbidden'} );
+				}
+				return request;
 			}
-		};
-		request.onerror=function() {
-			if(obj.onerror) {
-				obj.onerror(request);
+			if (obj.headers) { 
+				for(var name in obj.headers) {
+					request.setRequestHeader(name,obj.headers[name]);
+				}
 			}
-		};
-		try {
-			request.open(obj.method,obj.url,true);
-		} catch(e) {
-			if (obj.onerror) {
-				obj.onerror({
-					readyState:4,
-					responseHeaders:'',
-					responseText:'',
-					responseXML:'',
-					status:403,
-					statusText:'Forbidden'
-				});
-			}
+			request.send(obj.data);
 			return request;
-		}
-		if (obj.headers) { 
-			for (name in obj.headers) {
-				request.setRequestHeader(name,obj.headers[name]);
-			}
-		}
-		request.send(obj.data);
-		return request;
-	};
-
-	GM_setValue = function(name, value) {
-		value = (typeof value)[0] + value;
-		localStorage.setItem(namespace + name, value);
-	};
-	unsafeWindow = window;
+		};
+	}
 }
 
 var baseLink = window.location.toString();
