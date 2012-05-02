@@ -13,7 +13,7 @@ var versiont = /@version\s+(\d+\.\d+.\d+)/.exec(metadata)[1];
 var latestVersiont = 0;
 var __eventListeners = [];
 var ranks = {};
-var features = [];
+var updateInfo = {};
 var maps = [];
 var unique = {};
 var totals, myOptions, myStore;
@@ -2638,8 +2638,8 @@ if (leftBar) {
         'Accept': 'text/html'
       },
       onload: function(responseDetails) {
-        var features = JSON.parse(responseDetails.responseText),
-        		latest = features["Map Rank"].split('.'),
+        update  = JSON.parse(responseDetails.responseText),
+        		latest = updateInfo["Map Rank"].split('.'),
             ver = versiont.split('.');
         latestVersiont = (((parseInt(latest[0]) * 10000) + (parseInt(latest[1]) * 100) + parseInt(latest[2])) > ((parseInt(ver[0]) * 10000) + (parseInt(ver[1]) * 100) + parseInt(ver[2])));
         if (latestVersiont) {
@@ -2963,10 +2963,12 @@ if (leftBar) {
           ul.innerHTML = "<li><a id=\"tlatest\" href=https://raw.github.com/sherkaner/addons-for-Conquerclub/master/conquer_club_map_rank_gl.user.js><span>Latest Version Installed</span></a></li>";
         }
         gmMenu.appendChild(ul);
-        var ftext = features.join("\n");
-        document.getElementById('tlatest').addEventListener("click" , function () {
-          alert('New version features\n' + ftext);
-        },true);
+        var ftext = updateInfo['Map rank update text'];
+        if (ftext) {
+        	document.getElementById('tlatest').addEventListener("click" , function () {
+        		alert('New version features\n' + ftext);
+        	},true);
+        }
         document.getElementById('rank').addEventListener('click', function() {
           var text = document.getElementById('map').options[document.getElementById('map').selectedIndex].text;
           var player = document.getElementById('player').value;
