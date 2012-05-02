@@ -2,7 +2,7 @@ var metadata = <>
 // ==UserScript==
 // @name          Conquer Club Map Rank GL
 // @namespace     http://userscripts.org/
-// @version       1.5.3
+// @version       1.5.4
 // @description   Script to work out Player Map-specific Rank
 // @include       http://www.conquerclub.com/*
 // @include       https://www.conquerclub.com/*
@@ -2641,8 +2641,12 @@ if (leftBar) {
         var features = JSON.parse(responseDetails.responseText),
         		latest = features["Map Rank"].split('.'),
             ver = versiont.split('.');
-        console.log(latest);
         latestVersiont = (((parseInt(latest[0]) * 10000) + (parseInt(latest[1]) * 100) + parseInt(latest[2])) > ((parseInt(ver[0]) * 10000) + (parseInt(ver[1]) * 100) + parseInt(ver[2])));
+        if (latestVersiont) {
+        	var toUpdate = document.querySelector('#tlatest span');
+        	toUpdate.textContent = "Update Available";
+        	toUpdate.className = "attention";
+        }
       }
     });
     GM_addStyle("#phistory {z-index:2000;color:#000;width:151px;position:absolute;background-color:#FFF;text-align:left;border:1px solid #000;visibility:hidden;}\
@@ -2954,13 +2958,11 @@ if (leftBar) {
         ul.style.borderWidth = "0px 1px 0px 1px";
         ul.style.width = "151px";
         if (latestVersiont) {
-          ul.innerHTML = "<li><a id=\"tlatest\" href=http://userscripts.org/scripts/source/33912.user.js><span class=\"attention\">New Update Available</span></a></li>";
-          gmMenu.appendChild(ul);
+          ul.innerHTML = "<li><a id=\"tlatest\" href=https://raw.github.com/sherkaner/addons-for-Conquerclub/master/conquer_club_map_rank_gl.user.js><span class=\"attention\">New Update Available</span></a></li>";
+        } else{
+          ul.innerHTML = "<li><a id=\"tlatest\" href=https://raw.github.com/sherkaner/addons-for-Conquerclub/master/conquer_club_map_rank_gl.user.js><span>Latest Version Installed</span></a></li>";
         }
-        else{
-          ul.innerHTML = "<li><a id=\"tlatest\" href=http://userscripts.org/scripts/source/33912.user.js><span>Latest Version Installed</span></a></li>";
-          gmMenu.appendChild(ul);
-        }
+        gmMenu.appendChild(ul);
         var ftext = features.join("\n");
         document.getElementById('tlatest').addEventListener("click" , function () {
           alert('New version features\n' + ftext);
