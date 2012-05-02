@@ -1,13 +1,15 @@
-//
+var metadata = <>
 // ==UserScript==
 // @name          Conquer Club Map Rank GL
 // @namespace     http://userscripts.org/
+// @version       1.5.3
 // @description   Script to work out Player Map-specific Rank
 // @include       http://www.conquerclub.com/*
 // @include       https://www.conquerclub.com/*
 // ==/UserScript==
+</>.toString();
 
-var versiont = "1.5.3";
+var versiont = /@version\s+(\d+\.\d+.\d+)/.exec(metadata)[1];
 var latestVersiont = 0;
 var __eventListeners = [];
 var ranks = {};
@@ -63,7 +65,7 @@ var medname = ["0", "Bronze (1)", "Silver (2)", "Gold (3)"];
 var medclass = ["nomedal", "bmedal", "smedal", "gmedal", "omedal"];
 var meddivclass = ["nomeddiv", "bmeddiv", "smeddiv", "gmeddiv", "omeddiv"];
 var medcombo = ["manual", "freestyle", "fog", "speed", "crossmap", "nuclear"];
-var medcombourl = ["&it=M", "&po=F", "&wf=Y", "&sg=Y", "", "&bc=4"];
+var medcombourl = ["&it=M", "&po=F", "&wf=Y", "&tw=Y" , "&sg=Y", "", "&bc=4"];
 var medmatrix = []; // all possible combinations to get medals.
 for (var i = 0; i < medcombo.length; i++) {
   for (var j = 0, length = medmatrix.length; j < length; j++) {
@@ -149,32 +151,34 @@ function pushUnique(array, value) {
 }
 
 function Defeats() {
-  this.speed = [];
   this.standard = [];
   this.terminator = [];
   this.assassin = [];
   this.doubles = [];
   this.triples = [];
   this.quadruples = [];
-  this.rating = [];
-  this.xSpeed = [];
+  this.speed = [];
   this.manual = [];
   this.fog = [];
+  this.trench = [];
   this.freestyle = [];
+  this.nuclear = [];
+  this.random = [];  
+  this.rating = [];  
   this.xStandard = [];
   this.xTerminator = [];
   this.xAssassin = [];
   this.xDoubles = [];
   this.xTriples = [];
   this.xQuadruples = [];
+  this.xSpeed = [];
   this.xManual = [];
   this.xFog = [];
-  this.xFreestyle = [];
-  this.xRating = [];
-  this.nuclear = [];
-  this.xNuclear = [];
-  this.random = [];
+  this.xTrench = [];
+  this.xFreestyle = [];  
+  this.xNuclear = []; 
   this.xRandom = [];
+  this.xRating = [];  
 }
 
 function Summary(name) {
@@ -220,7 +224,7 @@ function Slide(length,to,parray) {
   this._parray = parray;
 }
 
-function MapOpts(player2, num, type, bonus, order, fort, fog, joinable, speed, tname, versus, versus2, ex1, ex2, player3,player4,versus3,versus4,ex3,ex4,troops) {
+function MapOpts(player2, num, type, bonus, order, fort, fog, trench, joinable, speed, tname, versus, versus2, ex1, ex2, player3,player4,versus3,versus4,ex3,ex4,troops) {
   this._pcount = 0;
   this._players = {
     p2: player2,
@@ -247,6 +251,7 @@ function MapOpts(player2, num, type, bonus, order, fort, fog, joinable, speed, t
   this._troops = troops;
   this._fort = fort;
   this._fog = fog;
+  this._trench = trench;
   this._joinable = joinable;
   this._speed = speed;
   this._tname = tname;
@@ -462,7 +467,7 @@ function setTable() {
     sortByCol('skil',percent, 5, viewer.document.getElementById('skil').className);
   });
   addListener(viewer.document.getElementById('srel'),'click', function() {
-    sortByCol('srel',factor, 6, viewer.document.getElementById('srel').className);
+    sortByCol('srel',factor, 7, viewer.document.getElementById('srel').className);
   });
   addListener(viewer.document.getElementById('swin'),'click', function() {
     sortByCol('swin',percent, 3, viewer.document.getElementById('swin').className);
@@ -531,7 +536,7 @@ function endGame(user) {
         }
         sm._best = best;
         summary.push(sm);
-        if (s == 'speed' || s == 'fog' || s == 'freestyle' || s == 'manual' || s == 'nuclear') pm[s] = sm;
+        if (s == 'speed' || s == 'fog' || s == 'trench' || s == 'freestyle' || s == 'manual' || s == 'nuclear') pm[s] = sm;
       }
     }
   }
@@ -636,6 +641,7 @@ function endGame(user) {
   }
   var cross = medclass[cm._medals];
 
+
   var firstLog=new Date();
   firstLog.setFullYear(2008,1,6);
   var firstTime = firstLog.getTime();
@@ -697,16 +703,17 @@ function endGame(user) {
   for (var y=0; y<summary.length;y++) {
     var href = base;
     if (!nm) {
-      if (summary[y]._medals < 3 && summary[y]._medal != 'crossmap' && summary[y]._medal != 'Speed' && summary[y]._medal != 'Fog' && summary[y]._medal != 'Freestyle' && summary[y]._medal != 'Manual' && summary[y]._medal != 'Nuclear' && summary[y]._medal != 'Rating') {
+      if (summary[y]._medals < 3 && summary[y]._medal != 'crossmap' && summary[y]._medal != 'Speed' && summary[y]._medal != 'Fog' && summary[y]._medal != 'Trench' && summary[y]._medal != 'Freestyle' && summary[y]._medal != 'Manual' && summary[y]._medal != 'Nuclear' && summary[y]._medal != 'Rating') {
         nm = summary[y];
       }
     }
     if (gm[summary[y]._medal]) href+= "&amp;gt=" + gm[summary[y]._medal];
     else if (summary[y]._medal == 'Speed')href+= "&sg=Y";
-    else if (summary[y]._medal == 'Fog')href+= "&wf=Y";
+    else if (summary[y]._medal == 'Fog')href+= "&wf=Y";    
     else if (summary[y]._medal == 'Freestyle')href+= "&po=F";
     else if (summary[y]._medal == 'Manual')href+= "&it=M";
     else if (summary[y]._medal == 'Nuclear')href+= "&bc=4";
+    else if (summary[y]._medal == 'Trench')href+= "&tw=Y";
     var mids = [];
     for (cnv=0; cnv<summary[y]._best.length; cnv++) {
       mids.push(maps.indexOf(summary[y]._best[cnv]) + 1);
@@ -767,6 +774,7 @@ function endGame(user) {
           mps[nm._medal].push(maps.indexOf(nm._best[cnv]) + 1);
         }
       }
+
       if (cm._medals < 3) {
         if (cm._best.length) {
           for (cnv=0; cnv<cm._best.length; cnv++) {
@@ -774,6 +782,7 @@ function endGame(user) {
           }
         }
       }
+
       for (var p in pm) {
         if (pm[p]._medals < 3) {
           if (pm[p]._best.length) {
@@ -818,7 +827,7 @@ function endGame(user) {
             else x+= optimalrows[optimalkey] + "\", \"mrsugg\");wdw.focus();'>" + optimaltext[optimalkey] + nm._medal + "</a></td><td colspan=4>-</td></tr>";
           }
         }
-      }
+      }    
     }
     else{
       var hrefbase = base;
@@ -1765,7 +1774,8 @@ function createBox(txt, name, options) {
   tbody.className = "scrollContent";
   tbody.id = "ranktable";
 
-  mObj.style.visibility = 'visible';
+  mObj.style.visibility = 'visible';  
+
   chartheader = viewer.document.getElementById('rankBox').appendChild(viewer.document.createElement("div"));
   chartheader.id = "cheader";
   container = viewer.document.getElementById('rankBox').appendChild(viewer.document.createElement("div"));
@@ -1873,7 +1883,7 @@ function getPlayerPage (user, maplist, mopts, opt) {
   pajax.send(null);
 }
 
-function getPlayerId (user, maplist, mopts) {
+function getPlayerId (user, maplist, mopts) {		
   var iump =  baseURL + 'forum/memberlist.php?mode=viewprofile&un=' + escape(user);
   var iajax = new XMLHttpRequest();
   iajax.open('GET', iump, true);
@@ -1937,7 +1947,7 @@ function getPlayerMedals(user) {
   majax.send(null);
 }
 
-function getRandomMedals(user, page){
+function getRandomMedals(user, page){		
     var jump = baseURL + 'api.php?mode=gamelist&mp=Random&gs=F&p1un=' + escape(user);
     
     if(page > 1) jump += "&page=" + page;
@@ -2050,6 +2060,7 @@ function getHistPage(user,maplist,page,mapopts) {
     if (mapopts._troops.length==1) jump += "&it=" + mapopts._troops[0];
     if (mapopts._fort.length==1) jump += "&ft=" + mapopts._fort[0];
     if (mapopts._fog.length==1) jump += "&wf=" + mapopts._fog[0];
+    if (mapopts._trench.length==1) jump += "&tw=" + mapopts._trench[0];
     if (mapopts._speed.length==1) jump += "&sg=" + mapopts._speed[0];
     if (mapopts._joinable.length==1) jump += "&pt=" + mapopts._joinable[0];
     if (mapopts._tname) jump += "&to=" + (mapopts._tname);
@@ -2140,6 +2151,7 @@ function getHistPage(user,maplist,page,mapopts) {
           var cards = games[g].getElementsByTagName('bonus_cards')[0].firstChild.nodeValue;
           var fort = games[g].getElementsByTagName('fortifications')[0].firstChild.nodeValue;
           var fog = games[g].getElementsByTagName('war_fog')[0].firstChild.nodeValue;
+          var trench = games[g].getElementsByTagName('trench_warfare')[0].firstChild.nodeValue;
           var pids = [];
           for (s=0; s<players.length; s++) {
             var pid = (players[s].firstChild.nodeValue);
@@ -2154,6 +2166,7 @@ function getHistPage(user,maplist,page,mapopts) {
             if (mapopts._troops.length && mapopts._troops.indexOf(troops) == -1) gvalid = 0;
             if (mapopts._fort.length && mapopts._fort.indexOf(fort) == -1) gvalid = 0;
             if (mapopts._fog.length && mapopts._fog.indexOf(fog) == -1) gvalid = 0;
+            if (mapopts._trench.length && mapopts._trench.indexOf(trench) == -1) gvalid = 0;
             if (mapopts._joinable.length && (mapopts._joinable.indexOf('T') == -1) && (touring || mapopts._joinable.indexOf(joinable) == -1)) gvalid = 0;
             if (mapopts._joinable.length && (mapopts._joinable.indexOf('T') != -1) && !touring) gvalid = 0;
             if (mapopts._speed.length && mapopts._speed.indexOf(speeding) == -1) gvalid = 0;
@@ -2246,7 +2259,7 @@ function getHistPage(user,maplist,page,mapopts) {
                 if (games[g].getElementsByTagName('war_fog')[0].firstChild.nodeValue == "Y"){
                   pushUnique(totals._defeats['fog'],losers[p]);
                   pushUnique(ranks[mapname]._defeats['fog'],losers[p]);
-                }
+                }               
                 if (games[g].getElementsByTagName('initial_troops')[0].firstChild.nodeValue == "M"){
                   pushUnique(totals._defeats['manual'],losers[p]);
                   pushUnique(ranks[mapname]._defeats['manual'],losers[p]);
@@ -2255,6 +2268,10 @@ function getHistPage(user,maplist,page,mapopts) {
                   pushUnique(totals._defeats['nuclear'],losers[p]);
                   pushUnique(ranks[mapname]._defeats['nuclear'],losers[p]);
                 }
+                if (games[g].getElementsByTagName('trench_warfare')[0].firstChild.nodeValue == "Y"){
+                  pushUnique(totals._defeats['trench'],losers[p]);
+                  pushUnique(ranks[mapname]._defeats['trench'],losers[p]);
+                }                 
                 pushUnique(totals._unique,losers[p]);
               }
               totals._wins++;
@@ -2275,7 +2292,7 @@ function getHistPage(user,maplist,page,mapopts) {
                 if (games[g].getElementsByTagName('war_fog')[0].firstChild.nodeValue == "Y"){
                   pushUnique(totals._defeats.xFog,winners[p]);
                   pushUnique(ranks[mapname]._defeats.xFog,winners[p]);
-                }
+                }             
                 if (games[g].getElementsByTagName('initial_troops')[0].firstChild.nodeValue == "M"){
                   pushUnique(totals._defeats.xManual,winners[p]);
                   pushUnique(ranks[mapname]._defeats.xManual,winners[p]);
@@ -2284,6 +2301,10 @@ function getHistPage(user,maplist,page,mapopts) {
                   pushUnique(totals._defeats.xNuclear,winners[p]);
                   pushUnique(ranks[mapname]._defeats.xNuclear,winners[p]);
                 }
+                if (games[g].getElementsByTagName('trench_warfare')[0].firstChild.nodeValue == "Y"){
+                  pushUnique(totals._defeats.xTrench,winners[p]);
+                  pushUnique(ranks[mapname]._defeats.xTrench,winners[p]);
+                }                   
               }
             }
             if (pfirst) {
@@ -2534,7 +2555,7 @@ function getHistPage(user,maplist,page,mapopts) {
   ghist["paging" + page].send(null);
 }
 
-function getRatings(user,url,page) {
+function getRatings(user,url,page) {		
   var jump = url;
   if (page > 1) jump += "&page=" + page;
   rateReq[page] = new XMLHttpRequest();
@@ -2571,7 +2592,7 @@ function getRatings(user,url,page) {
   rateReq[page].send(null);
 }
 
-function getXRatings(user,url,page) {
+function getXRatings(user,url,page) {		
   var jump = url;
   if (page > 1) jump += "&page=" + page;
   xrateReq[page] = new XMLHttpRequest();
@@ -2611,16 +2632,17 @@ if (leftBar) {
   if (ul[0]) {
     GM_xmlhttpRequest({
       method: 'GET',
-      url: 'http://www.fileden.com/files/2008/5/8/1902058/turbo.txt?nocache=' + Math.random(),
+      url: 'https://raw.github.com/sherkaner/addons-for-Conquerclub/master/currentVersions.json',
       headers: {
         'User-agent': 'Mozilla/4.0 (compatible) Greasemonkey',
         'Accept': 'text/html'
       },
       onload: function(responseDetails) {
-        features = responseDetails.responseText.split('\n');
-        var latest = features[0].split('.');
-        var ver = versiont.split('.');
-        latestVersiont = (((parseInt(latest[0]) * 100) + (parseInt(latest[1]) * 10) + parseInt(latest[2])) > ((parseInt(ver[0]) * 100) + (parseInt(ver[1]) * 10) + parseInt(ver[2])));
+        var features = JSON.parse(responseDetails.responseText),
+        		latest = features["Map Rank"].split('.'),
+            ver = versiont.split('.');
+        console.log(latest);
+        latestVersiont = (((parseInt(latest[0]) * 10000) + (parseInt(latest[1]) * 100) + parseInt(latest[2])) > ((parseInt(ver[0]) * 10000) + (parseInt(ver[1]) * 100) + parseInt(ver[2])));
       }
     });
     GM_addStyle("#phistory {z-index:2000;color:#000;width:151px;position:absolute;background-color:#FFF;text-align:left;border:1px solid #000;visibility:hidden;}\
@@ -2666,19 +2688,19 @@ if (leftBar) {
                 for (def in myDefeats) {
                   var imgtitle = "";
                   if (myDefeats[def].indexOf(names) != -1) {
-                    if (def == "Rating" && icons) {
+                    if (def == "rating" && icons) {
                       imgtitle = "Already Rated for " + def + " medal (from Map Rank)";
-                    } else if (def == "XRating" && dark) {
+                    } else if (def == "xRating" && dark) {
                       imgtitle = "Received Rating (from Map Rank)";
-                    } else if (def.charAt(0) == 'X' && dark) {
-                      var defx = def.replace(/X/, '');
+                    } else if (def.charAt(0) == 'x' && dark) {
+                      var defx = def.replace(/x/, '');
                       imgtitle = defx + " Loss (from Map Rank)";
-                    } else if (def.charAt(0) != 'X' && icons) {
+                    } else if (def.charAt(0) != 'x' && icons) {
                       imgtitle = "Already Defeated for " + def + " medal (from Map Rank)";
                     }
                     if (imgtitle != "") {
                       var img = lis[l].appendChild(document.createElement('img'));
-                      img.src = "http://i811.photobucket.com/albums/zz39/chipv_bucket/" + def + ".png";
+                      img.src = "http://i1159.photobucket.com/albums/p625/TheBluU/cc/" + def + ".png";
                       img.style.verticalAlign = "middle";
                       img.title = imgtitle;
                     }
@@ -2696,9 +2718,10 @@ if (leftBar) {
       if ((findPage || startPage) && document.getElementsByTagName('fieldset').length) {
         nextSib(document.getElementsByName('sg[]')[1]).innerHTML += "<span class='player3' title='Defeated opponents For speed Medal (from Map Rank)'>(" + myDefeats['speed'].length + ")</span>";
         nextSib(document.getElementsByName('po[]')[1]).innerHTML += "<span class='player3' title='Defeated opponents For freestyle Medal (from Map Rank)'>(" + myDefeats['freestyle'].length + ")</span>";
-        nextSib(document.getElementsByName('wf[]')[1]).innerHTML += "<span class='player3' title='Defeated opponents For fog Medal (from Map Rank)'>(" + myDefeats['fog'].length + ")</span>";
+        nextSib(document.getElementsByName('wf[]')[1]).innerHTML += "<span class='player3' title='Defeated opponents For fog Medal (from Map Rank)'>(" + myDefeats['fog'].length + ")</span>";        
         nextSib(document.getElementsByName('it[]')[1]).innerHTML += "<span class='player3' title='Defeated opponents For manual Troops Medal (from Map Rank)'>(" + myDefeats['manual'].length + ")</span>";
         nextSib(document.getElementsByName('bc[]')[2]).innerHTML += "<span class='player3' title='Defeated opponents For nuclear Medal (from Map Rank)'>(" + myDefeats['nuclear'].length + ")</span>";
+        nextSib(document.getElementsByName('tw[]')[1]).innerHTML += "<span class='player3' title='Defeated opponents For trench Medal (from Map Rank)'>(" + myDefeats['trench'].length + ")</span>";
         var gtDiv = document.getElementsByName('gt[]');
         for (gt=0; gt< gtDiv.length;gt++) {
           var name = nextSib(gtDiv[gt]).innerHTML;
@@ -2739,7 +2762,7 @@ if (leftBar) {
         if (ratings) getXRatings(prof,baseURL + 'player.php?mode=ratings1&username=' + escape(prof),1);
         ranks = {};
         unique = {};
-        surl = "||||||";
+        surl = "|||||||";
         getPlayerMedals(prof);
         getPlayerId(prof, maps);
       }
@@ -2756,7 +2779,7 @@ if (leftBar) {
           boxes[0].appendChild(van);
           van.addEventListener("click" , function() {
             var link = baseURL + "player.php?submit=Search&game_status=F&player1=" + escape(prof);
-            var mopts = new MapOpts('','','','','','','','','','', prof, '', '', '', '', '', '', '', '', '', '');
+            var mopts = new MapOpts('','','','','','','','','','','', prof, '', '', '', '', '', '', '', '', '', '');
             createBox("Collecting Games", mine, "<span class=rankoptions>vs. <b>" + prof + "</b></span> ");
             totals = new Totals(0);
             ranks = {};
@@ -2967,7 +2990,7 @@ if (leftBar) {
             surl = "";
             if (text == "All") {
               createBox("Collecting Games", player, '');
-              surl = "||||||";
+              surl = "|||||||";
               var insignia = 0;
               var logout = getElementsByClassName(document,'div','vnav',true);
               var para = logout[0].getElementsByTagName('a');
@@ -2998,7 +3021,7 @@ if (leftBar) {
               getPlayerId(player, maps);
             } else {
               var ind = document.getElementById('map').selectedIndex - 1;
-              surl = "||||||" + maps[ind];
+              surl = "|||||||" + maps[ind];
               ranks = {};
               unique = {};
               createBox("Collecting Games", player, '');
@@ -3088,6 +3111,8 @@ if (leftBar) {
               if (joinable.length) opts += "<span class=rankoptions>Joinability: <b>" + joinable + "</b></span> ";
               var speed = cboxValues('sg[]');
               if (speed.length) opts += "<span class=rankoptions>Round Length: <b>" + speed + "</b></span> ";
+              var trench = cboxValues('tw[]');
+              if (trench.length) opts += "<span class=rankoptions>Trench Warfare:<b>" + trench + "</b></span> ";                            
               var nn = document.getElementById('tournament');
               var tour = (nn.value);
               if (tour != "") {
@@ -3099,14 +3124,14 @@ if (leftBar) {
                 var link = baseURL + "player.php?submit=Search&game_status=F&player1=" + escape(player) + "&player2=" + escape(player2);
                 var postlink = "&num_players=" + numbers + "&game_type=" + gt + "&bonus_cards=" + bonus + "&play_order=" + porder;
                 surl = "";
-                postlink += "&fortifications=" + fort + "&war_fog=" + fog + "&private=" + joinable + "&speed_game=" + speed + "&tournament=" + tour;
-                mopts = new MapOpts(player2,numbers,gt,bonus,porder,fort,fog,joinable,speed,tour, versus, versus2, exclude, exclude2, player3, player4, versus3, versus4, exclude3, exclude4,tps);
+                postlink += "&fortifications=" + fort + "&war_fog=" + fog + "&trench_warfare=" + trench + "&private=" + joinable + "&speed_game=" + speed + "&tournament=" + tour;
+                mopts = new MapOpts(player2,numbers,gt,bonus,porder,fort,fog,trench,joinable,speed,tour, versus, versus2, exclude, exclude2, player3, player4, versus3, versus4, exclude3, exclude4,tps);
                 if (!fort.length && !tps.length && tour == "" && player2 == "" && player3 == "" && player4 == "" && versus == "" && versus2 == "" && versus3 == "" && versus4 == "" && exclude == "" && exclude2 == "" && exclude3 == "" && exclude4 == "") {
                   if (!joinable.length) {
-                    surl = numbers + "|" + gt + "|" + porder + "|" + bonus + "|" + fog + "|" + speed + "|" + mp;
+                    surl = numbers + "|" + gt + "|" + porder + "|" + bonus + "|" + fog + "|" + trench + "|" + speed + "|" + mp;
                   } else {
-                    if (joinable == "T" && !numbers.length && !gt.length && !porder.length && !bonus.length && !fog.length && !speed.length && !mp.length) {
-                      surl = "||||||T";
+                    if (joinable == "T" && !numbers.length && !gt.length && !porder.length && !bonus.length && !fog.length && !trench.length && !speed.length && !mp.length) {
+                      surl = "|||||||T";
                     }
                   }
                 }
@@ -3268,7 +3293,7 @@ function line_graph(max,min) {
     var fnt    = 12;
     var sx = 50;
     var step = (this.data.length > 14) ?  Math.round(this.data.length / 15) : 1;
-    var span = 21;
+    var span = 22;
     var ht1;
     var rtmax = sx + 10 + (dw+Math.round((dw/2)))*(span);
     var i;
