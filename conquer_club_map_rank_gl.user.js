@@ -3095,7 +3095,7 @@ if (leftBar) {
               var mp = [];
               for (op = 0; op< mip.length; op++) {
                 if (mip[op].selected) {
-                  var txt = mip[op].text.replace(/ \(Beta\)$/, '').replace(/ \(\d+\)/,'' );
+                  var txt = mip[op].text.replace(/ \(Beta\)$/, '').replace(/ \(Closed\)$/, '').replace(/ \(\d+\)/,'' );
                   mp.push(txt);
                 }
               }
