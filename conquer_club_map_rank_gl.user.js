@@ -2,7 +2,7 @@ var metadata = <>
 // ==UserScript==
 // @name          Conquer Club Map Rank GL
 // @namespace     http://userscripts.org/
-// @version       1.5.4
+// @version       1.5.5
 // @description   Script to work out Player Map-specific Rank
 // @include       http://www.conquerclub.com/*
 // @include       https://www.conquerclub.com/*
@@ -787,7 +787,9 @@ function endGame(user) {
         if (pm[p]._medals < 3) {
           if (pm[p]._best.length) {
             for (cnv=0; cnv<pm[p]._best.length; cnv++) {
-              mps[pm[p]._medal].push(maps.indexOf(pm[p]._best[cnv]) + 1);
+			  if (pm[p]._medal != "trench") {
+				mps[pm[p]._medal].push(maps.indexOf(pm[p]._best[cnv]) + 1);
+			  }
             }
           }
         }
@@ -863,7 +865,10 @@ function endGame(user) {
         if (pm[p]._medals < 3) {
           if (pm[p]._best.length) {
             for (cnv=0; cnv<pm[p]._best.length; cnv++) {
-              mps[pm[p]._medal].push(maps.indexOf(pm[p]._best[cnv]) + 1);
+			  console.log(pm[p]._medal);
+			  if (pm[p]._medal != 'trench') {
+				mps[pm[p]._medal].push(maps.indexOf(pm[p]._best[cnv]) + 1);
+			  }
             }
           }
         }
@@ -2638,7 +2643,7 @@ if (leftBar) {
         'Accept': 'text/html'
       },
       onload: function(responseDetails) {
-        update  = JSON.parse(responseDetails.responseText),
+        updateInfo = JSON.parse(responseDetails.responseText),
         		latest = updateInfo["Map Rank"].split('.'),
             ver = versiont.split('.');
         latestVersiont = (((parseInt(latest[0]) * 10000) + (parseInt(latest[1]) * 100) + parseInt(latest[2])) > ((parseInt(ver[0]) * 10000) + (parseInt(ver[1]) * 100) + parseInt(ver[2])));
