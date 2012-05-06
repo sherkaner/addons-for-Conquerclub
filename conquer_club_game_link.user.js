@@ -2,7 +2,7 @@
 // @name          Conquer Club Game Link
 // @namespace     http://userscripts.org
 // @description   Adds game info popup to game links
-// @version       1.4.1
+// @version       1.5.0
 // @include       *://www.conquerclub.com/forum/viewtopic.php*
 // @include       *://www.conquerclub.com/forum/ucp.php?*mode=view*
 // @include       *://www.conquerclub.com/forum/ucp.php?*mode=compose*
@@ -61,12 +61,6 @@ var Converter = (function() {
     C : "Chained",
     O : "Adjacent",
     M : "Unlimited"
-  }, fogOfWar = {
-    Y : "Yes",
-    N : "No"
-  }, trenchWarfare = {
-    Y : "Yes",
-    N : "No"
   }, stateToClass = {
     W : "waiting",
     A : "active",
@@ -90,11 +84,22 @@ var Converter = (function() {
   toReturn.fortsToText = function(ft) {
     return forts[ft] || "Unknown";
   };
-  toReturn.fogOfWarToText = function(wf) {
-    return fogOfWar[wf] || "Unknown";
-  };
-  toReturn.trenchWarfareToText = function(tw) {
-    return trenchWarfare[tw] || "Unknown";
+  toReturn.specialGameplayToText = function(wf, tw) {
+    var summary = [];
+    var specialGameplay = {
+      wf : { // must match an argument of the containing function
+        Y : "Fog",
+        N : ""
+      },
+      tw : { // must match an argument of the containing function
+        Y : "Trench",
+        N : ""
+      }
+    };
+    for (var sg in specialGameplay) {
+      summary.push(specialGameplay[sg][eval(sg)]);
+    };
+    return summary.join(" ").replace(/\s+$/,"") || "None";
   };
   toReturn.gameTypeToTeamSize = function(gt) {
     return gameTypeTeamSize[gt] || 1;
@@ -160,8 +165,7 @@ function createDivHtml(gameDetails) {
 	   <tr><td>Play Order:</td><td>" + Converter.playOrderToText(gameDetails.playOrder) + "</td></tr>\
 	   <tr><td>Spoils:</td><td>" + Converter.spoilsToText(gameDetails.spoils) + "</td></tr>\
 	   <tr><td>Forts:</td><td>" + Converter.fortsToText(gameDetails.reinforcements) + "</td></tr>\
-	   <tr><td>Fog of War:</td><td>" + Converter.fogOfWarToText(gameDetails.fogOfWar) + "</td></tr>\
-	   <tr><td>Trench Warfare:</td><td>" + Converter.trenchWarfareToText(gameDetails.trenchWarfare) + "</td></tr>\
+	   <tr><td>Special Gameplay:</td><td>" + Converter.specialGameplayToText(gameDetails.fogOfWar, gameDetails.trenchWarfare) + "</td></tr> \
 	   <tr><td>Round:</td><td>" + gameDetails.round + "</td></tr></table>\
 	   </div>\
 	   <div class='column'><table>";
