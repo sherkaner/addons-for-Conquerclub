@@ -2,7 +2,7 @@
 // @name          Conquer Club Game Link
 // @namespace     http://userscripts.org
 // @description   Adds game info popup to game links
-// @version       1.4.0
+// @version       1.4.1
 // @include       *://www.conquerclub.com/forum/viewtopic.php*
 // @include       *://www.conquerclub.com/forum/ucp.php?*mode=view*
 // @include       *://www.conquerclub.com/forum/ucp.php?*mode=compose*
@@ -64,6 +64,9 @@ var Converter = (function() {
   }, fogOfWar = {
     Y : "Yes",
     N : "No"
+  }, trenchWarfare = {
+    Y : "Yes",
+    N : "No"
   }, stateToClass = {
     W : "waiting",
     A : "active",
@@ -90,6 +93,9 @@ var Converter = (function() {
   toReturn.fogOfWarToText = function(wf) {
     return fogOfWar[wf] || "Unknown";
   };
+  toReturn.trenchWarfareToText = function(tw) {
+    return trenchWarfare[tw] || "Unknown";
+  };
   toReturn.gameTypeToTeamSize = function(gt) {
     return gameTypeTeamSize[gt] || 1;
   };
@@ -108,6 +114,7 @@ function GameDetails(gameNumber) {
   this.reinforcements = "?";
   this.spoils = "?";
   this.fogOfWar = "?";
+  this.trenchWarfare = "?";
   this.troopDeploy = "?";
   this.players = [];
   this.round = "?";
@@ -154,6 +161,7 @@ function createDivHtml(gameDetails) {
 	   <tr><td>Spoils:</td><td>" + Converter.spoilsToText(gameDetails.spoils) + "</td></tr>\
 	   <tr><td>Forts:</td><td>" + Converter.fortsToText(gameDetails.reinforcements) + "</td></tr>\
 	   <tr><td>Fog of War:</td><td>" + Converter.fogOfWarToText(gameDetails.fogOfWar) + "</td></tr>\
+	   <tr><td>Trench Warfare:</td><td>" + Converter.trenchWarfareToText(gameDetails.trenchWarfare) + "</td></tr>\
 	   <tr><td>Round:</td><td>" + gameDetails.round + "</td></tr></table>\
 	   </div>\
 	   <div class='column'><table>";
@@ -248,6 +256,7 @@ function fillGameInfo() {
       games[gameNumber].spoils = gamesXML[i].getElementsByTagName('bonus_cards')[0].textContent;
       games[gameNumber].reinforcements = gamesXML[i].getElementsByTagName('fortifications')[0].textContent;
       games[gameNumber].fogOfWar = gamesXML[i].getElementsByTagName('war_fog')[0].textContent;
+      games[gameNumber].trenchWarfare = gamesXML[i].getElementsByTagName('trench_warfare')[0].textContent;
       games[gameNumber].troopDeploy = gamesXML[i].getElementsByTagName('initial_troops')[0].textContent;
       games[gameNumber].round = gamesXML[i].getElementsByTagName('round')[0].textContent;
       games[gameNumber].state = gamesXML[i].getElementsByTagName('game_state')[0].textContent;
