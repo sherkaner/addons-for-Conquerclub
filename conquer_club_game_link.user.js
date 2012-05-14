@@ -96,10 +96,9 @@ var Converter = (function() {
         N : ""
       }
     };
-    for (var sg in specialGameplay) {
-      summary.push(specialGameplay[sg][eval(sg)]);
-    };
-    return summary.join(" ").replace(/\s+$/,"") || "None";
+	if (specialGameplay.wf[wf]) summary.push(specialGameplay.wf[wf]);
+	if (specialGameplay.tw[tw]) summary.push(specialGameplay.tw[tw]);
+    return summary.length == 0? "None" : summary.join(", ");
   };
   toReturn.gameTypeToTeamSize = function(gt) {
     return gameTypeTeamSize[gt] || 1;
