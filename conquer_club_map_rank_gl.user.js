@@ -865,7 +865,6 @@ function endGame(user) {
         if (pm[p]._medals < 3) {
           if (pm[p]._best.length) {
             for (cnv=0; cnv<pm[p]._best.length; cnv++) {
-			  console.log(pm[p]._medal);
 			  if (pm[p]._medal != 'trench') {
 				mps[pm[p]._medal].push(maps.indexOf(pm[p]._best[cnv]) + 1);
 			  }
