@@ -1,2 +1,2 @@
-{"Map Rank": "1.5.5",
-"Map rank update text": "Temporary fix, determining best maps for trench went wrong."}
+{"Map Rank": "1.5.6",
+"Map rank update text": "New code to access metadata in order to detect available updates.  Corrections for non-ASCII characters in player names."}

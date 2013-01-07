@@ -1,15 +1,13 @@
-var metadata = <>
 // ==UserScript==
 // @name          Conquer Club Map Rank GL
 // @namespace     http://userscripts.org/
-// @version       1.5.5
+// @version       1.5.6
 // @description   Script to work out Player Map-specific Rank
 // @include       http://www.conquerclub.com/*
 // @include       https://www.conquerclub.com/*
 // ==/UserScript==
-</>.toString();
 
-var versiont = /@version\s+(\d+\.\d+.\d+)/.exec(metadata)[1];
+var versiont = GM_info.script.version;
 var latestVersiont = 0;
 var __eventListeners = [];
 var ranks = {};
@@ -1859,7 +1857,7 @@ function cboxValues(name) {
 }
 
 function getPlayerPage (user, maplist, mopts, opt) {
-  var pump = baseURL + 'forum/memberlist.php?mode=viewprofile&un=' + escape(mopts._players[opt]);
+  var pump = baseURL + 'forum/memberlist.php?mode=viewprofile&un=' + encodeURIComponent(mopts._players[opt]);
   var pajax = new XMLHttpRequest();
   pajax.open('GET', pump, true);
   pajax.onreadystatechange = function() {
@@ -1888,7 +1886,7 @@ function getPlayerPage (user, maplist, mopts, opt) {
 }
 
 function getPlayerId (user, maplist, mopts) {		
-  var iump =  baseURL + 'forum/memberlist.php?mode=viewprofile&un=' + escape(user);
+  var iump =  baseURL + 'forum/memberlist.php?mode=viewprofile&un=' + encodeURIComponent(user);
   var iajax = new XMLHttpRequest();
   iajax.open('GET', iump, true);
   iajax.onreadystatechange = function() {
@@ -1925,7 +1923,7 @@ function getPlayerId (user, maplist, mopts) {
 
 function getPlayerMedals(user) {
   var medalAlts = ['Tournament Contribution', 'Map Contribution', 'General Contribution', 'General Achievement', 'Tournament Achievement', 'Clan Achievement', 'Training Achievement'];
-  var pump = baseURL + 'forum/memberlist.php?mode=viewprofile&un=' + escape(user);
+  var pump = baseURL + 'forum/memberlist.php?mode=viewprofile&un=' + encodeURIComponent(user);
   var majax = new XMLHttpRequest();
   majax.open('GET', pump, true);
   majax.onreadystatechange = function() {
@@ -1952,7 +1950,7 @@ function getPlayerMedals(user) {
 }
 
 function getRandomMedals(user, page){		
-    var jump = baseURL + 'api.php?mode=gamelist&mp=Random&gs=F&p1un=' + escape(user);
+    var jump = baseURL + 'api.php?mode=gamelist&mp=Random&gs=F&p1un=' + encodeURIComponent(user);
     
     if(page > 1) jump += "&page=" + page;
     ghist["rpaging" + page] = new XMLHttpRequest();
@@ -2051,7 +2049,7 @@ function getRandomMedals(user, page){
 }
 
 function getHistPage(user,maplist,page,mapopts) {
-  var jump = baseURL + 'api.php?mode=gamelist&events=Y&gs=F&p1un=' + escape(user);
+  var jump = baseURL + 'api.php?mode=gamelist&events=Y&gs=F&p1un=' + encodeURIComponent(user);
   if(maplist.length == 1) {
     jump += "&mp=" + maplist[0];
     if(maplist.indexOf("Random") != -1 ) random = true;
@@ -2766,8 +2764,8 @@ if (leftBar) {
           }
         }
         totals = new Totals(insignia);
-        if (ratings) getRatings(prof,baseURL + 'player.php?mode=ratings2&username=' + escape(prof),1);
-        if (ratings) getXRatings(prof,baseURL + 'player.php?mode=ratings1&username=' + escape(prof),1);
+        if (ratings) getRatings(prof,baseURL + 'player.php?mode=ratings2&username=' + encodeURIComponent(prof),1);
+        if (ratings) getXRatings(prof,baseURL + 'player.php?mode=ratings1&username=' + encodeURIComponent(prof),1);
         ranks = {};
         unique = {};
         surl = "|||||||";
@@ -2786,7 +2784,7 @@ if (leftBar) {
           van.value = "Map Rank vs.";
           boxes[0].appendChild(van);
           van.addEventListener("click" , function() {
-            var link = baseURL + "player.php?submit=Search&game_status=F&player1=" + escape(prof);
+            var link = baseURL + "player.php?submit=Search&game_status=F&player1=" + encodeURIComponent(prof);
             var mopts = new MapOpts('','','','','','','','','','','', prof, '', '', '', '', '', '', '', '', '', '');
             createBox("Collecting Games", mine, "<span class=rankoptions>vs. <b>" + prof + "</b></span> ");
             totals = new Totals(0);
@@ -2994,7 +2992,7 @@ if (leftBar) {
                 GM_setValue('phist',phist);
               }
             }
-            var link = baseURL + "player.php?submit=Search&game_status=F&player1=" + escape(player);
+            var link = baseURL + "player.php?submit=Search&game_status=F&player1=" + encodeURIComponent(player);
             surl = "";
             if (text == "All") {
               createBox("Collecting Games", player, '');
@@ -3021,8 +3019,8 @@ if (leftBar) {
                 }
               }
               totals = new Totals(insignia);
-              if (ratings) getRatings(player,baseURL + 'player.php?mode=ratings2&username=' + escape(player),1);
-              if (ratings) getXRatings(player,baseURL + 'player.php?mode=ratings1&username=' + escape(player),1);
+              if (ratings) getRatings(player,baseURL + 'player.php?mode=ratings2&username=' + encodeURIComponent(player),1);
+              if (ratings) getXRatings(player,baseURL + 'player.php?mode=ratings1&username=' + encodeURIComponent(player),1);
               ranks = {};
               unique = {};
               getPlayerMedals(player);
@@ -3129,7 +3127,7 @@ if (leftBar) {
               if (player == "") {
                 alert("Must give a player name");
               } else {
-                var link = baseURL + "player.php?submit=Search&game_status=F&player1=" + escape(player) + "&player2=" + escape(player2);
+                var link = baseURL + "player.php?submit=Search&game_status=F&player1=" + encodeURIComponent(player) + "&player2=" + encodeURIComponent(player2);
                 var postlink = "&num_players=" + numbers + "&game_type=" + gt + "&bonus_cards=" + bonus + "&play_order=" + porder;
                 surl = "";
                 postlink += "&fortifications=" + fort + "&war_fog=" + fog + "&trench_warfare=" + trench + "&private=" + joinable + "&speed_game=" + speed + "&tournament=" + tour;
