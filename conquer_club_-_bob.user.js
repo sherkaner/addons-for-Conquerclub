@@ -1,5 +1,5 @@
 // Conquer Club - Card Counter, Card Redemption Value, Status Indicator
-var versionString = "5.2.3";
+var versionString = "5.2.4";
 // This monkey is now called:
 
 /////	 ////   /////
@@ -27,7 +27,7 @@ var versionString = "5.2.3";
 //-----------------------------------------------------------------------------
 // ==UserScript==
 // @name          Conquer Club - BOB
-// @version       5.2.3
+// @version       5.2.4
 // @namespace     http://yeti_c.co.uk/conquerClub
 // @description   Adds Stats, card counter, redemption value, text based map, map inspection tools
 // @match         *://*.conquerclub.com/*
@@ -1842,7 +1842,17 @@ function processLog(start, init, showProgress) {
 		while ((regResult = playerReg.exec(line)) != null) { 
 			playerNumbers.push(regResult[1]);
 		}
-		if (playerNumbers[0] == "0") continue;
+		
+		if (line.has(str_eliminated)) {
+			if (playerNumbers.length > 1 && playerNumbers[1] != "0") { 
+				allPlayers[playerNumbers[1]].eliminatedInRound = rounds;	
+			}
+			TerminatorSummary += line + " in round - "+rounds+"<br/>";
+			continue;
+		} else if (playerNumbers[0] == "0") {
+			continue;
+		}
+		
 		player = allPlayers[playerNumbers[0]];
 		// Process the log
 		if( line.has(str_receiveCard)|| line.has(str_outOfTime) || line.has(str_fortified)){
@@ -1873,12 +1883,6 @@ function processLog(start, init, showProgress) {
 			player.skipped = 0;
 			num_turnins++;
 			player.isHandingInCards = true;
-		} else if( line.has(str_eliminated) ) {
-			player.skipped = 0;
-			if (playerNumbers.length > 1 && playerNumbers[1] != "0") { 
-				allPlayers[playerNumbers[1]].eliminatedInRound = rounds;	
-			}
-			TerminatorSummary += line + " in round - "+rounds+"<br/>";
 		} else if (line.has(str_autoDeploy)) {
 			if (!player.isHandingInCards) {
 				if (player.lastBonusFixed) {
@@ -3370,13 +3374,13 @@ var col1 = ["#000000", // Neutral has always been black in the logs
 "#FF9922", "#7F7F7F"];
 
 function getMap() {
-	var json = /map = (.+);/.exec($("#middleColumn script:first").html())[1];
+	var json = /map = (.+);/.exec($("#middleColumn script:last").html())[1];
 	return JSON.parse(json);
 }
 function getArmies() {
 	var json = $('#armies').html();
 	if (json.length == 0) {
-		json = /armies = (.+);/.exec($("#middleColumn script:first").html())[1];
+		json = /armies = (.+);/.exec($("#middleColumn script:last").html())[1];
 	}
 	return JSON.parse(json);
 }
