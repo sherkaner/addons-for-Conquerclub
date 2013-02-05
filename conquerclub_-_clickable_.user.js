@@ -2,13 +2,13 @@
 // @name          ConquerClub - Clickable Maps
 // @namespace     conquerClubClickableMaps
 // @description   Makes the map in conquerclub clickable, creating an easier way of making moves.
-// @version	      4.10
+// @version	  4.11
 // @match 				*://*.conquerclub.com/*game.php?game=*
 // @match				http://userscripts.org/scripts/source/64539.meta.js
 // @include				*://*.conquerclub.com/*game.php?game=*
 
 // ==/UserScript==
-var versionString = "4.10";
+var versionString = GM_info.script.version;
 
 if ((typeof GM_getValue == 'undefined') || (GM_getValue('a', 'b') == undefined)) {
 	var namespace = "ClickableMaps.";
@@ -732,7 +732,7 @@ var userGuideHTML = '<div id="ug-top" style="padding:15px;padding-top:5px;"><h4>
 		return null;
 	}
 	function getScriptConfig() {
-		return document.getElementById('middleColumn').getElementsByTagName("script")[0].innerHTML;
+		return document.querySelectorAll("#middleColumn script:last-child")[0].innerHTML;
 	}
 	function getMap() {
 		return JSON.parse(/map = (.+);/.exec(getScriptConfig())[1]);

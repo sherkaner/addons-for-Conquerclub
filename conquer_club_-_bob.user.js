@@ -1,5 +1,5 @@
 // Conquer Club - Card Counter, Card Redemption Value, Status Indicator
-var versionString = "5.2.4";
+var versionString = GM_info.script.version;
 // This monkey is now called:
 
 /////	 ////   /////
