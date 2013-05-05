@@ -27,7 +27,7 @@ var versionString = GM_info.script.version;
 //-----------------------------------------------------------------------------
 // ==UserScript==
 // @name          Conquer Club - BOB
-// @version       5.2.4
+// @version       5.2.5
 // @namespace     http://yeti_c.co.uk/conquerClub
 // @description   Adds Stats, card counter, redemption value, text based map, map inspection tools
 // @match         *://*.conquerclub.com/*
