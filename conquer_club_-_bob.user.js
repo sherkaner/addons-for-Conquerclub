@@ -3208,7 +3208,7 @@ function showSnapshots() {
 	var snapshots = $("#snapshots");
 	if (myOptions.showSnapsOnTop) {
 		if (!snapshots.exists()) {
-			$('#dashboard tr:first').after("<tr><td id='snapshots' colspan=2></td></tr>");
+			$('#map-cell').parent().before("<tr><td id='snapshots' colspan=2></td></tr>");
 			snapshots = $("#snapshots");
 			snapshots.append("<div id='snapNormal'><button id='snapToChat'>take snapshot in chat</button>\
 <button id='normalSnap'>take snapshot</button>\
