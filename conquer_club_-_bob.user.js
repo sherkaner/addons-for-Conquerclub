@@ -1,5 +1,5 @@
 // Conquer Club - Card Counter, Card Redemption Value, Status Indicator
-var versionString = GM_info.script.version;
+var versionString = typeof GM_info != "undefined" ? GM_info.script.version: "5.2.5";
 // This monkey is now called:
 
 /////	 ////   /////
@@ -3270,7 +3270,7 @@ var gameSettings = (function() {
 		var options = {};
 		dashboard.find("dl > dt").each(function() {
 			var dt = $(this);
-			options[dt.html()] = dt.next().html();
+			options[dt.html()] = dt.next().text();
 		});
 		toReturn.fog = options["Special Gameplay"] && options["Special Gameplay"].indexOf("Fog") != -1;
 		//determine speed
