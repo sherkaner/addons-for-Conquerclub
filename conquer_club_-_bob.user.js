@@ -1,5 +1,5 @@
 // Conquer Club - Card Counter, Card Redemption Value, Status Indicator
-var versionString = typeof GM_info != "undefined" ? GM_info.script.version: "5.2.5";
+var versionString = typeof GM_info != "undefined" ? GM_info.script.version: "5.2.6";
 // This monkey is now called:
 
 /////	 ////   /////
@@ -27,7 +27,7 @@ var versionString = typeof GM_info != "undefined" ? GM_info.script.version: "5.2
 //-----------------------------------------------------------------------------
 // ==UserScript==
 // @name          Conquer Club - BOB
-// @version       5.2.5
+// @version       5.2.6
 // @namespace     http://yeti_c.co.uk/conquerClub
 // @description   Adds Stats, card counter, redemption value, text based map, map inspection tools
 // @match         *://*.conquerclub.com/*
@@ -3374,13 +3374,13 @@ var col1 = ["#000000", // Neutral has always been black in the logs
 "#FF9922", "#7F7F7F"];
 
 function getMap() {
-	var json = /map = (.+);/.exec($("#middleColumn script:last").html())[1];
+	var json = /map = (.+);/.exec($(".insidegame > script").html())[1];
 	return JSON.parse(json);
 }
 function getArmies() {
 	var json = $('#armies').html();
 	if (json.length == 0) {
-		json = /armies = (.+);/.exec($("#middleColumn script:last").html())[1];
+		json = /armies = (.+);/.exec($(".insidegame > script").html())[1];
 	}
 	return JSON.parse(json);
 }
