@@ -1,5 +1,5 @@
 // Conquer Club - Card Counter, Card Redemption Value, Status Indicator
-var versionString = typeof GM_info != "undefined" ? GM_info.script.version: "5.2.8";
+var versionString = typeof GM_info != "undefined" ? GM_info.script.version: "5.2.9";
 // This monkey is now called:
 
 /////	 ////   /////
@@ -27,7 +27,7 @@ var versionString = typeof GM_info != "undefined" ? GM_info.script.version: "5.2
 //-----------------------------------------------------------------------------
 // ==UserScript==
 // @name          Conquer Club - BOB
-// @version       5.2.8
+// @version       5.2.9
 // @namespace     http://yeti_c.co.uk/conquerClub
 // @description   Adds Stats, card counter, redemption value, text based map, map inspection tools
 // @match         *://*.conquerclub.com/*
@@ -3390,14 +3390,24 @@ var playerColors = [
 { normal:"#cd5c5c", log:"#cd5c5c"},
 { normal:"#688e23", log:"#688e23"}
 ];
+var config;
+function getConfigHTML() {
+	if (!config) {
+		var config = $(".insidegame > script").filter(function() {
+			return  $(this).html().indexOf("map = ") > -1;
+		}).html();
+	}
+	return config;
+}
 function getMap() {
-	var json = /map = (.+);/.exec($(".insidegame > script").html())[1];
+
+	var json = /map = (.+);/.exec(getConfigHTML())[1];
 	return JSON.parse(json);
 }
 function getArmies() {
 	var json = $('#armies').html();
 	if (json.length == 0) {
-		json = /armies = (.+);/.exec($(".insidegame > script").html())[1];
+		json = /armies = (.+);/.exec(getConfigHTML())[1];
 	}
 	return JSON.parse(json);
 }
