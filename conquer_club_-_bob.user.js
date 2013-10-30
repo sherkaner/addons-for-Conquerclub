@@ -1,5 +1,5 @@
 // Conquer Club - Card Counter, Card Redemption Value, Status Indicator
-var versionString = typeof GM_info != "undefined" ? GM_info.script.version: "5.2.7";
+var versionString = typeof GM_info != "undefined" ? GM_info.script.version: "5.2.8";
 // This monkey is now called:
 
 /////	 ////   /////
@@ -27,7 +27,7 @@ var versionString = typeof GM_info != "undefined" ? GM_info.script.version: "5.2
 //-----------------------------------------------------------------------------
 // ==UserScript==
 // @name          Conquer Club - BOB
-// @version       5.2.7
+// @version       5.2.8
 // @namespace     http://yeti_c.co.uk/conquerClub
 // @description   Adds Stats, card counter, redemption value, text based map, map inspection tools
 // @match         *://*.conquerclub.com/*
@@ -244,12 +244,13 @@ function Player(pid, name){
 		return (rem===0)?"*": ( rem == 1 ? "**" : "***") ;
 	};
 	this.continentsDisplay = function() {
-		var ret = "", index, continent, country
+		var ret = "", index, continent, country, pid = this.pid;
 		for (index = 0; index < this.continents.length; index++) {
 			continent = allContinents[this.continents[index]];
+			var bonus = $.grep(continent.owners, function(owner) { return owner.player == pid})[0].bonus;
 			ret += fillTemplate(continentTemplate, {
 				name: continent.name,
-				bonus: "(" + continent.bonus + ")",
+				bonus: "(" + bonus + ")",
 				title: continent.name,
 				clazz: "continent",
 				index: this.continents[index]
@@ -419,13 +420,14 @@ function displayContinent(continent) {
 		return result;
 	}
 	for (i = 0; i < continent.owners.length; i++) {
-		if (!continent.overriden[i]) {
+		var owner = continent.owners[i];
+		if (!owner.overriden) {
 			result += fillTemplate(continentTemplate, {
-				clazz: "continent pColor" + continent.owners[i],
+				clazz: "continent pColor" + owner.player,
 				title: continent.name,
 				name: continent.name,
-				bonus: '('+continent.bonus+')',
-				index: allContinents.indexOf(continent) 
+				bonus: '('+owner.bonus+')',
+				index: allContinents.indexOf(continent)
 			});
 		}
 	}
@@ -588,7 +590,7 @@ function showKillers() {
 
 function updatePlayerCards(){
 	// --- Get Player Card Counts ---
-	if (gameSettings.spoils != eBonusCards.NOCARDS) {
+	if (gameSettings.spoils != eBonusCards["NO SPOILS"]) {
 		var players = $('#players li[id^=player]');
 		players.each(function(index) {			
 			var cards = $(this).find('span[id*=player_cards]').html();
@@ -783,7 +785,6 @@ function toggleHideSigs(){
 	$('#menu_hidesigs b').html(myOptions.hidesigs);
 	hideSigs();
 }
-
 
 function showContOver() {
 	var on = myOptions.continent_overview == "On";
@@ -1477,7 +1478,7 @@ function getSetProbability(cards) {
 function getArmiesFromCardSet(cards) {
 	if (gameSettings.spoils == eBonusCards.ESCALATING) {
 		return getSetProbability(cards) * redemptionEscalating();
-	} else if (gameSettings.spoils == eBonusCards.FLATRATE) {
+	} else if (gameSettings.spoils == eBonusCards["FLAT RATE"]) {
 		if (cards < 3) {
 			return 0;
 		}
@@ -1634,6 +1635,10 @@ function getAmountOfPlayersPerTeam() {
 		return 4;
 	}
 	return 1;
+}
+
+function isLastOfTeam(index) {
+	return isTeamGame() && index != 0 && (index % getAmountOfPlayersPerTeam() == 0);
 }
 
 function updateStats() {
@@ -2125,7 +2130,7 @@ function createStats() {
 				pctCalcCountries = Math.round(team.calculatedTerritories*100/totalCountries);
                 toReturn += fillTemplate(template, {
                     trExtra: "class='team'",
-                    player:"Team " + index/gameSettings.type,
+                    player:"Team " + index/getAmountOfPlayersPerTeam(),
                     troops: team.armies + (extended?" ( " + pctArmies +"% )":""),
                     regions:team.territories + (gameSettings.fog?" / " + team.calculatedTerritories:"") + (extended?" (" + (gameSettings.fog?pctCalcCountries:pctCountries) +"%)":""),
                     strength:(+team.strength.toFixed(2)),
@@ -2161,9 +2166,6 @@ function createStats() {
 	}
 	toReturn+= "</table>";
 	return toReturn;
-}
-function isLastOfTeam(index) {
-	return isTeamGame() && index != 0 && (index % gameSettings.type == 0);
 }
 
 function analyseMap() {
@@ -2246,7 +2248,7 @@ function updateObjectives() {
 		for (i = 0; i < objective.continents.length; i++ ) {
 			var continent = allContinents[objective.continents[i]];
 			for (j = 0; j < continent.owners.length; j++) {
-				pids[continent.owners[j]]++;
+				pids[continent.owners[j].player]++;
 			}
 			obSummary += displayContinent(continent);
 		}
@@ -2284,7 +2286,7 @@ function updateObjectives() {
 	objectiveDiv.html(objSummary);
 }
 
-// a three phase function.
+// a three-phase function.
 // First loop through all the continents to see if who they are owned by.
 // Next loop through all the continents to see if any should be overriden.
 // Once we've decided whether or not a continent is overriden - then we can assign it to the player.
@@ -2294,7 +2296,6 @@ function updateContinents() {
 	for (index = 0; index < allContinents.length; index++) {
 		continent = allContinents[index];
 		continent.owners = [];
-		continent.overriden = [];
 
 		pids = [];
 		for (i = 0; i < allPlayers.length; i++) { // set up empty array for holding player counts of countries.
@@ -2308,7 +2309,7 @@ function updateContinents() {
 		for (i = 0; i < continent.subcontinents.length; i++ ) {
 			var subcontinent = allContinents[continent.subcontinents[i]];
 			for (var j = 0; j < subcontinent.owners.length; j++) {
-				pids[subcontinent.owners[j]]++;
+				pids[subcontinent.owners[j].player]++;
 			}
 		}
 		var leng = pids.length;
@@ -2317,8 +2318,21 @@ function updateContinents() {
 		}
 		for (i=1;i<leng;i++) { // 1 to start to avoid Neutral player
 			if (pids[i]>=continent.required) {
-				continent.owners.push(i);
-				continent.overriden.push(false);
+				var bonus = continent.bonus;
+				if (continent.bonuses && continent.bonuses.length > 1) {
+					for (var j = 0; j < continent.bonuses.length; j++) {
+						var bonusContinent = continent.bonuses[j];
+						if (bonusContinent.required <= pids[i]) {
+							bonus = bonusContinent.bonus;
+						}
+					}
+				}
+
+				continent.owners.push({
+					player:i,
+					overriden: false,
+					bonus: bonus
+				});
 			}
 		}
 	}
@@ -2328,32 +2342,27 @@ function updateContinents() {
 		continent = allContinents[index];
 		// if this continent is owned by anyone then we need to see if it's overriden.
 		if (continent.owners.length > 0) {
-			for (i = 0; i <allContinents.length; i++) {
-				var continent2 = allContinents[i];
-				// don't compare the same continents.
-				if (continent!=continent2) {
-					// loop through overrides for this continent.
-					for (var over = 0; over < continent2.overrides.length;over++) {
-						// found a match.
-						if (continent2.overrides[over]==index) {
-							for (owner = 0; owner < continent.owners.length; owner++) {
-								for (var owner2 = 0; owner2 < continent2.owners.length; owner2++) {
-									if (continent.owners[owner]==continent2.owners[owner2]) {
-										continent.overriden[owner]=true;
-									}
-								}
-							}
+			var overridingContinents = $.grep(allContinents, function(toTest) { 
+				return toTest != continent && toTest.overrides.indexOf(index) > -1;
+			});
+			for (i = 0; i <overridingContinents.length; i++) {
+				var continent2 = overridingContinents[i];
+				for (owner = 0; owner < continent.owners.length; owner++) {
+					for (var owner2 = 0; owner2 < continent2.owners.length; owner2++) {
+						if (continent.owners[owner].player == continent2.owners[owner2].player) {
+							continent.owners[owner].overriden=true;
 						}
 					}
 				}
 			}
 		}
-		// now we've established ownership and overriden ness we then need to assign the bonuses and owner ship to the players.
-		for (owner = 0; owner < continent.owners.length; owner++) {
-			var player = allPlayers[continent.owners[owner]];
-			if (!continent.overriden[owner]) {
+		// now we've established ownership and sorted overrides we then need to assign the bonuses and ownership to the players.
+		for (var ownerIndex = 0; ownerIndex < continent.owners.length; ownerIndex++) {
+			owner = continent.owners[ownerIndex];
+			var player = allPlayers[owner.player];
+			if (!owner.overriden) {
 				player.continents.push(index);
-				player.continentBonus += continent.bonus;
+				player.continentBonus += owner.bonus;
 			}
 		}
 	}
@@ -2415,10 +2424,10 @@ function createTextMap(extended) {
 			subcontinent = allContinents[continent.subcontinents[i]];
 			for (index = 0; index < subcontinent.owners.length; index++) {
 				if (extended) {
-					toReturn += '<span class="pColor' + subcontinent.owners[index] + '"><span class="continent" title="' + continent.subcontinents[i] + ".) " + subcontinent.name + '">' + subcontinent.name +' ('+subcontinent.bonus+')</span></span>';
+					toReturn += '<span class="pColor' + subcontinent.owners[index].player + '"><span class="continent" title="' + continent.subcontinents[i] + ".) " + subcontinent.name + '">' + subcontinent.name +' ('+subcontinent.owners[index].bonus+')</span></span>';
 				} else {
-					var txtMapSmallContOwner = 'class="pColor' + subcontinent.owners[index] +'"';
-					txtMapSmallHtml2 += '<span ' + txtMapSmallContOwner + '><span class="continent" title="' + continent.subcontinents[i] + ".) " + subcontinent.name + '">' + subcontinent.name + ' ('+subcontinent.bonus+')</span></span>&nbsp;';
+					var txtMapSmallContOwner = 'class="pColor' + subcontinent.owners[index].player +'"';
+					txtMapSmallHtml2 += '<span ' + txtMapSmallContOwner + '><span class="continent" title="' + continent.subcontinents[i] + ".) " + subcontinent.name + '">' + subcontinent.name + ' ('+subcontinent.owners[index].bonus+')</span></span>&nbsp;';
 				}
 			}
 			if (subcontinent.owners.length<1) {
@@ -2435,10 +2444,10 @@ function createTextMap(extended) {
 		for (index = 0; index < continent.owners.length; index++) {
 			if (!continent.overriden[index]) {
 				if (extended) {
-					toReturn += '<br><span class="pColor' + index + '"> BONUS for ' + allPlayers[continent.owners[index]].name + ' : ' + continent.bonus + ' </span>';
+					toReturn += '<br><span class="pColor' + index + '"> BONUS for ' + allPlayers[continent.owners[index].player].name + ' : ' + continent.owners[index].bonus + ' </span>';
 				} else {
-					txtMapSmallOwner = 'class="pColor' + continent.owners[index] +'"';
-					toReturn += '<tr><td><span ' + txtMapSmallOwner + '><b><span class="continent" title="' + continentName + ".) " + continent.name + '">' + continent.name + ' (' + continent.bonus + ')</span></b></span>&nbsp;&nbsp;</td><td> ' + txtMapSmallHtml2 + '</td></tr>';
+					txtMapSmallOwner = 'class="pColor' + continent.owners[index].player +'"';
+					toReturn += '<tr><td><span ' + txtMapSmallOwner + '><b><span class="continent" title="' + continentName + ".) " + continent.name + '">' + continent.name + ' (' + continent.owners[index].bonus + ')</span></b></span>&nbsp;&nbsp;</td><td> ' + txtMapSmallHtml2 + '</td></tr>';
 				}
 			}
 		}
@@ -2549,8 +2558,8 @@ function updateMagicMap(showProgress) {
 			// once for the stats
 			toAdd = $("#stats tr td:first-child").not('[class*=status]');
 			playerNumber = 1;
+			var amountOfPlayers = getAmountOfPlayersPerTeam();
 			toAdd.each(function() {
-				var amountOfPlayers = getAmountOfPlayersPerTeam();
 				$(this).hover(handler(playerNumber, amountOfPlayers), onMouseOutHover);
 				playerNumber += amountOfPlayers;
 			});
@@ -2558,7 +2567,6 @@ function updateMagicMap(showProgress) {
 			toAdd = $("#players li").not('[class*=status]'); // team
 			playerNumber = 1;
 			toAdd.each(function() {
-				var amountOfPlayers = getAmountOfPlayersPerTeam();
 				$(this).hover(handler(playerNumber, amountOfPlayers), onMouseOutHover);
 				playerNumber += amountOfPlayers;
 			});
@@ -2986,7 +2994,7 @@ function onSnapShot(loadName,id) {
 	updateBOB(true);
 }
 function redrawArmies(countryArray) {
-	var colorArray = "nrgbypcosadefhijklmqtuvwxyz",colourCode = isColourCodeOn(),i,country, quantity, base;
+	var colorArray = "nrgbypcosuemvadfhijklqtwxyz",colourCode = isColourCodeOn(),i,country, quantity, base;
 	for (i = 0; i < countryArray.length; i++) {
 		country = countryArray[i];
 		quantity = (country.quantity == -1?"?":country.quantity);
@@ -3458,7 +3466,7 @@ function gm_ConquerClubGame() {
 
 	$('<div id="mapinspect"></div>').insertAfter(dashboard);
 
-	if (gameSettings.spoils == eBonusCards.FLATRATE) {
+	if (gameSettings.spoils == eBonusCards["FLAT RATE"]) {
 		$('<div id="redemption"></div>').css("backgroundColor","#EEEEEE").html("<span><font color=red><b>Red:</b></font> 4 <font color=green><b>Green:</b></font> 6 <font color=blue><b>Blue:</b></font> 8 <b>Mixed:</b> 10</span>").insertAfter(dashboard);
 	}
 	showSnapshots();
