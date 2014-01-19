@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          Conquer Club - score charts revisited
-// @version       0.3
+// @version       0.4
 // @namespace     http://www.conquerclub.com
 // @description   Adds point graphs etc. to Conquer club
 // @include       http*://*conquerclub.com/*memberlist.php?mode=viewprofile*
@@ -46,7 +46,7 @@ function initGraphFromScreen() {
 	var player = {
 		username: $.trim(username),
 		gamesPlayed: /(\d+) completed, (\d+) \(/.exec($.trim(dds.eq(3).text()))[1],
-		currentScore: $.trim(dds.eq(2).text())
+		currentScore: parseInt($.trim(dds.eq(2).text()))
 	}
 	players.push(player);
 	getGamesInfo(player);
@@ -75,7 +75,7 @@ function getGamesInfo(player) {
 	var results = [];
 	var success = function(data) {
 		$(data).find('game').each(function() {
-			var that = $(this), playerIndex = that.find('player:contains(' +player.username + ')').index() + 1, gamenumber = $.trim(that.find('game_number').text());
+			var that = $(this), playerIndex = that.find('player:contains(' +player.username + ')').eq(0).index() + 1, gamenumber = $.trim(that.find('game_number').text());
 			that.find('event').each(function() {
 				var result =/(\d+) (loses|gains) (\d+) points/.exec(this.textContent || this.innerText);
 				if (result && result[1] == playerIndex){
